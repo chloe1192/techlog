@@ -1,0 +1,38 @@
+<header>
+    <div class="row">
+        <div class="col-4">
+            <span class="return-arrow">
+                <i class="bi bi-arrow-left"></i>
+            </span>
+            <div class="Title">{{ page_title }}</div>
+        </div>
+        <div class="col-8">
+            <div class="crew-notice-box box box-green">
+                Crew Notice (<span>1</span>)
+            </div>
+            <div class="crew-notice-box box box-green">
+                Limitations (<span>2</span>)
+            </div>
+            <a href="comapny/id/airframes/" class="airframe-info-box box box-green">
+                <div class="registration">{{ current_airframe.registration }}</div>
+                <div class="aircraft-type">{{ current_airframe.aircraft_type.icao_code }}</div>
+                <div class="airframe-fin-number">{{ current_airframe.msn }}</div>
+            </a>
+            <div class="sync-box box box-green">
+                <i class="bi bi-arrow-repeat"></i>
+                <span>Last Sync: {{ last_sync }}</span>
+            </div>
+            <div class="battery-box box box-green">
+                <i class="bi bi-battery"></i>
+                <span>100%</span>
+            </div>
+            <div class="connection-box box box-green">
+                <i class="bi bi-wifi"></i>
+                <span>Internet/Acars</span>
+            </div>
+            <div class="corrections-box box box-green">
+                Corrections (<span>0</span>)
+            </div>
+        </div>
+    </div>
+</header>

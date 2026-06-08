@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}Início - Site de Receitas{% endblock %}
+{% include "header.html" %}
+{% load static %}
+
+{% block content %}
+<div class="dashboard">
+
+    <div class="top-header">
+        <div class="aircraft-info">
+            <h1>Defects</h1>
+            <h2>{{ Airframe }}</h2>
+            <small>{{ Airframe.aircraft_type }}</small>
+        </div>
+
+        <div class="status-tile">Corrections</div>
+        <div class="status-tile">A/C Ops Limitations</div>
+        <div class="status-tile">{{ Airframe }}</div>
+        <div class="status-tile">Last 7 Days</div>
+        <div class="status-tile">Battery</div>
+    </div>
+
+    <div class="metro-grid">
+
+        <div class="metro-tile">
+            <h3>Flight Details</h3>
+            <div class="tile-icon">✈</div>
+        </div>
+
+        <div class="metro-tile">
+            <h3>Defects</h3>
+            <div class="tile-icon">⚙</div>
+        </div>
+
+        <div class="metro-tile">
+            <h3>Documents</h3>
+            <div class="tile-icon">📚</div>
+        </div>
+
+        <div class="metro-tile">
+            <h3>Forms</h3>
+            <div class="tile-icon">📋</div>
+        </div>
+
+        <div class="metro-tile">
+            <h3>Servicing</h3>
+            <div class="tile-icon">⏱</div>
+        </div>
+
+        <div class="metro-tile">
+            <h3>Planned Maint.</h3>
+            <div class="tile-icon">📅</div>
+        </div>
+
+        <div class="metro-tile">
+            <h3>Ice Protection</h3>
+            <div class="tile-icon">❄</div>
+        </div>
+
+        <div class="metro-tile alert">
+            <h3>Flight Sign Off</h3>
+            <div class="tile-icon">☑</div>
+        </div>
+
+    </div>
+
+</div>
+
+
+{% for airframe_fluid in Airframe_Fluids %}
+    <div>{{ airframe_fluid }} - {{ airframe_fluid.level}}</div>
+{% endfor %}
+
+{% for engine_fluid in Engine_Fluids %}
+    <div>{{ engine_fluid }} - {{ engine_fluid.level}}</div>
+{% endfor %}
+<br><br>
+<div>Defects</div>
+{% for techlog in Airframe_Defects %}
+    <div>{{ techlog.defect.title }} {{ techlog.defect.ata_1 }} - {{ techlog.defect.ata_2 }} - {{ techlog.defect.ata_3 }}<br><br>
+        <div>{{ techlog.defect.maint_note }}</div><br>
+        <div>{{ techlog.defect.operations }}</div>
+    </div>
+{% endfor %}
+
+{% endblock %}

@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+{% block title %}Início - Site de Receitas{% endblock %}
+{% include "header.html" %}
+{% load static %}
+
+{% block content %}
+
+<div class="dashboard flight-details">
+
+    <form method="post" class="row">
+        <div class="col-6">
+
+            <h1>Depart</h1>
+            <label>Departure Date</label>
+            <input type="date" name="departure_date" id="departure_date">
+
+            <label>Flight No</label>
+            <input type="text" name="flight_number" id="flight_number">
+
+            <label>Not Flown</label>
+            <input type="checkbox" name="not_flown" id="not_flown">
+
+            <label>Schdl</label>
+            <input type="text" name="departure_airport" id="departure_airport" disabled value="{{ last_flight.arrival.iata_code }}">
+            <input type="text" name="departure_airport" id="departure_airport" disabled value="{{ last_flight.arrival.icao_code }}">
+            <input type="text" name="departure_airport" id="departure_airport" disabled value="{{ last_flight.arrival.name }}">
+
+            <a href="takeoff_delays/">
+                <div class="flight-details-box selection-box box-gray">
+                    <span>Take Off / Delays</span>
+                    <i class="bi bi-airplane selection-box-icon"></i>
+                    <span class="date-of-flight selection-box-bottom-text">Delay (0 mins recorded)</span>
+                </div>
+            </a>
+            <label>Off blocks</label>
+            <input type="time" name="off_blocks" id="off_blocks">
+            <label>Airborne</label>
+            <input type="time" name="off_ground" id="off_ground">
+            <div class="row">
+
+                <div class="col-4">
+                    <a href="defects/">
+                        <div class="flight-details-box rectangular-selection-box box-gray">
+                            <i class="bi bi-gear selection-box-icon"></i>
+                            <span>Defects</span>
+                            <span class="date-of-flight selection-box-bottom-text">(0 mins recorded)</span>
+                        </div>
+                    </a>
+
+                    <a href="defects/">
+                        <div class="flight-details-box rectangular-selection-box box-gray">
+                            <input type="checkbox">
+                            <span>Nil Further Defects</span>
+                        </div>
+                    </a>
+                </div>
+
+                <div class="col-4">
+                    <a href="#">
+                        <div class="flight-details-box small-selection-box box-green">
+                            <i class="bi bi-person-check selection-box-icon"></i>
+                            <span>Cabin</span>
+                            <span class="cabin-defects selection-box-bottom-text">(0)</span>
+                        </div>
+                    </a>
+
+                    <a href="defects/">
+                        <div class="flight-details-box small-selection-box box-blue">
+                            <i class="bi bi-calendar-check selection-box-icon"></i>
+                            <span>C/Fwd</span>
+                            <span class="carry-foward-defects selection-box-bottom-text">({{carry_fwd_defects_count}})</span>
+                        </div>
+                    </a>
+                
+                    <a href="defects/">
+                        <div class="flight-details-box rectangular-selection-box box-green">
+                            <input type="checkbox">
+                            <span>Remote Ice Protect</span>
+                        </div>
+                    </a>
+
+                </div>
+
+                <div class="col-4">
+
+                    <a href="defects/">
+                        <div class="flight-details-box selection-box box-amber">
+                            <span>Extra Flight Info</span>
+                            <i class="bi bi-info selection-box-icon"></i>
+                            <span class="date-of-flight selection-box-bottom-text">Total 2, Incomplete 0</span>
+                        </div>
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="col-6">
+
+            <h1>Arrive</h1>
+            <label>Departure Date</label>
+            <input type="date" name="departure_date" id="departure_date">
+
+            <label>Flight No</label>
+            <input type="text" name="flight_number" id="flight_number">
+
+            <label>Not Flown</label>
+            <input type="checkbox" name="not_flown" id="not_flown">
+
+            <label>Schdl</label>
+            <input type="text" name="departure_airport" id="departure_airport" disabled>
+
+        </div>
+
+    </form>
+</div>
+
+<script>
+    function setOperator(operator_id){
+        sessionStorage.setItem(
+            'current_operator',
+            operator_id
+        );
+    }
+</script>
+
+{% endblock %}

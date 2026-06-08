@@ -1,0 +1,215 @@
+body {
+    background-color: #140638;
+    color: white;
+    max-width: 100%;
+    display: block;
+    overflow-x: hidden;
+}
+
+a {
+    all: unset;
+}
+
+input {
+    border-radius: 0px;
+    border: none;
+}
+
+header .box {
+    display: block;
+    float: left;
+    margin: 10px 5px;
+    height: 50px;
+    width: 150px;
+}
+
+header .airframe-info-box {
+    height: 100px;
+    width: 300px;
+}
+
+header .airframe-info-box * {
+    display: block;
+    float: left;
+    font-size: 16px;
+    padding: 5px 15px;
+    width: 50%;
+}
+
+header .airframe-info-box .registration {
+    display: block;
+    font-size: 36px;
+    width: 100%;
+}
+
+.footer {
+    text-align: right;
+    padding: 5px 15px;
+}
+
+.dashboard {
+    padding: 15px;
+}
+
+.box {
+    border-style: solid;
+    border-width: 1px;
+}
+
+.box-green {
+    border-color: #38af0d;
+}
+
+.box-amber {
+    border-color: #eab20a;;
+}
+
+.box-blue {
+    border-color: #467ce3;
+}
+
+.box-red {
+    border-color: #f22;
+}
+
+.box-gray {
+    border-color: gray;
+}
+
+.return-arrow {
+    border: 1px solid #fff;
+    border-radius: 20px;
+}
+
+.selection-box {
+    padding: 5px;
+    border-style: solid;
+    border-width: 2px;
+    height: 180px;
+    margin-top: 20px;
+    width: 250px;
+}
+
+.selection-box i {
+    font-size: 80px;
+    display: block;
+    width: 100%;
+    text-align: center;
+}
+
+.small-selection-box {
+    padding: 5px;
+    border-style: solid;
+    border-width: 2px;
+    height: 100px;
+    margin-top: 20px;
+    width: 100px;
+    float: left;
+    margin-right: 5px;
+}
+
+.small-selection-box i {
+    font-size: 42px;
+    display: block;
+    width: 100%;
+    text-align: center;
+}
+
+
+.rectangular-selection-box {
+    padding: 5px;
+    border-style: solid;
+    border-width: 2px;
+    height: 80px;
+    margin-top: 20px;
+    width: 250px;
+    float: left;
+}
+
+.rectangular-selection-box i {
+    font-size: 36px;
+}
+
+.defects-box {
+    display: block;
+    float: left;
+    padding: 0 15px;
+    width: 100%;
+    height: 260px;
+}
+
+.defects-box > * {
+    float: left;
+    display: block;
+}
+
+.defects-box .defect-title-box {
+    margin-top: 15px;
+    padding: 5px 10px;
+    height: 80px;
+    width: 100%;
+}
+
+.defects-box .info {
+    float: left;
+    height: 25px;
+    width: 50%;
+}
+
+.defects-box .date-info {
+}
+.defects-box .airframe-info {
+    float: left;
+    text-align: right;
+    width: 50%;
+}
+
+.de
+
+.color-filled-box.box-green {
+    background-color: #38af0d;
+}
+
+.color-filled-box.box-amber {
+    background-color: #eab20a;;
+}
+
+.color-filled-box.box-blue {
+    background-color: #467ce3;
+}
+
+.color-filled-box.box-red {
+    background-color: #f22;
+}
+.color-filled-box.box-red .darker-background {
+    background-color: rgb(155, 35, 35);
+}
+
+.color-filled-box.box-gray {
+    background-color: gray;
+}
+
+.oil-page-box {
+    min-height: 280px;
+}
+
+.oil-page-box h1 {
+    font-size: 20px;
+}
+
+.oil-page-box span {
+    font-size: 16px;
+}
+
+.oil-page-box .oil-page-box-row {
+    width: 100%;
+    display: block;
+    float: left;
+    margin-bottom: 15px;
+}
+
+.oil-page-box .oil-page-box-item {
+    width: 50%;
+    display: block;
+    float: left;
+}

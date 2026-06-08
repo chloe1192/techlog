@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Início - Site de Receitas{% endblock %}
+{% include "header.html" %}
+{% load static %}
+
+{% block content %}
+
+<div class="dashboard">
+
+    <div class="row">
+
+        <div class="col-3">
+            {% for operator in operators %}
+            <div>
+                <a href="operator/{{ operator.id }}"">{{ operator.name }}</a>
+            </div>
+            {% endfor %}
+
+        </div>
+    </div>
+</div>
+
+{% endblock %}
