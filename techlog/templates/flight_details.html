@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Início - Site de Receitas{% endblock %}
+{% block title %}Techlog - {{ page_title }}{% endblock %}
 {% include "header.html" %}
 {% load static %}
 
@@ -8,6 +8,7 @@
 <div class="dashboard flight-details">
 
     <form method="post" class="row">
+        {% csrf_token %}
         <div class="col-6">
 
             <h1>Depart</h1>
@@ -15,15 +16,16 @@
             <input type="date" name="departure_date" id="departure_date">
 
             <label>Flight No</label>
-            <input type="text" name="flight_number" id="flight_number">
+            <input type="text" name="flight_number" id="flight_number" value="{{ current_operator.iata_code }}">
 
             <label>Not Flown</label>
             <input type="checkbox" name="not_flown" id="not_flown">
 
             <label>Schdl</label>
-            <input type="text" name="departure_airport" id="departure_airport" disabled value="{{ last_flight.arrival.iata_code }}">
-            <input type="text" name="departure_airport" id="departure_airport" disabled value="{{ last_flight.arrival.icao_code }}">
-            <input type="text" name="departure_airport" id="departure_airport" disabled value="{{ last_flight.arrival.name }}">
+            <input type="hidden" name="departure_airport" value="{{last_flight.arrival.id}}">
+            <input type="text" name="departure_airport_iata" id="departure_airport_iata" disabled value="{{ last_flight.arrival.iata_code }}">
+            <input type="text" name="departure_airport_icao" id="departure_airport_icao" disabled value="{{ last_flight.arrival.icao_code }}">
+            <input type="text" name="departure_airport_name" id="departure_airport_name" disabled value="{{ last_flight.arrival.name }}">
 
             <a href="takeoff_delays/">
                 <div class="flight-details-box selection-box box-gray">
@@ -100,8 +102,14 @@
         <div class="col-6">
 
             <h1>Arrive</h1>
-            <label>Departure Date</label>
-            <input type="date" name="departure_date" id="departure_date">
+            <label>Arrival Date</label>
+            <input type="date" name="arrival_date" id="arrival_date">
+            
+            <label>Schdl</label>
+            <input name="arrival_airport" value="{{last_flight.arrival.id}}">
+            <input type="text" name="arrival_airport_iata" id="arrival_airport_iata" value="{{ last_flight.arrival.iata_code }}">
+            <input type="text" name="arrival_airport_icao" id="arrival_airport_icao" value="{{ last_flight.arrival.icao_code }}">
+            <input type="text" name="arrival_airport_name" id="arrival_airport_name" value="{{ last_flight.arrival.name }}">
 
             <label>Flight No</label>
             <input type="text" name="flight_number" id="flight_number">
@@ -109,11 +117,11 @@
             <label>Not Flown</label>
             <input type="checkbox" name="not_flown" id="not_flown">
 
-            <label>Schdl</label>
-            <input type="text" name="departure_airport" id="departure_airport" disabled>
 
         </div>
-
+        <div class="bg-red">
+            <input type="submit" placeholder="INIT FLIGHT TEST">
+        </div>
     </form>
 </div>
 

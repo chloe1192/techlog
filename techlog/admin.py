@@ -5,10 +5,10 @@ class ConpanyAdmin(admin.ModelAdmin):
     list_display = ['name', 'created_at', 'updated_at']
 
 class EngineFluidsAdmin(admin.ModelAdmin):
-    list_display = ['item', 'level', 'created_at', 'updated_at']
+    list_display = ['item', 'level', 'fluid_type', 'updated_at']
 
 class AirframeFluidAdmin(admin.ModelAdmin):
-    list_display = ['item', 'level', 'created_at', 'updated_at']
+    list_display = ['item', 'level', 'fluid_type', 'updated_at']
 
 class AocAdmin(admin.ModelAdmin):
     list_display = ['name', 'company', 'created_at', 'updated_at']

@@ -11,6 +11,13 @@ class UnitsOfMeasureVolume(models.IntegerChoices):
     QTS = 1, "Quarts"
     PCT = 2, "Percentage"
     GAL = 3, "Gallons"
+    KG = 4, "Kilograms"
+
+class FuelPenaltyTypes(models.IntegerChoices):
+    NO = 0, "No Penalty"
+    PCT = 1, "Percentage"
+    KG = 2, "Kilograms"
+    LBS = 3, "Pounds"
 
 class Company(models.Model):
     name = models.CharField(max_length=200)
@@ -46,16 +53,15 @@ class Defect(models.Model):
     aicraft_type = models.ForeignKey(AircraftType, on_delete=models.RESTRICT)
     ata_chapter = models.IntegerField()
     ata_section = models.IntegerField()
-    ata_item = models.IntegerField()
-    ata_item_letter = models.CharField(max_length=1)
+    ata_item = models.CharField(max_length=6)
     interval = models.CharField(max_length=1)
     installed = models.IntegerField()
     required = models.IntegerField()
-    procedure = models.CharField(max_length=1)
-    maint_note = models.TextField()
-    operations = models.TextField()
-    fuel_penalty = models.DecimalField(max_digits=10, decimal_places=2)
-    fuel_penalty_type = models.BooleanField()
+    procedure = models.CharField(max_length=1, blank=True, null=True)
+    maint_note = models.TextField(blank=True, null=True)
+    operations = models.TextField(blank=True, null=True)
+    fuel_penalty = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    fuel_penalty_type = models.IntegerField(choices=FuelPenaltyTypes,default=FuelPenaltyTypes.NO)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -130,6 +136,10 @@ class EngineFluids(models.Model):
 class AirframeDefect(models.Model):
     airframe = models.ForeignKey(Airframe, on_delete=models.RESTRICT)
     defect = models.ForeignKey(Defect, on_delete=models.RESTRICT)
+    is_pilot_report = models.BooleanField(default=1)
+    is_cabin_log = models.BooleanField(default=0)
+    ecam_message = models.CharField(blank=True, null=True)
+    defect_text = models.TextField(blank=True, null=True)
     action = models.IntegerField(max_length=2, default=0) # 0 open, 1 clodes, 2 carry fwd
     action_desc = models.TextField(blank=True, null=True)
     action_time = models.DateTimeField(blank=True, null=True)
@@ -214,6 +224,8 @@ class Flight(models.Model):
     off_ground = models.DateTimeField(blank=True, null=True)
     on_ground = models.DateTimeField(blank=True, null=True)
     on_blocks = models.DateTimeField(blank=True, null=True)
+    required_fuel_in_kg = models.IntegerField(blank=True, null=True)
+    block_fuel_in_kg = models.IntegerField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

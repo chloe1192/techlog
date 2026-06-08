@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}{{ page_title }}{% endblock %}
+{% block title %}Techlog - {{ page_title }}{{ page_title }}{% endblock %}
 {% include "header.html" %}
 
 {% block content %}
@@ -8,7 +8,7 @@
     <div class="row">
 
         <div class="col-3">
-            <a href="{% url 'flight_oil_levels' airframe.id %}">
+            <a href="{% url 'flight_fuel_levels' airframe.id %}">
                 <div class="fuel-box selection-box box-green">
                     <span>Fuel</span>
                     <i class="bi bi-fuel-pump-fill selection-box-icon"></i>
@@ -26,20 +26,21 @@
         </div>
         
         <div class="col-3">
-            <div class="hyd-box selection-box box-green">
-                <span>Hydraulic Fluid</span>
-                <i class="bi bi-airplane-fill selection-box-icon"></i>
-                <span class="documents-number selection-box-bottom-text">2 Documents</span>
-            </div>
+            <a href="{% url 'flight_hydraulic_levels' airframe.id %}">
+                <div class="hyd-box selection-box box-green">
+                    <span>Hydraulic Fluid</span>
+                    <i class="bi bi-airplane-fill selection-box-icon"></i>
+                </div>
+            </a>
         </div>
 
         <div class="col-3">
-            <div class="flight-details-box selection-box box-green">
-                <span>Water/Waste</span>
-                <i class="bi bi-droplet-fill selection-box-icon"></i>
-                <span class="total-forms selection-box-bottom-text">Total 1,</span>
-                <span class="incomplete-forms selection-box-bottom-text">Incomplete 0</span>
-            </div>
+            <a href="{% url 'flight_water_levels' airframe.id %}">
+                <div class="flight-details-box selection-box box-green">
+                    <span>Water/Waste</span>
+                    <i class="bi bi-droplet-fill selection-box-icon"></i>
+                </div>
+            </a>
         </div>
 
     </div>
