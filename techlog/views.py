@@ -1,10 +1,11 @@
+from datetime import datetime
 from itertools import chain
 
-from .models import Airframe, AirframeDefect, AircraftType, EngineModel, EngineFluids, Company, Defect, Aoc, AirframeFluid, Flight, Airport
+from .models import Action, Airframe, AirframeDefect, AircraftType, AirframeEngine, EngineModel, EngineFluids, Company, Defect, Operator, AirframeFluid, Flight, Airport
 from django.shortcuts import get_object_or_404, redirect, render
 
 def index(request):
-    operators = Aoc.objects.all()
+    operators = Operator.objects.all()
     context = {
         'operators': operators,
     }
@@ -15,22 +16,21 @@ def airframe_index(request, airframe_id):
     page_title = "Main Menu"
     airframe = get_object_or_404(Airframe, id=airframe_id)
     airframe_defects = AirframeDefect.objects.filter(airframe=airframe)
-    engine_model = airframe.engine_model
     engine_fluids = EngineFluids.objects.filter(airframe_engine=airframe_id)
     airframe_fluids = AirframeFluid.objects.filter(airframe=airframe)
+    defect_actions = Action.objects.filter(airframe_defect__airframe=airframe_id)
     open_defects_count = 0
     closed_defects_count = 0
     carry_fwd_defects_count = 0
     current_flight = Flight.objects.filter(airframe=airframe_id).order_by("-created_at").first()
     return_url = request.META.get("HTTP_REFERER")
 
-    for defect in airframe_defects:
-        print(defect.action)
-        if defect.action == 0:
+    for defect in defect_actions:
+        if defect.status == 0:
             open_defects_count = open_defects_count + 1
-        if defect.action == 1:
+        if defect.status == 1:
             closed_defects_count = closed_defects_count + 1
-        if defect.action == 2:
+        if defect.status == 2:
             carry_fwd_defects_count = carry_fwd_defects_count + 1
 
     context = {
@@ -47,10 +47,10 @@ def airframe_index(request, airframe_id):
     }
     return render(request, 'airframe_index.html', context)
 
-def operator_index(request, id):
+def operator_index(request, id=0):
     request.session['current_operator_id'] = id
     page_title = "Operator Selection"
-    airframes = Airframe.objects.filter(aoc=id)
+    airframes = Airframe.objects.filter(operator=id)
     return_url = request.META.get("HTTP_REFERER")
 
     context = {
@@ -64,19 +64,19 @@ def flight_details(request, id):
     page_title = "Flight Details"
     last_flight = Flight.objects.filter(airframe=id).order_by("-created_at").first()
     airframe_defects = AirframeDefect.objects.filter(airframe=id)
+    defect_actions = Action.objects.filter(airframe_defect__airframe=id)
     airports = Airport.objects.all()
     open_defects_count = 0
     closed_defects_count = 0
     carry_fwd_defects_count = 0
     return_url = request.META.get("HTTP_REFERER")
 
-    for defect in airframe_defects:
-        print(defect.action)
-        if defect.action == 0:
+    for defect in defect_actions:
+        if defect.status == 0:
             open_defects_count = open_defects_count + 1
-        if defect.action == 1:
+        if defect.status == 1:
             closed_defects_count = closed_defects_count + 1
-        if defect.action == 2:
+        if defect.status == 2:
             carry_fwd_defects_count = carry_fwd_defects_count + 1
 
     context = {
@@ -91,6 +91,51 @@ def flight_details(request, id):
     if request.method == "POST":
         print(request.POST)
     return render(request, 'flight_details.html', context)
+
+def defects(request, id):
+    airframe = get_object_or_404(Airframe, id=id)
+    airframe_defects = AirframeDefect.objects.filter(airframe=airframe)    
+    defect_actions = Action.objects.filter(airframe_defect__airframe=airframe)
+    open_defects_count = 0
+    closed_defects_count = 0
+    carry_fwd_defects_count = 0
+    carry_fwd_action_overdue = 0
+
+    print("datetime.now()" + datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+    for defect in defect_actions:
+        if defect.status == 0:
+            open_defects_count = open_defects_count + 1
+        if defect.status == 1:
+            closed_defects_count = closed_defects_count + 1
+        if defect.status == 2:
+            carry_fwd_defects_count = carry_fwd_defects_count + 1
+            print("defect.due_at" + defect.due_at.strftime("%Y-%m-%d %H:%M:%S"))
+            if defect.due_at < datetime.now():
+                carry_fwd_action_overdue = carry_fwd_action_overdue + 1
+    
+    context = {
+        'airframe': airframe,
+        'airframe_defects': airframe_defects,
+        'defect_actions': defect_actions,
+        'open_defects_count': open_defects_count,
+        'closed_defects_count': closed_defects_count,
+        'carry_fwd_defects_count': carry_fwd_defects_count,
+        'carry_fwd_action_overdue': carry_fwd_action_overdue,
+        
+    }
+    return render(request, 'defects/index.html', context)
+
+def this_flight_defects(request, id):
+    airframe = get_object_or_404(Airframe, id=id)
+    airframe_defects = AirframeDefect.objects.filter(airframe=airframe)
+    defect_actions = Action.objects.filter(airframe_defect__airframe=airframe)
+    print(airframe_defects)
+    context = {
+        'airframe': airframe,
+        'airframe_defects': airframe_defects,
+        'defect_actions': defect_actions,
+    }
+    return render(request, 'defects/this_flight.html', context)
 
 def flight_defects(request, id):
     airframe = get_object_or_404(Airframe, id=id)
@@ -173,7 +218,7 @@ def planned_maintenance(request):
     }
     return render(request, 'planned_maintenance.html', context)
 
-def flight_sign_off(request):
+def flight_sign_off(request, id):
     context = {
         
     }

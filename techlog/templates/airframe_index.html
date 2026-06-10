@@ -20,7 +20,7 @@
         </div>
 
         <div class="col-3">
-            <a href="{% url 'flight_defects' airframe.id %}">
+            <a href="{% url 'defects' airframe.id %}">
                 <div class="flight-details-box selection-box {% if open_defects_count > 0 %}box-red{% else %}box-green{% endif %}">
                     <span>Defects</span>
                     <i class="bi bi-gear selection-box-icon"></i>
@@ -82,31 +82,16 @@
         </div>
 
         <div class="col-3">
-            <div class="flight-details-box selection-box box-red">
-                <span>Flight Sign Off</span>
-                <i class="bi bi-check-all selection-box-icon"></i>
-            </div>
+            <a href="{% url 'flight_sign_off' airframe.id %}">
+                <div class="flight-details-box selection-box box-red">
+                    <span>Flight Sign Off</span>
+                    <i class="bi bi-check-all selection-box-icon"></i>
+                </div>
+            </a>
         </div>
 
     </div>
 
 </div>
-<!-- 
-
-{% for airframe_fluid in Airframe_Fluids %}
-    <div>{{ airframe_fluid }} - {{ airframe_fluid.level}}</div>
-{% endfor %}
-
-{% for engine_fluid in Engine_Fluids %}
-    <div>{{ engine_fluid }} - {{ engine_fluid.level}}</div>
-{% endfor %}
-<br><br>
-<div>Defects</div>
-{% for techlog in Airframe_Defects %}
-    <div>{{ techlog.defect.title }} {{ techlog.defect.ata_1 }} - {{ techlog.defect.ata_2 }} - {{ techlog.defect.ata_3 }}<br><br>
-        <div>{{ techlog.defect.maint_note }}</div><br>
-        <div>{{ techlog.defect.operations }}</div>
-    </div>
-{% endfor %} -->
 
 {% endblock %}

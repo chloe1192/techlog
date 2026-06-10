@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% block title %}Techlog - {{ page_title }}{% endblock %}
+{% include "header.html" %}
+{% load static %}
+
+{% block content %}
+
+<div class="dashboard flight-details">
+
+    <form method="post" class="row">
+        {% csrf_token %}
+        <!-- if form_sent == true -> inputs blue bg -->
+        <div class="col-6 form-half form-not-sent">
+
+            <h1 class="form-half-title">Maintenance Release</h1>
+
+            <div class="form-field form-date-time-field form-field-100">
+                <input class="form-label form-item-50" type="date" name="maint_rels_date" id="maint_rels_date">
+                <i class="bi bi-clock" onclick="setTimeNow()"></i>
+                <input type="time" name="maint_rels_time" id="maint_rels_time">
+                <span class="form-text">Certifies that the work specified, except as otherwise specified, was carried out in accordance with Part-145 and in respect to thatwork the aircraft is considered ready for release to service</span>
+            </div>
+
+            <div class="form-field form-select-field form-field-100">
+                <label class="form-label form-item-100">Conduce Engineering</label>
+                <select class="form-label form-item-30" name="part_145_eng">
+                    <option>IT.145.001</option>
+                    <option>BR.145.001</option>
+                    <option>US.145.001</option>
+                    <option>JP.145.001</option>
+                </select>
+            </div>
+
+            <div class="form-field form-field-button-group form-field-right form-field-70">
+                <!-- if hours = less than defined -> amber, else if = passed -> red -->
+                <a href="#" class="button rectangular-button rectangular-button-no-icon box-green">
+                    <h2 class="button-title rectangular-button-title">Daily</h2>
+                    <span class="date-time full-date">13-Dec-25 02:00</span>                    
+                    <span class="date-time time-remaining">datetime.selected - datetime.now</span>
+                </a>
+                <!-- if hours = less than defined -> amber, else if = passed -> red -->
+                <a href="#" class="button rectangular-button rectangular-button-no-icon box-green">
+                    <h2 class="button-title rectangular-button-title">Weekly</h2>
+                    <span class="date-time full-date">13-Dec-25 02:00</span>                    
+                    <span class="date-time time-remaining">datetime.selected - datetime.now</span>
+                </a>
+            </div>
+
+            <div class="form-field form-field-button-group form-field-left form-field-30">
+
+                <a href="#" class="button rectangular-button rectangular-button-icon-left  box-green">
+                    <i class="bi bi-settings"></i>
+                    <h2 class="button-title rectangular-button-title">Defects Actioned (2)</h2>
+                </a>
+
+                <a href="#" class="button small-button small-button-icon-top  box-green">
+                    <i class="bi bi-settings"></i>
+                    <h2 class="button-title rectangular-button-title">Forms 0/2</h2>
+                </a>
+
+                <a href="#" class="button small-button small-button-icon-top  box-green">
+                    <i class="bi bi-settings"></i>
+                    <h2 class="button-title rectangular-button-title">Planned Mx</h2>
+                </a>
+
+            </div>
+
+            <div class="form-field form-sign-box">
+                <!-- mock up rels code should come form db user code defined in settings -->
+                <input hidden name="maint_rels_code">
+                <input type="text" name="maint_rels_auth_id" id="maint_rels_auth_id">
+                <input type="submit" name="maint_rels_auth_sign" id="maint_rels_auth_sign">
+            </div>
+
+        </div>
+
+    </form>
+</div>
+
+<script>
+    function setTimeNow() {
+        const time_field = document.getElementById("maint_rels_time");
+        const now = new Date();
+        const hh = String(now.getHours()).padStart(2, "0");
+        const mm = String(now.getMinutes()).padStart(2, "0");
+
+        const time = `${hh}:${mm}`;
+
+        time_field.value = time;
+    }
+
+    function releaseFromMaint(event) {
+        event.preventDefault();
+
+        const form = event.target.closest("form") || document.querySelector("form");
+        const formData = new FormData(form);
+
+        const data = {};
+        formData.forEach((value, key) => {
+            data[key] = value;
+        });
+
+        console.log("Form Data:", data);
+        console.log("maint_rels_date:", data.maint_rels_date);
+        console.log("maint_rels_time:", data.maint_rels_time);
+        console.log("part_145_eng:", data.part_145_eng);
+        console.log("maint_rels_auth_id:", data.maint_rels_auth_id);
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        const form = document.querySelector("form");
+
+        form.querySelectorAll("input, select, textarea").forEach(el => {
+            el.addEventListener("input", releaseFromMaint);
+            el.addEventListener("change", releaseFromMaint);
+        });
+    });
+</script>
+
+{% endblock %}

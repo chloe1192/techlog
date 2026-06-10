@@ -15,11 +15,13 @@
             <div class="crew-notice-box box box-green">
                 Limitations (<span>2</span>)
             </div>
+            {% if current_operator.id %}
             <a href="{% url 'operator_index' current_operator.id %}" class="airframe-info-box box box-green">
                 <div class="registration">{{ current_airframe.registration }}</div>
                 <div class="aircraft-type">{{ current_airframe.aircraft_type.icao_code }}</div>
-                <div class="airframe-fin-number">{{ current_airframe.msn }}</div>
+                <div class="airframe-fin-number"> - MSN {{ current_airframe.msn }}</div>
             </a>
+            {% endif %}
             <div class="sync-box box box-green">
                 <i class="bi bi-arrow-repeat"></i>
                 <span>Last Sync: {{ last_sync }}</span>

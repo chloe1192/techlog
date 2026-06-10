@@ -253,6 +253,7 @@ __pycache__/
 # =========================
 techlog/management/__pycache__/
 techlog/management/*.pyc
+techlog/management/commands/
 
 # =========================
 # Logs

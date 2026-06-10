@@ -1,10 +1,11 @@
-from .models import Airframe, Company, Aoc
+from .models import Airframe, Company, Operator
 from django.shortcuts import get_object_or_404
 
 
 def airframe_processor(request):
+    print(request.session)
     current_company = Company.objects.filter(id=request.session.get('current_company_id')).last
-    current_operator = Aoc.objects.filter(id=request.session.get('current_operator_id')).last
+    current_operator = Operator.objects.filter(id=request.session.get('current_operator_id')).last
     current_airframe = Airframe.objects.filter(id=request.session.get('current_airframe_id')).last
     return {
         'current_operator': current_company,

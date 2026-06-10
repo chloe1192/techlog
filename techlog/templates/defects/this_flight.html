@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Techlog - {{ page_title }}Techlog{% endblock %}
+{% include "header.html" %}
+{% load static %}
+
+{% block content %}
+<div class="dashboard">
+
+    <div class="breadcrumb">
+        <a href="{% url 'flight_defects_create' current_airframe.id %}">
+            <i class="bi bi-plus"></i>
+        </a>
+    </div>
+
+    <div class="row">
+
+        {% for defect in airframe_defects %}
+        <div class="col-3">
+            <a class="defects-box color-filled-box 
+                {% if defect.action == 0 %}
+                    box-red
+                {% elif defect.action == 1 %}
+                    box-green
+                {% elif defect.action == 2 %}
+                    box-blue
+                {% endif %}
+                 selection-box w-100">
+                <span class="w-50 info info-left date-info">{{defect.noticed_at|date:"y - M - d H:i"}}</span>
+                <span class="w-50 info info-right airframe-info">{{defect.airframe}}{{defect.airframe.msn}}-{{defect.id|stringformat:"05d"}}</span>
+                <div class="defect-title-box darker-background">
+                    {{ defect.defect.title}}
+                </div>
+                <span class="w-50 info info-left action-info">{{defect.action_time|date:"y - M - d H:i"}}</span>
+                <span class="w-50 info info-right airframe-info">{{defect.airframe}}{{defect.airframe.msn}}-{{defect.id|stringformat:"05d"}}</span>
+                <div class="defect-title-box defect-action-box darker-background">
+                    {% for action in defect_actions %}
+                        {{ action.desc}}
+                    {% endfor %}
+                </div>
+            </a>
+        </div>
+        {% endfor %}
+
+    </div>
+
+</div>
+{% endblock %}

@@ -19,6 +19,25 @@ class FuelPenaltyTypes(models.IntegerChoices):
     KG = 2, "Kilograms"
     LBS = 3, "Pounds"
 
+class ActionTypes(models.IntegerChoices):
+    OPEN = 0, "Open",
+    CLOSED = 1, "Closed",
+    CFWD = 2, "Carry Foward"
+
+class DefectApplicability(models.IntegerChoices):
+    FAMILY = 0, "Family"
+    TYPE = 1, "Type"
+    ENGINE = 2, "Engine"
+
+class DeferCategory(models.IntegerChoices):
+    NA = 0, "Non Airworthiness"
+    DML = 1, "DML"
+    CDL = 2, "CDL"
+    MEL_D = 3, "MEL CAT D - 120 Days"
+    MEL_C = 4, "MEL CAT C - 10 Days"
+    MEL_B = 5, "MEL CAT B - 3 Days"
+    MEL_A = 6, "MEL CAT A - 120 Days"
+
 class Company(models.Model):
     name = models.CharField(max_length=200)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -27,8 +46,7 @@ class Company(models.Model):
     def __str__(self):
         return self.name
     
-
-class Aoc(models.Model):
+class Operator(models.Model):
     name = models.CharField(max_length=200)
     iata_code = models.CharField(max_length=2, blank=True)
     icao_code = models.CharField(max_length=3, blank=True)
@@ -38,10 +56,25 @@ class Aoc(models.Model):
 
     def __str__(self):
         return self.icao_code
+
+class AircraftFamily(models.Model):
+    name = models.CharField(max_length=30)
+    manufacturer = models.CharField(max_length=30)
+
+    def __str__(self):
+        return self.name
  
 class AircraftType(models.Model):
     name = models.CharField(max_length=200)
+    aircraft_family = models.ForeignKey(AircraftFamily, on_delete=models.RESTRICT)
     icao_code = models.CharField(max_length=4, blank=True)
+    manufacturer_empty_weight = models.IntegerField()
+    basic_empty_weight = models.IntegerField()
+    operating_empty_weight = models.IntegerField()
+    max_zero_fuel_weight = models.IntegerField()
+    max_landing_weight = models.IntegerField()
+    max_takeoff_weight = models.IntegerField()
+    max_ramp_weight = models.IntegerField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -50,24 +83,27 @@ class AircraftType(models.Model):
        
 class Defect(models.Model):
     title = models.CharField(max_length=200)
-    aicraft_type = models.ForeignKey(AircraftType, on_delete=models.RESTRICT)
     ata_chapter = models.IntegerField()
     ata_section = models.IntegerField()
     ata_item = models.CharField(max_length=6)
     interval = models.CharField(max_length=1)
-    installed = models.IntegerField()
-    required = models.IntegerField()
+    installed_qty = models.IntegerField()
+    required_qty = models.IntegerField()
     procedure = models.CharField(max_length=1, blank=True, null=True)
     maint_note = models.TextField(blank=True, null=True)
     operations = models.TextField(blank=True, null=True)
     fuel_penalty = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     fuel_penalty_type = models.IntegerField(choices=FuelPenaltyTypes,default=FuelPenaltyTypes.NO)
+    applicability = models.IntegerField(
+        choices=DefectApplicability,
+        default=DefectApplicability.FAMILY
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.title
-  
+   
 class EngineModel(models.Model):
     name = models.CharField(max_length=200)
     thrust = models.IntegerField()
@@ -76,22 +112,96 @@ class EngineModel(models.Model):
 
     def __str__(self):
         return self.name
+ 
+class FamilyDefect(models.Model):
+    aircraft_family = models.ForeignKey(
+        AircraftFamily,
+        on_delete=models.CASCADE
+    )
+
+    defect = models.ForeignKey(
+        Defect,
+        on_delete=models.CASCADE
+    )  
+    class Meta:
+        unique_together = ("aircraft_family", "defect")
+
+class TypeDefect(models.Model):
+    aircraft_type  = models.ForeignKey(
+        AircraftType,
+        on_delete=models.CASCADE
+    )
+
+    defect = models.ForeignKey(
+        Defect,
+        on_delete=models.CASCADE
+    )
+    class Meta:
+        unique_together = ("aircraft_type", "defect")
+  
+class EngineDefect(models.Model):
+    engine_model = models.ForeignKey(
+        EngineModel,
+        on_delete=models.CASCADE
+    )
+
+    defect = models.ForeignKey(
+        Defect,
+        on_delete=models.CASCADE
+    )
+    class Meta:
+        unique_together = ("engine_model", "defect")
 
 class Airframe(models.Model):
-    registration = models.CharField(max_length=200)
-    msn = models.IntegerField(blank=True, null=True)
+    registration = models.CharField(max_length=200, unique=True)
+    msn = models.IntegerField(blank=True, null=True, unique=True)
     date_of_build = models.DateField(blank=True, null=True)
     aircraft_type = models.ForeignKey(AircraftType, on_delete=models.RESTRICT)
-    engine_model = models.ForeignKey(EngineModel, on_delete=models.RESTRICT)
-    aoc = models.ForeignKey(Aoc, on_delete=models.RESTRICT)
-    manufacturer_empty_weight = models.DecimalField(max_digits=10, decimal_places=2)
-    standard_empty_weight = models.DecimalField(max_digits=10, decimal_places=2)
-    basic_empty_weight = models.DecimalField(max_digits=10, decimal_places=2)
-    operating_empty_weight = models.DecimalField(max_digits=10, decimal_places=2)
-    zero_fuel_weight = models.DecimalField(max_digits=10, decimal_places=2)
-    ramp_weight = models.DecimalField(max_digits=10, decimal_places=2)
+    operator = models.ForeignKey(Operator, on_delete=models.RESTRICT)
+    standard_empty_weight =  models.IntegerField()
+    basic_empty_weight =  models.IntegerField()
+    manufacturer_empty_weight =  models.IntegerField()
+    basic_empty_weight =  models.IntegerField()
+    operating_empty_weight  =  models.IntegerField()
+    max_zero_fuel_weight  =  models.IntegerField()
+    max_landing_weight  =  models.IntegerField()
+    max_takeoff_weight  = models.IntegerField()
+    max_ramp_weight = models.IntegerField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    def save(self, *args, **kwargs):
+        if not self.pk:
+            at = self.aircraft_type
+
+            self.basic_empty_weight = at.basic_empty_weight
+            self.operating_empty_weight = at.operating_empty_weight
+            self.standard_empty_weight = at.manufacturer_empty_weight
+            self.max_zero_fuel_weight = at.max_zero_fuel_weight
+            self.max_landing_weight = at.max_landing_weight
+            self.max_landing_weight = at.max_landing_weight
+            self.max_takeoff_weight = at.max_ramp_weight
+
+        super().save(*args, **kwargs)
+    
+    def get_available_defects(self):
+        family_defects = Defect.objects.filter(
+            familydefect__aircraft_family=self.aircraft_type.aircraft_family
+        )
+
+        type_defects = Defect.objects.filter(
+            typedefect__aircraft_type=self.aircraft_type
+        )
+
+        engine_models = AirframeEngine.objects.filter(
+            airframe=self
+        ).values_list("engine_model", flat=True)
+
+        engine_defects = Defect.objects.filter(
+            enginedefect__engine_model__in=engine_models
+        )
+
+        return (family_defects | type_defects | engine_defects).distinct()
 
     def __str__(self):
         return self.registration
@@ -103,6 +213,9 @@ class AirframeEngine(models.Model):
     engine_number = models.IntegerField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ("airframe", "engine_number")
 
     def __str__(self):
         return f"{self.airframe} {self.engine_number}"
@@ -133,22 +246,76 @@ class EngineFluids(models.Model):
     def __str__(self):
         return self.item
 
+   
+class Airport(models.Model):
+    iata_code = models.CharField(max_length=3)
+    icao_code = models.CharField(max_length=4, blank=True)
+    name = models.CharField(max_length=50, blank=True)
+    city = models.CharField(max_length=255, blank=True, null=True)
+    country = models.CharField(max_length=100, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.iata_code
+
+class Route(models.Model):
+    operator = models.ForeignKey(Operator, on_delete=models.RESTRICT)
+    flt_number = models.CharField(max_length=7, blank=True, null=True)
+    departure = models.ForeignKey(Airport, on_delete=models.RESTRICT, related_name='departure_airport')
+    arrival = models.ForeignKey(Airport, on_delete=models.RESTRICT, related_name='arrival_airport', blank=True, null=True)
+    scheduled_off_ground = models.DateTimeField(blank=True, null=True)
+    scheduled_on_ground = models.DateTimeField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.flt_number} - {self.departure.iata_code} - {self.arrival.iata_code}"
+
+
+class Flight(models.Model):
+    airframe = models.ForeignKey(Airframe, on_delete=models.CASCADE)
+    flight_route = models.ForeignKey(Route, on_delete=models.RESTRICT)
+    callsign = models.CharField(max_length=8, blank=True, null=True)
+    date_of_flight = models.DateField(blank=True, null=True)
+    off_blocks = models.DateTimeField(blank=True, null=True)
+    off_ground = models.DateTimeField(blank=True, null=True)
+    on_ground = models.DateTimeField(blank=True, null=True)
+    on_blocks = models.DateTimeField(blank=True, null=True)
+    required_fuel_in_kg = models.IntegerField(blank=True, null=True)
+    block_fuel_in_kg = models.IntegerField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.flight_route} {self.date_of_flight} {self.airframe.registration}"
+     
 class AirframeDefect(models.Model):
     airframe = models.ForeignKey(Airframe, on_delete=models.RESTRICT)
-    defect = models.ForeignKey(Defect, on_delete=models.RESTRICT)
+    defect = models.ForeignKey(Defect, on_delete=models.RESTRICT, blank=True, null=True)
     is_pilot_report = models.BooleanField(default=1)
     is_cabin_log = models.BooleanField(default=0)
-    ecam_message = models.CharField(blank=True, null=True)
+    ecam_message = models.CharField(max_length=50, blank=True, null=True)
     defect_text = models.TextField(blank=True, null=True)
-    action = models.IntegerField(max_length=2, default=0) # 0 open, 1 clodes, 2 carry fwd
-    action_desc = models.TextField(blank=True, null=True)
-    action_time = models.DateTimeField(blank=True, null=True)
+    flight = models.ForeignKey(Flight, on_delete=models.CASCADE)
     noticed_at = models.DateTimeField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return f"{self.defect.title} {self.airframe.registration}"
+    
+class Action(models.Model):
+    status = models.IntegerField(choices=ActionTypes, default=ActionTypes.CLOSED) # 0 open, 1 clodes, 2 carry fwd
+    time = models.DateTimeField()
+    desc = models.TextField()
+    airframe_defect = models.ForeignKey(AirframeDefect, on_delete=models.CASCADE)
+    category = models.IntegerField(choices=DeferCategory, default=DeferCategory.NA)
+    part_145 = models.CharField(max_length=10)
+    defer_reason = models.TextField()
+    deferred_at = models.DateTimeField(blank=True, null=True)
+    due_at = models.DateTimeField(blank=True, null=True)
+
 
 class Cabin(models.Model):
     cabin_type = models.BooleanField()
@@ -199,38 +366,7 @@ class Configuration(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.registration
-
-class Airport(models.Model):
-    iata_code = models.CharField(max_length=3)
-    icao_code = models.CharField(max_length=4, blank=True)
-    name = models.CharField(max_length=50, blank=True)
-    city = models.CharField(blank=True, null=True)
-    country = models.CharField(blank=True, null=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    def __str__(self):
-        return self.iata_code
-
-class Flight(models.Model):
-    flt_number = models.CharField(blank=True, null=True)
-    airframe = models.ForeignKey(Airframe, on_delete=models.CASCADE)
-    callsign = models.CharField(max_length=8, blank=True, null=True)
-    departure = models.ForeignKey(Airport, on_delete=models.RESTRICT, related_name='departure_airport')
-    arrival = models.ForeignKey(Airport, on_delete=models.RESTRICT, related_name='arrival_airport', blank=True, null=True)
-    date_of_flight = models.DateField(blank=True, null=True)
-    off_blocks = models.DateTimeField(blank=True, null=True)
-    off_ground = models.DateTimeField(blank=True, null=True)
-    on_ground = models.DateTimeField(blank=True, null=True)
-    on_blocks = models.DateTimeField(blank=True, null=True)
-    required_fuel_in_kg = models.IntegerField(blank=True, null=True)
-    block_fuel_in_kg = models.IntegerField(blank=True, null=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    def __str__(self):
-        return f"{self.flt_number}"
+        return str(self.airframe)
     
 class FlightFluidsDeparture(models.Model):
     flt = models.ForeignKey(Flight, on_delete=models.CASCADE)
