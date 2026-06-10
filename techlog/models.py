@@ -45,7 +45,11 @@ class Company(models.Model):
 
     def __str__(self):
         return self.name
-    
+
+class EngineeringCompany(models.Model):
+    name = models.TextField()
+    code = models.TextField()
+
 class Operator(models.Model):
     name = models.CharField(max_length=200)
     iata_code = models.CharField(max_length=2, blank=True)
@@ -311,7 +315,7 @@ class Action(models.Model):
     desc = models.TextField()
     airframe_defect = models.ForeignKey(AirframeDefect, on_delete=models.CASCADE)
     category = models.IntegerField(choices=DeferCategory, default=DeferCategory.NA)
-    part_145 = models.CharField(max_length=10)
+    engineering_company = models.ForeignKey(EngineeringCompany, on_delete=models.RESTRICT)
     defer_reason = models.TextField()
     deferred_at = models.DateTimeField(blank=True, null=True)
     due_at = models.DateTimeField(blank=True, null=True)
