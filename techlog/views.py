@@ -174,9 +174,19 @@ def flight_servicing(request, id):
 
 def flight_fuel_levels(request, id):
     current_flight = Flight.objects.filter(airframe=id).order_by("-created_at").first()
-    fuel = get_object_or_404(AirframeFluid, airframe_id=id,fluid_type=0)
+    total_fuel = {
+        'max_level': 0,
+        'units_of_measure': 0,
+    }
+    fuel_tanks = AirframeFluid.objects.filter(airframe_id=id, fluid_type=0)
+    for tank in fuel_tanks:
+        total_fuel['max_level'] = tank.max_level + total_fuel['max_level']
+        total_fuel['units_of_measure'] = tank.get_units_of_measure_display
+
+    print(total_fuel)
     context = {
-        'fuel': fuel,
+        'total_fuel': total_fuel,
+        'fuel_tanks': fuel_tanks,
         'current_flight': current_flight
     }
     return render(request, 'flight_fuel_levels.html', context)
