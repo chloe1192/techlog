@@ -45,6 +45,10 @@ class CurrentFlightStatus(models.IntegerChoices):
     IN_PROGRESS = 1, "In Progress"
     READY_TO_SUBMIT = 2, "Ready to Submit"
 
+class AirframeOrEngineFluid(models.IntegerChoices):
+    AIRFRAME = 0, "Airframe Fluid"
+    ENGINE = 1, "Engine Fluid"
+
 class Company(models.Model):
     name = models.CharField(max_length=200)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -464,6 +468,7 @@ class CurrentFlight(models.Model):
 class Refuel(models.Model):
     planned_flt_number = models.ForeignKey(CurrentFlight, on_delete=models.CASCADE, blank=True, null=True)
     actual_flight = models.ForeignKey(Flight, on_delete=models.RESTRICT, blank=True, null=True)
+    airframe = models.ForeignKey(Airframe, on_delete=models.RESTRICT)
     planned_dep_fuel_in_kg = models.IntegerField()
     specific_gravity = models.DecimalField(max_digits=3, decimal_places=2)
     required_uplift_in_lt = models.IntegerField()
@@ -472,6 +477,18 @@ class Refuel(models.Model):
     fuel_supplier = models.CharField(max_length=5, default="")
     fuel_ticket_no = models.CharField(max_length=10, default="")
     bowser_uplift_in_lt = models.IntegerField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+class FluidTopUp(models.Model):
+    planned_flt_number = models.ForeignKey(CurrentFlight, on_delete=models.CASCADE, blank=True, null=True)
+    actual_flight = models.ForeignKey(Flight, on_delete=models.RESTRICT, blank=True, null=True)
+    airframe = models.ForeignKey(Airframe, on_delete=models.RESTRICT)
+    airframe_or_engine_fluid = models.IntegerField(choices=AirframeOrEngineFluid,default=AirframeOrEngineFluid.AIRFRAME)
+    quantity = models.DecimalField(max_digits=10, decimal_places=2)
+    engine_fluid = models.ForeignKey(EngineFluids, on_delete=models.CASCADE, blank=True, null=True)
+    airframe_fluid = models.ForeignKey(AirframeFluid, on_delete=models.CASCADE, blank=True, null=True)
+    engineering_company = models.ForeignKey(EngineeringCompany, on_delete=models.RESTRICT, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
 class AirframeDefect(models.Model):
     airframe = models.ForeignKey(Airframe, on_delete=models.RESTRICT)

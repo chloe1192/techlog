@@ -1,11 +1,12 @@
 from datetime import datetime
+from decimal import Decimal
 from itertools import chain
 
 from django.urls import reverse
 
-from .forms import AcceptanceForm, AirframeDefectCreateForm, MaintenanceReleaseForm
+from .forms import AcceptanceForm, AirframeDefectCreateForm, MaintenanceReleaseForm, RefuelingForm
 
-from .models import Action, Airframe, AirframeDefect, AircraftType, AirframeEngine, CurrentFlight, EngineModel, EngineFluids, Company, Defect, EngineeringCompany, Operator, AirframeFluid, Flight, Airport
+from .models import Action, Airframe, AirframeDefect, AircraftType, AirframeEngine, CurrentFlight, EngineModel, EngineFluids, Company, Defect, EngineeringCompany, Operator, AirframeFluid, Flight, Airport, Refuel
 from django.shortcuts import get_object_or_404, redirect, render
 
 def index(request):
@@ -195,6 +196,8 @@ def servicing(request, id):
     engine_fluids = EngineFluids.objects.filter(airframe_engine__airframe=airframe)
     airframe_defects = AirframeDefect.objects.filter(airframe=airframe)
     current_flight = CurrentFlight.objects.filter(airframe=id).order_by("-created_at").first()
+    print("current_flight")
+    print(current_flight.refuel_is_done)
 
     context = {
         'page_title': page_title,
@@ -210,6 +213,7 @@ def servicing(request, id):
 def servicing_fuel(request, id):
     page_title = "Fuel Uplift"
     return_url = reverse("servicing", kwargs={"id": id})
+    airframe = get_object_or_404(Airframe, id=id)
     current_flight = CurrentFlight.objects.filter(airframe=id).order_by("-created_at").first()
    
     total_fuel = {
@@ -225,7 +229,46 @@ def servicing_fuel(request, id):
         
     fuel_uplift_not_sent = True
 
-    print(request.POST)
+    if request.method == "POST":
+        print(request.POST)
+        form = RefuelingForm(request.POST)
+        print(form.is_valid())
+        nil_uplift = request.POST['nil_uplift']
+        print("request.POST['nil_uplift']")
+        print(nil_uplift)
+        if nil_uplift == "on":
+            print("if nil_uplift == on:") 
+            current_flight.refuel_is_done = True
+            current_flight.save()
+            return redirect("servicing", id=id)
+        
+        if form.is_valid():
+            obj = form.save(commit=False)
+            obj.airframe = airframe
+            obj.save()
+            
+            fuel_tanks = AirframeFluid.objects.filter(
+                airframe=airframe,
+                fluid_type=0  # fuel
+            )
+            current_flight.refuel_is_done = True
+            current_flight.save()
+
+            for tank in fuel_tanks:
+                key = f"departure_fob_in_kg_{tank.id}"
+                print("key")
+                print(key)
+                uplift = request.POST.get(key)
+                print("uplift")
+                print(uplift)
+
+                if uplift:
+                    tank.level = uplift
+                    print("tank.level")
+                    print(tank.level)
+                    tank.save()
+        else:
+            print(form.errors)
 
     context = {
         'fuel_uplift_not_sent': fuel_uplift_not_sent,
@@ -236,6 +279,14 @@ def servicing_fuel(request, id):
         'current_flight': current_flight
     }
     return render(request, 'servicing/fuel.html', context)
+
+def servicing_refuel_list(request, airframe_id):
+    refuel_list = Refuel.objects.filter(airframe=airframe_id,actual_flight=None)
+    context = {
+        'refuel_list': refuel_list
+        }
+
+    return render(request, 'servicing/refuel_list.html', context)
 
 def flight_servicing(request, id):
     airframe = get_object_or_404(Airframe, id=id)

@@ -54,7 +54,7 @@
 
         <div class="col-3">
             <a href="{% url 'servicing' airframe.id %}">
-                {% if current_flight.fuel_is_done and current_flight.oil_is_done and current_flight.hyd_is_done and current_flight.water_is_done %}
+                {% if current_flight.refuel_is_done and current_flight.oil_is_done and current_flight.hyd_is_done and current_flight.water_is_done %}
                     <div class="flight-details-box big-box box-green">
                         <span>Servicing</span>
                         <i class="bi bi-speedometer big-box-icon"></i>
@@ -63,7 +63,7 @@
                     <div class="flight-details-box big-box box-red">
                         <span>Servicing</span>
                         <i class="bi bi-speedometer big-box-icon"></i>
-                        {% if not current_flight.fuel_is_done %}
+                        {% if not current_flight.refuel_is_done %}
                             <span class="fuel big-box-bottom-text">Fuel,</span>
                         {% endif %}
                         {% if not current_flight.oil_is_done %}

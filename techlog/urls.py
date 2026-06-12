@@ -33,6 +33,7 @@ urlpatterns = [
     # servicing
     path('airframe/<int:id>/servicing/', views.servicing, name='servicing'),
     path('airframe/<int:id>/servicing/fuel/', views.servicing_fuel, name='servicing_fuel'),
+    path('airframe/<int:airframe_id>/servicing/fuel/list/', views.servicing_refuel_list, name='servicing_refuel_list'),
     path('airframe/<int:id>/flight_servicing/', views.flight_servicing, name='flight_servicing'),
     path('airframe/<int:id>/flight_fuel_levels/', views.flight_fuel_levels, name='flight_fuel_levels'),
     path('airframe/<int:id>/flight_oil_levels/', views.flight_oil_levels, name='flight_oil_levels'),

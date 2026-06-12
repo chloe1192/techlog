@@ -9,7 +9,7 @@
 
         <div class="col-3">
             <a href="{% url 'servicing_fuel' airframe.id %}">
-                <div class="fuel-box big-box {% if current_flight.fuel_is_done %}box-green{% else %}box-red{% endif %}">
+                <div class="fuel-box big-box {% if current_flight.refuel_is_done %}box-green{% else %}box-red{% endif %}">
                     <span>Fuel</span>
                     <i class="bi bi-fuel-pump-fill big-box-icon"></i>
                 </div>

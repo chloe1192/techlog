@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Techlog - {{ page_title }}Techlog{% endblock %}
+{% include "header.html" %}
+{% load static %}
+
+{% block content %}
+<div class="dashboard">
+
+    <div class="breadcrumb">
+        <a href="{% url 'defects_create' current_airframe.id %}">
+            <i class="bi bi-plus"></i>
+        </a>
+    </div>
+
+    <div class="row">
+
+        {% for refuel in refuel_list %}
+        <div class="col-3">
+            <!-- Create page like fuel form but readonly -->
+            <a class="defects-box color-filled-box 
+                    box-green
+                 big-box w-100">
+                <span class="w-50 info info-left date-info">{{refuel.created_at|date:"y - M - d H:i"}}</span>
+                <div class="defect-title-box darker-background">
+                    Fuel On Board: 
+                    {{refuel.departure_fob_in_kg}} Kg<br>
+                    Bowser Uplift: 
+                    {{refuel.bowser_uplift_in_lt}} Lt<br>
+                    Fuel Supplier: 
+                    {{refuel.fuel_supplier}}<br>
+                    Invoice Number: 
+                    {{refuel.fuel_ticket_no}}<br>
+                    Planned Fuel: 
+                    {{refuel.planned_dep_fuel_in_kg}} Kg<br>
+                </div>
+            </a>
+        </div>
+        {% endfor %}
+
+    </div>
+
+</div>
+{% endblock %}

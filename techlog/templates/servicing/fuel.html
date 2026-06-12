@@ -20,7 +20,8 @@
     
             <div class="form-field form-input-field  form-field-100">
                 <label class="form-label form-item-100">Planned Flight No.</label>
-                <input class="form-label form-item-100" type="text" id="planned_flt_number" name="planned_flt_number" value="{{ current_flight.planned_flt_number }}">
+                <!-- TODO SEARCH BOX ON THIS and allow empty if flight is not initialized yet-->
+                <input class="form-label form-item-100" type="text" id="planned_flt_number" name="planned_flt_number" value="{{ current_flight.id }}" readonly>
             </div>
 
             <div class="form-field form-field-100 form-field-group">                
@@ -40,12 +41,12 @@
 
                 <div class="form-field form-text-field box rectangular-box box-gray">
                     <label class="form-label form-item-50">Planned Dep Fuel</label>
-                    <input class="form-label form-item-50 data-refueling-active-false" type="number" id="planned_dep_fuel_in_kg" name="planned_dep_fuel_in_kg" onchange="calculateVolume()">
+                    <input class="form-label form-item-50 data-refueling-active-false" type="number" id="planned_dep_fuel_in_kg" name="planned_dep_fuel_in_kg" onblur="calculateVolume()" value="78000">
                 </div>
                 
                 <div class="form-field form-text-field box rectangular-box box-gray">
                     <label class="form-label form-item-50">Specific Gravity</label>
-                    <input class="form-label form-item-50 data-refueling-active-false" type="number" id="specific_gravity" name="specific_gravity" value="">
+                    <input class="form-label form-item-50 data-refueling-active-false" type="number" step="0.01" id="specific_gravity" name="specific_gravity" value="0.81">
                 </div>
                 
                 <div class="form-field form-text-field  box rectangular-box box-gray">
@@ -60,7 +61,7 @@
                     </div>
                 </div>
 
-                <a href="#" class="button rectangular-box rectangular-box-icon-left box-gray">
+                <a href="{% url 'servicing_refuel_list' current_airframe.id %}" class="button rectangular-box rectangular-box-icon-left box-gray">
                     <i class="bi bi-fuel-pump-fill"></i>
                     <h2 class="button-title rectangular-box-title">Multiple Refueling</h2>
                 </a>
@@ -86,12 +87,12 @@
 
                     <div class="form-field-100">
                         <span class="form-label form-item-50">Pre Fuel </span>
-                        <input class="form-label form-item-50" id="fuel_pre_{{ tank.id }}" name="fuel_pre_{{ tank.id }}" type="number" value="">
+                        <input class="form-label form-item-50" id="pre_refuel_in_kg_{{ tank.id }}" name="pre_refuel_in_kg_{{ tank.id }}" type="number" value="">
                     </div>
 
                     <div class="form-field-100">                        
-                        <span class="form-label form-item-50">Required </span>
-                        <input class="form-label form-item-50" id="fuel_required_{{ tank.id }}" name="fuel_required_{{ tank.id }}" type="number" value="">
+                        <span class="form-label form-item-50">Departure </span>
+                        <input class="form-label form-item-50" id="departure_fob_in_kg_{{ tank.id }}" name="departure_fob_in_kg_{{ tank.id }}" onblur="setDepartureFuel(event)" type="number" value="">
                     </div>
                 </div>
             {% endfor %}
@@ -114,12 +115,13 @@
 
                 <div class="form-field-100">
                     <span class="form-label form-item-50">Pre Refuel</span>
-                    <input class="form-label form-item-50" id="pre_refuel_in_kg" name="pre_refuel_in_kg" type="number" value="" readonly>
+                    <input class="form-label form-item-50" id="pre_refuel_in_kg" name="pre_refuel_in_kg" type="number" value="" readonly="readonly">
                 </div>
 
                 <div class="form-field-100">                        
-                    <span class="form-label form-item-50">Required</span>
-                    <input class="form-label form-item-50" id="departure_fob_in_kg" name="departure_fob_in_kg" type="number" value="" readonly>
+                    <span class="form-label form-item-50">Departure</span>
+                    <input class="form-label form-item-50" id="departure_fob_in_kg" name="departure_fob_in_kg" onchange="calculateVolume()" type="number" value="" readonly>
+                    <input class="form-label form-item-50" id="required_uplift_in_lt" name="required_uplift_in_lt" type="number" value="" hidden>
                 </div>
 
             </div>
@@ -129,18 +131,25 @@
 
                 <div class="form-field-100">
                     <span class="form-label form-item-50">Fuel Supplier </span>
-                    <input class="form-label form-item-50" type="number" id="fuel_supplier" name="fuel_supplier" value="">
+                    <input class="form-label form-item-50" type="text" id="fuel_supplier" name="fuel_supplier" value="BR">
                 </div>
 
                 <div class="form-field-100">
                 <span class="form-label form-item-50">Fuel Ticket/Invoice No </span>
-                <input class="form-label form-item-50" type="number" id="fuel_ticket_no" name="fuel_ticket_no" value="">
+                <input class="form-label form-item-50" type="text" id="fuel_ticket_no" name="fuel_ticket_no" value="12345">
                 </div>
 
                 <div class="form-field-100">
-                <span class="form-label form-item-50">Bowser Uplift </span>
-                <input class="form-label form-item-50" type="number" id="bowser_uplift_in_lt" name="bowser_uplift_in_lt" value="{{current_flight.required_fuel_in_kg}}">
+                <span class="form-label form-item-50">Bowser Uplift</span>
+                <input class="form-label form-item-50" type="number" id="bowser_uplift_in_lt" name="bowser_uplift_in_lt" value="">
                 </div>
+            
+                <a href="#" class="button rectangular-box box-gray">
+                    <h2 class="button-title rectangular-box-title">
+                        <input type="checkbox" name="nil_uplift" id="nil_uplift">
+                        Nil Oils/Fluids
+                    </h2>
+                </a>
 
             </div>
 
@@ -169,23 +178,10 @@
                 <i class="bi bi-fuel-pump-fill"></i>
                 <h2 class="button-title rectangular-box-title">Grade/Type</h2>
             </a>
-            
-            <a href="#" class="button rectangular-box box-gray">
-                <h2 class="button-title rectangular-box-title">
-                    <input type="checkbox">
-                    Nil Oils/Fluids
-                </h2>
-            </a>
 
             <div class="form-field-group">
                 <span class="form-label form-item-30">Calculated Uplift </span>
-                <span class="form-label form-item-40 item-has-value">189495641</span>
-                <span class="form-label form-item-30">{{ fuel.get_units_of_measure_display }}</span>
-            </div>
-
-            <div class="form-field-group">
-                <span class="form-label form-item-30">Calculated Bowser Uplift </span>
-                <span class="form-label form-item-40 item-has-value">189495641</span>
+                <span class="form-label form-item-40 item-has-value" id="calculated_uplift_in_lt"></span>
                 <span class="form-label form-item-30">{{ fuel.get_units_of_measure_display }}</span>
             </div>
 
@@ -213,8 +209,13 @@
         const required_fuel = document.getElementById("planned_dep_fuel_in_kg").value
         const specific_gravity = document.getElementById("specific_gravity").value
         const fuel_pre_total = document.getElementById("pre_refuel_in_kg").value
+        const departure_fob_in_kg = document.getElementById("departure_fob_in_kg").value
+        const required_uplift_in_lt = document.getElementById("required_uplift_in_lt")
+        const calculated_uplift_in_lt = document.getElementById("calculated_uplift_in_lt")
         const required_fuel_in_volume = document.getElementById("required_fuel_in_volume")
         const required_fuel_in_weight = document.getElementById("required_fuel_in_weight")
+        console.log("required_uplift_in_lt")
+        console.log(required_uplift_in_lt)
         console.log("fuel_pre_total")
         console.log(fuel_pre_total)
         console.log("specific_gravity")
@@ -224,6 +225,16 @@
         if (fuel_pre_total && specific_gravity && required_fuel) {
             required_fuel_in_weight.textContent = required_fuel - fuel_pre_total
             required_fuel_in_volume.textContent = Math.round((required_fuel - fuel_pre_total) / specific_gravity)
+            if (departure_fob_in_kg) {
+                console.log("departure_fob_in_kg")
+                console.log(departure_fob_in_kg)
+                required_uplift_in_lt.value = Math.round((departure_fob_in_kg - fuel_pre_total) / specific_gravity)
+                console.log("required_uplift_in_lt")
+                console.log(required_uplift_in_lt)
+                calculated_uplift_in_lt.textContent = Math.round((departure_fob_in_kg - fuel_pre_total) / specific_gravity)
+                console.log("calculated_uplift_in_lt")
+                console.log(calculated_uplift_in_lt)
+            }
         } else {
             required_fuel_in_weight.textContent = ""
             required_fuel_in_volume.textContent = ""
@@ -270,7 +281,7 @@
             const tankId = tank.dataset.tankId;
 
             const arrival = document.getElementById(`fuel_arrival_${tankId}`);
-            const preFuel = document.getElementById(`fuel_pre_${tankId}`);
+            const preFuel = document.getElementById(`pre_refuel_in_kg_${tankId}`);
             const arrival_total = document.getElementById("fuel_arrival_total")
             const preFuel_total = document.getElementById("pre_refuel_in_kg")
 
@@ -278,6 +289,39 @@
             preFuel_total.value = arrival_total.textContent.trim();
             calculateVolume()
         });
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        const form = document.querySelector("form");
+
+        form.querySelectorAll("input, select, textarea").forEach(el => {
+            el.addEventListener("input", calculateVolume);
+            el.addEventListener("change", calculateVolume);
+        });
+    });
+    
+    function setDepartureFuel(event) {
+        event.preventDefault();
+
+        let total_departure_fuel = 0;
+
+        document.querySelectorAll(".fuel-tank-single").forEach(tank => {
+            const tankId = tank.dataset.tankId;
+
+            const input = document.getElementById(`departure_fob_in_kg_${tankId}`);
+
+            if (input && input.value) {
+                total_departure_fuel += Number(input.value) || 0;
+            }
+        });
+
+        const departure_fob_in_kg = document.getElementById("departure_fob_in_kg");
+
+        if (departure_fob_in_kg) {
+            departure_fob_in_kg.value = total_departure_fuel;
+        }
+
+        calculateVolume();
     }
 
     document.addEventListener("DOMContentLoaded", () => {

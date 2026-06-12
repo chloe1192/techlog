@@ -1,6 +1,6 @@
 from django import forms
 from django.forms import ModelForm, inlineformset_factory
-from .models import AirframeDefect, CurrentFlight
+from .models import AirframeDefect, CurrentFlight, Refuel
 
 class AirframeDefectCreateForm(ModelForm):
     
@@ -33,4 +33,19 @@ class AcceptanceForm(ModelForm):
         fields = [
             'acceptance_date',
             'planned_flt_number'
+        ]
+
+class RefuelingForm(ModelForm):
+    class Meta:
+        model = Refuel
+        fields = [
+            'planned_flt_number',
+            'planned_dep_fuel_in_kg',
+            'specific_gravity',
+            'required_uplift_in_lt',
+            'pre_refuel_in_kg',
+            'departure_fob_in_kg',
+            'fuel_supplier',
+            'fuel_ticket_no',
+            'bowser_uplift_in_lt'
         ]
