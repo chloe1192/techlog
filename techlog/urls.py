@@ -26,10 +26,13 @@ urlpatterns = [
     path('airframe/<int:id>/flight_details/', views.flight_details, name='flight_details'),
     # defects
     path('airframe/<int:id>/defects/', views.defects, name='defects'),
-    path('airframe/<int:id>/defects/this_flight', views.this_flight_defects, name='this_flight_defects'),
+    path('airframe/<int:id>/defects/create', views.defects_create, name='defects_create'),
+    path('airframe/<int:id>/defects/this_flight', views.defects_this_flight, name='defects_this_flight'),
     path('airframe/<int:id>/flight_defects/', views.flight_defects, name='flight_defects'),
     path('airframe/<int:id>/flight_defects_create/', views.flight_defects_create, name='flight_defects_create'),
-
+    # servicing
+    path('airframe/<int:id>/servicing/', views.servicing, name='servicing'),
+    path('airframe/<int:id>/servicing/fuel/', views.servicing_fuel, name='servicing_fuel'),
     path('airframe/<int:id>/flight_servicing/', views.flight_servicing, name='flight_servicing'),
     path('airframe/<int:id>/flight_fuel_levels/', views.flight_fuel_levels, name='flight_fuel_levels'),
     path('airframe/<int:id>/flight_oil_levels/', views.flight_oil_levels, name='flight_oil_levels'),

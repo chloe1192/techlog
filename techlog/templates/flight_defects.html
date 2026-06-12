@@ -24,7 +24,7 @@
                 {% elif defect.action == 2 %}
                     box-blue
                 {% endif %}
-                 selection-box w-100">
+                 big-box w-100">
                 <span class="w-50 info info-left date-info">{{defect.noticed_at|date:"y - M - d H:i"}}</span>
                 <span class="w-50 info info-right airframe-info">{{defect.airframe}}{{defect.airframe.msn}}-{{defect.id|stringformat:"05d"}}</span>
                 <div class="defect-title-box darker-background">

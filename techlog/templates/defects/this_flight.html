@@ -7,7 +7,7 @@
 <div class="dashboard">
 
     <div class="breadcrumb">
-        <a href="{% url 'flight_defects_create' current_airframe.id %}">
+        <a href="{% url 'defects_create' current_airframe.id %}">
             <i class="bi bi-plus"></i>
         </a>
     </div>
@@ -24,11 +24,11 @@
                 {% elif defect.action == 2 %}
                     box-blue
                 {% endif %}
-                 selection-box w-100">
+                 big-box w-100">
                 <span class="w-50 info info-left date-info">{{defect.noticed_at|date:"y - M - d H:i"}}</span>
                 <span class="w-50 info info-right airframe-info">{{defect.airframe}}{{defect.airframe.msn}}-{{defect.id|stringformat:"05d"}}</span>
                 <div class="defect-title-box darker-background">
-                    {{ defect.defect.title}}
+                    {{ defect.defect_title}}
                 </div>
                 <span class="w-50 info info-left action-info">{{defect.action_time|date:"y - M - d H:i"}}</span>
                 <span class="w-50 info info-right airframe-info">{{defect.airframe}}{{defect.airframe.msn}}-{{defect.id|stringformat:"05d"}}</span>

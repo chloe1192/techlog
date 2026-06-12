@@ -28,10 +28,10 @@
             <input type="text" name="departure_airport_name" id="departure_airport_name" disabled value="{{ last_flight.arrival.name }}">
 
             <a href="takeoff_delays/">
-                <div class="flight-details-box selection-box box-gray">
+                <div class="flight-details-box big-box box-gray">
                     <span>Take Off / Delays</span>
-                    <i class="bi bi-airplane selection-box-icon"></i>
-                    <span class="date-of-flight selection-box-bottom-text">Delay (0 mins recorded)</span>
+                    <i class="bi bi-airplane big-box-icon"></i>
+                    <span class="date-of-flight big-box-bottom-text">Delay (0 mins recorded)</span>
                 </div>
             </a>
             <label>Off blocks</label>
@@ -41,16 +41,16 @@
             <div class="row">
 
                 <div class="col-4">
-                    <a href="defects/">
-                        <div class="flight-details-box rectangular-selection-box box-gray">
-                            <i class="bi bi-gear selection-box-icon"></i>
+                    <a href="{% url 'defects' airframe.id %}">
+                        <div class="flight-details-box rectangular-box box-gray">
+                            <i class="bi bi-gear big-box-icon"></i>
                             <span>Defects</span>
-                            <span class="date-of-flight selection-box-bottom-text">(0 mins recorded)</span>
+                            <span class="date-of-flight big-box-bottom-text">(0 mins recorded)</span>
                         </div>
                     </a>
 
                     <a href="defects/">
-                        <div class="flight-details-box rectangular-selection-box box-gray">
+                        <div class="flight-details-box rectangular-box box-gray">
                             <input type="checkbox">
                             <span>Nil Further Defects</span>
                         </div>
@@ -59,23 +59,23 @@
 
                 <div class="col-4">
                     <a href="#">
-                        <div class="flight-details-box small-selection-box box-green">
-                            <i class="bi bi-person-check selection-box-icon"></i>
+                        <div class="flight-details-box small-box box-green">
+                            <i class="bi bi-person-check big-box-icon"></i>
                             <span>Cabin</span>
-                            <span class="cabin-defects selection-box-bottom-text">(0)</span>
+                            <span class="cabin-defects big-box-bottom-text">(0)</span>
                         </div>
                     </a>
 
                     <a href="defects/">
-                        <div class="flight-details-box small-selection-box box-blue">
-                            <i class="bi bi-calendar-check selection-box-icon"></i>
+                        <div class="flight-details-box small-box box-blue">
+                            <i class="bi bi-calendar-check big-box-icon"></i>
                             <span>C/Fwd</span>
-                            <span class="carry-foward-defects selection-box-bottom-text">({{carry_fwd_defects_count}})</span>
+                            <span class="carry-foward-defects big-box-bottom-text">({{carry_fwd_defects_count}})</span>
                         </div>
                     </a>
                 
                     <a href="defects/">
-                        <div class="flight-details-box rectangular-selection-box box-green">
+                        <div class="flight-details-box rectangular-box box-green">
                             <input type="checkbox">
                             <span>Remote Ice Protect</span>
                         </div>
@@ -86,10 +86,10 @@
                 <div class="col-4">
 
                     <a href="defects/">
-                        <div class="flight-details-box selection-box box-amber">
+                        <div class="flight-details-box big-box box-amber">
                             <span>Extra Flight Info</span>
-                            <i class="bi bi-info selection-box-icon"></i>
-                            <span class="date-of-flight selection-box-bottom-text">Total 2, Incomplete 0</span>
+                            <i class="bi bi-info big-box-icon"></i>
+                            <span class="date-of-flight big-box-bottom-text">Total 2, Incomplete 0</span>
                         </div>
                     </a>
 

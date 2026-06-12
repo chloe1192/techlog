@@ -1,8 +1,41 @@
 from django.contrib import admin
-from .models import Action, Airframe, AirframeDefect, AircraftType, Configuration, EngineDefect, EngineModel, Company, Defect, FamilyDefect, Operator, AirframeFluid, EngineFluids, Airport, Flight, FlightFluidsDeparture, FlightFluidsArrival, AirframeEngine, Route, TypeDefect
-
+from .models import (
+    Action,
+    Airframe,
+    AirframeDefect,
+    AircraftType,
+    Configuration,
+    CurrentFlight,
+    EngineDefect,
+    EngineModel,
+    Company,
+    Defect,
+    EngineeringCompany,
+    FamilyDefect,
+    Operator,
+    AirframeFluid,
+    EngineFluids,
+    Airport,
+    Flight,
+    AirframeEngine,
+    Route,
+    TypeDefect,
+    FlightAirframeFluidsDeparture,
+    FlightAirframeFluidsArrival,
+    FlightEngineFluidsDeparture,
+    FlightEngineFluidsArrival,
+    AircraftTypeFluid,
+    EngineModelFluid,
+    UserSettings
+)
 class ConpanyAdmin(admin.ModelAdmin):
     list_display = ['name', 'created_at', 'updated_at']
+
+class EngineModelFluidAdmin(admin.ModelAdmin):
+    list_display = ['engine_model', 'item', 'fluid_type']
+
+class AircraftTypeFluidAdmin(admin.ModelAdmin):
+    list_display = ['aircraft_type', 'item', 'fluid_type']
 
 class EngineFluidsAdmin(admin.ModelAdmin):
     list_display = ['item', 'level', 'fluid_type', 'updated_at']
@@ -40,12 +73,6 @@ class RouteAdmin(admin.ModelAdmin):
 class FlightAdmin(admin.ModelAdmin):
     list_display = ('callsign', 'date_of_flight', 'airframe')
 
-class FlightFluidsDepartureAdmin(admin.ModelAdmin):
-    list_display = ('flt', 'fluid_name')
-
-class FlightFluidsArrivalAdmin(admin.ModelAdmin):
-    list_display = ('flt', 'fluid_name')
-
 class AirframeEngineAdmin(admin.ModelAdmin):    
     list_display = ('engine_model', 'engine_number', 'airframe')
 
@@ -61,14 +88,110 @@ class EngineDefectAdmin(admin.ModelAdmin):
 class TypeDefectAdmin(admin.ModelAdmin):
     list_display = ['aircraft_type', 'defect']
 
+class FlightAirframeFluidsDepartureAdmin(admin.ModelAdmin):
+    list_display = (
+        'flight',
+        'fluid',
+        'fluid_level',
+    )
+    list_filter = (
+        'fluid',
+    )
+
+class FlightAirframeFluidsArrivalAdmin(admin.ModelAdmin):
+    list_display = (
+        'flight',
+        'fluid',
+        'fluid_level',
+    )
+    list_filter = (
+        'fluid',
+    )
+
+class FlightEngineFluidsDepartureAdmin(admin.ModelAdmin):
+    list_display = (
+        'flight',
+        'fluid',
+        'fluid_level',
+    )
+    list_filter = (
+        'fluid',
+    )
+
+class FlightEngineFluidsArrivalAdmin(admin.ModelAdmin):
+    list_display = (
+        'flight',
+        'fluid',
+        'fluid_level',
+    )
+    list_filter = (
+        'fluid',
+    )
+
+class UserSettingsAdmin(admin.ModelAdmin):
+    list_display = [
+        'crew_code',
+        'company_acars'
+    ]
+
+class EngineeringCompanyAdmin(admin.ModelAdmin):
+    list_display = [
+        'code',
+        'name'
+    ]
+
+class CurrentFlightAdmin(admin.ModelAdmin):
+    list_display = [
+        'planned_flt_number'
+    ]
+
+admin.site.register(
+    CurrentFlight,
+    CurrentFlightAdmin
+)
+admin.site.register(
+    EngineeringCompany,
+    EngineeringCompanyAdmin
+)
+admin.site.register(
+    UserSettings,
+    UserSettingsAdmin
+)
 admin.site.register(FamilyDefect, FamilyDefectAdmin)
 admin.site.register(EngineDefect, EngineDefectAdmin)
 admin.site.register(TypeDefect, TypeDefectAdmin)
 admin.site.register(Action, ActionAdmin)
 admin.site.register(Configuration, ConfigurationAdmin)
 admin.site.register(AirframeEngine, AirframeEngineAdmin)
-admin.site.register(FlightFluidsDeparture, FlightFluidsDepartureAdmin)
-admin.site.register(FlightFluidsArrival, FlightFluidsArrivalAdmin)
+admin.site.register(
+    FlightAirframeFluidsDeparture,
+    FlightAirframeFluidsDepartureAdmin
+)
+
+admin.site.register(
+    FlightAirframeFluidsArrival,
+    FlightAirframeFluidsArrivalAdmin
+)
+
+admin.site.register(
+    FlightEngineFluidsDeparture,
+    FlightEngineFluidsDepartureAdmin
+)
+
+admin.site.register(
+    FlightEngineFluidsArrival,
+    FlightEngineFluidsArrivalAdmin
+)
+
+admin.site.register(
+    EngineModelFluid,
+    EngineModelFluidAdmin
+)
+
+admin.site.register(
+    AircraftTypeFluid,
+    AircraftTypeFluidAdmin
+)
 admin.site.register(EngineFluids, EngineFluidsAdmin)
 admin.site.register(AirframeFluid, AirframeFluidAdmin)
 admin.site.register(Operator, OperatorAdmin)

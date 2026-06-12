@@ -95,11 +95,6 @@ WSGI_APPLICATION = 'techlog.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
-print("DB_NAME =", os.environ.get("DB_NAME"))
-print("DB_USER =", os.environ.get("DB_USER"))
-print("DB_HOST =", os.environ.get("DB_HOST"))
-print("DB_PORT =", os.environ.get("DB_PORT"))
-
 DATABASES = {
    'default': {
         'ENGINE': 'django.db.backends.mysql',

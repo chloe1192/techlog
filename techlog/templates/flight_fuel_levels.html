@@ -3,136 +3,164 @@
 {% include "header.html" %}
 
 {% block content %}
-<div class="dashboard fuel-page">
+<div class="dashboard">
 
     <div class="row">
 
-        <div class="oil-page-box-row col-12">
-            <span class="oil-page-box-item">Planned Flight No.</span>
-            <input class="oil-page-box-item" type="text" id="flt_number" name="flt_number" value="{{ current_flight.flt_number }}">
+        <div class="form-field form-field-100">
+            <label class="form-label form-item-100">Planned Flight No.</label>
+            <input class="form-label form-item-100" type="text" id="flt_number" name="flt_number" value="{{ current_flight.flt_number }}">
         </div>
 
-        <div class="oil-page-box-row col-12">
+        <div class="form-field-100">
 
-            <div class="oil-page-small-box small-selection-box box-gray">
-                Clear Arrival
-            </div>
+            <a href="#" class="button rectangular-box box-gray">
+                <h2 class="button-title rectangular-box-title">Clear Arrival</h2>
+            </a>
 
-            <div class="oil-page-small-box small-selection-box box-gray">
-                Nil Refueling
-            </div>
+            <a href="#" class="button rectangular-box box-gray">
+                <h2 class="button-title rectangular-box-title">Nil Refueling</h2>
+            </a>
 
-            <div class="oil-page-small-box rectangular-selection-box box-gray">
-                <i class="bi bi-fuel-pump-fill selection-box-icon"></i>
-                Cancel Refueling
-            </div>
+            <a href="#" class="button rectangular-box box-gray">
+                <i class="bi bi-fuel-pump-fill"></i>
+                <h2 class="button-title rectangular-box-title">Cancel Refueling</h2>
+            </a>
 
-            <div class="oil-page-small-box rectangular-selection-box box-gray">
-                Required Fuel
-                <input type="number" id="required_fuel" name="required_fuel" onchange="calculateVolume()">
+            <div class="form-field form-text-field">
+                <label class="form-label form-item-50">Required Fuel</label>
+                <input class="form-label form-item-50" type="number" id="required_fuel" name="required_fuel" onchange="calculateVolume()">
             </div>
             
-            <div class="oil-page-small-box rectangular-selection-box box-gray">
-                Specific Gravity
-                <input type="number" id="specific_gravity" name="specific_gravity" value="0.78">
+            <div class="form-field form-text-field">
+                <label class="form-label form-item-50">Specific Gravity</label>
+                <input class="form-label form-item-50" type="number" id="specific_gravity" name="specific_gravity" value="0.78">
             </div>
             
-            <div class="oil-page-small-box rectangular-selection-box box-gray">
-                Required Uplift
-                <div class="oil-page-box-row ">
-                    <span id="required_fuel_in_volume">Fuel in Kg....</span>
-                    <span>Lt</span>
+            <div class="form-field form-text-field">
+                <label class="form-label form-item-100">Required Uplift</label>
+                <div class="form-field-group">
+                    <span class="form-label form-item-50" id="required_fuel_in_volume">Fuel in Kg....</span>
+                    <span class="form-label form-item-50">Lt</span>
                 </div>
-                <div class="oil-page-box-row ">
-                    <span id="required_fuel_in_weight">Fuel in liters....</span>
-                    <span>{{ fuel.get_units_of_measure_display }}</span>
+                <div class="form-field-group">
+                    <span class="form-label form-item-50" id="required_fuel_in_weight">Fuel in liters....</span>
+                    <span class="form-label form-item-50">{{ fuel.get_units_of_measure_display }}</span>
                 </div>
             </div>
 
-            <div class="oil-page-small-box rectangular-selection-box box-gray">
-                <i class="bi bi-fuel-pump-fill selection-box-icon"></i>
-                Multiple Refueling
-            </div>
+            <a href="#" class="button rectangular-box rectangular-box-icon-left box-gray">
+                <i class="bi bi-fuel-pump-fill"></i>
+                <h2 class="button-title rectangular-box-title">Multiple Refueling</h2>
+            </a>
         </div>
 
         
     </div>
 
     <div class="row">
-        <div class="col-2">
-        
-            <div class="oil-page-box selection-box box-green">
+        {% for tank in fuel_tanks %}
+            <div class="form-field form-field-20 box-green">
 
-                <h1 class="oil-page-box-row">
-                    {{fuel.item}} ({{fuel.get_units_of_measure_display}})
+                <h1 class="form-label form-item-100">
+                    {{tank.item}} ({{tank.get_units_of_measure_display}})
                 </h1>
 
-                <div class="oil-page-box-row">
-                    <span class="oil-page-box-item">Capacity </span>
-                    <span class="oil-page-box-item" id="oil_arrival_{{ forloop.counter }}">{{fuel.max_level|floatformat:0}} {{fuel.get_units_of_measure_display}}</span>
+                <div class="form-field-group">
+                    <span class="form-label form-item-50">Capacity </span>
+                    <span class="form-label form-item-50" id="oil_arrival_{{ forloop.counter }}">{{tank.max_level|floatformat:0}} {{tank.get_units_of_measure_display}}</span>
                 </div>
 
-                <div class="oil-page-box-row">
-                    <span class="oil-page-box-item">Arrival </span>
-                    <span class="oil-page-box-item" id="oil_arrival_{{ forloop.counter }}">{{fuel.level|floatformat:0}}</span>
+                <div class="form-field-group">
+                    <span class="form-label form-item-50">Arrival </span>
+                    <span class="form-label form-item-50" id="oil_arrival_{{ forloop.counter }}">{{tank.level|floatformat:0}}</span>
                 </div>
 
-                <div class="oil-page-box-row">
-                    <span class="oil-page-box-item">Pre Fuel </span>
-                    <input class="oil-page-box-item" type="number" value="{{fuel.level}}">
+                <div class="form-field-group">
+                    <span class="form-label form-item-50">Pre Fuel </span>
+                    <input class="form-label form-item-50" type="number" value="{{tank.level}}">
                 </div>
 
-                <div class="oil-page-box-row">                        
-                    <span class="oil-page-box-item">Required </span>
-                    <input class="oil-page-box-item" type="number" value="{{current_flight.required_fuel_in_kg}}">
+                <div class="form-field-group">                        
+                    <span class="form-label form-item-50">Required </span>
+                    <input class="form-label form-item-50" type="number" value="{{current_flight.required_fuel_in_kg}}">
                 </div>
             </div>
+        {% endfor %}
+    
+        <div class="form-field form-field-20 box-green">
 
+            <h1 class="form-label form-item-100">
+                Total ()
+            </h1>
+
+            <div class="form-field-group">
+                <span class="form-label form-item-50">Capacity </span>
+                <span class="form-label form-item-50" id="oil_arrival_{{ forloop.counter }}">{{total_fuel.max_level|floatformat:0}} {{total_fuel.get_units_of_measure_display}}</span>
+            </div>
+
+            <div class="form-field-group">
+                <span class="form-label form-item-50">Arrival </span>
+                <span class="form-label form-item-50" id="oil_arrival_{{ forloop.counter }}">{{total_fuel.level|floatformat:0}}</span>
+            </div>
+
+            <div class="form-field-group">
+                <span class="form-label form-item-50">Pre Fuel </span>
+                <input class="form-label form-item-50" type="number" value="{{total_fuel.level}}">
+            </div>
+
+            <div class="form-field-group">                        
+                <span class="form-label form-item-50">Required </span>
+                <input class="form-label form-item-50" type="number" value="{{current_flight.required_fuel_in_kg}}">
+            </div>
         </div>
+
     </div>
     
     <div class="row mt-5">
         <div class="col-3">
 
-            <div class="oil-page-box-row">
-                <span class="oil-page-box-item">Fuel Supllier </span>
-                <input class="oil-page-box-item" type="number" value="">
+            <div class="form-field-group">
+                <span class="form-label form-item-50">Fuel Supplier </span>
+                <input class="form-label form-item-50" type="number" value="">
             </div>
 
-            <div class="oil-page-box-row mt-2">
-                <span class="oil-page-box-item">Fuel Ticket/Invoice No </span>
-                <input class="oil-page-box-item" type="number" value="">
+            <div class="form-field-group mt-2">
+                <span class="form-label form-item-50">Fuel Ticket/Invoice No </span>
+                <input class="form-label form-item-50" type="number" value="">
             </div>
 
-            <div class="oil-page-box-row mt-2">
-                <span class="oil-page-box-item">Bowser Uplift </span>
-                <input class="oil-page-box-item" type="number" value="{{current_flight.required_fuel_in_kg}}">
+            <div class="form-field-group mt-2">
+                <span class="form-label form-item-50">Bowser Uplift </span>
+                <input class="form-label form-item-50" type="number" value="{{current_flight.required_fuel_in_kg}}">
             </div>
 
         </div>
 
         <div class="col-3">
 
-            <div class="oil-page-small-box small-selection-box box-green">
-                <i class="bi bi-fuel-pump-fill selection-box-icon"></i>
-                Grade/Type
-            </div>
+            <a href="#" class="button rectangular-box rectangular-box-icon-left box-green">
+                <i class="bi bi-fuel-pump-fill"></i>
+                <h2 class="button-title rectangular-box-title">Grade/Type</h2>
+            </a>
             
-            <div class="oil-page-small-box rectangular-selection-box box-gray">
-                <input type="checkbox">
-                Nil Oils/Fluids
+            <a href="#" class="button rectangular-box box-gray">
+                <h2 class="button-title rectangular-box-title">
+                    <input type="checkbox">
+                    Nil Oils/Fluids
+                </h2>
+            </a>
+
+            <div class="form-field-group">
+                <span class="form-label form-item-30">Calculated Uplift </span>
+                <span class="form-label form-item-40 item-has-value">189495641</span>
+                <span class="form-label form-item-30">{{ fuel.get_units_of_measure_display }}</span>
             </div>
 
-            <div class="oil-page-row">
-                <span class="oil-page-box-item">Calculated Uplift </span>
-                <span class="oil-page-box-item item-has-value">189495641</span>
-                <span class="oil-page-box-item">{{ fuel.get_units_of_measure_display }}</span>
-            </div>
-
-            <div class="oil-page-row">
-                <span class="oil-page-box-item">Calculated Bowser Uplift </span>
-                <span class="oil-page-box-item item-has-value">189495641</span>
-                <span class="oil-page-box-item">{{ fuel.get_units_of_measure_display }}</span>
+            <div class="form-field-group">
+                <span class="form-label form-item-30">Calculated Bowser Uplift </span>
+                <span class="form-label form-item-40 item-has-value">189495641</span>
+                <span class="form-label form-item-30">{{ fuel.get_units_of_measure_display }}</span>
             </div>
 
         </div>
@@ -141,15 +169,15 @@
     <div class="row mt-5">
         
         <div class="col-2">
-            <div class="oil-page-small-box small-selection-box box-gray">
-                Nil Uplift
-            </div>
+            <a href="#" class="button rectangular-box box-gray">
+                <h2 class="button-title rectangular-box-title">Nil Uplift</h2>
+            </a>
         </div>
         
         <div class="col-2">
-            <div class="oil-page-small-box small-selection-box box-amber">
-                View usage statistics
-            </div>
+            <a href="#" class="button rectangular-box box-amber">
+                <h2 class="button-title rectangular-box-title">View usage statistics</h2>
+            </a>
         </div>
     </div>
 

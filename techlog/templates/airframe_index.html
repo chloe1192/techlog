@@ -9,42 +9,42 @@
 
         <div class="col-3">
             <a href="{% url 'flight_details' airframe.id %}">
-                <div class="flight-details-box selection-box box-green">
+                <div class="flight-details-box big-box box-green">
                     <span>Flight Details</span>
-                    <i class="bi bi-airplane selection-box-icon"></i>
-                    <span class="flight-pair selection-box-bottom-text">{{current_flight.departure}}-{{current_flight.arrival}},</span>
-                    <span class="flt-number selection-box-bottom-text">{{current_flight.flt_number}},</span>
-                    <span class="date-of-flight selection-box-bottom-text">{{current_flight.date_of_flight|date:"d M Y"}}</span>
+                    <i class="bi bi-airplane big-box-icon"></i>
+                    <span class="flight-pair big-box-bottom-text">{{current_flight.departure}}-{{current_flight.arrival}},</span>
+                    <span class="flt-number big-box-bottom-text">{{current_flight.flt_number}},</span>
+                    <span class="date-of-flight big-box-bottom-text">{{current_flight.date_of_flight|date:"d M Y"}}</span>
                 </div>
             </a>
         </div>
 
         <div class="col-3">
             <a href="{% url 'defects' airframe.id %}">
-                <div class="flight-details-box selection-box {% if open_defects_count > 0 %}box-red{% else %}box-green{% endif %}">
+                <div class="flight-details-box big-box {% if open_defects_count > 0 %}box-red{% else %}box-green{% endif %}">
                     <span>Defects</span>
-                    <i class="bi bi-gear selection-box-icon"></i>
-                    <span class="defects-open selection-box-bottom-text">Open ({{ open_defects_count }})</span>
-                    <span class="defects-closed selection-box-bottom-text">Closed ({{ closed_defects_count }})</span>
-                    <span class="defects-carry selection-box-bottom-text">C/Fwd({{ carry_fwd_defects_count }})</span>
+                    <i class="bi bi-gear big-box-icon"></i>
+                    <span class="defects-open big-box-bottom-text">Open ({{ open_defects_count }})</span>
+                    <span class="defects-closed big-box-bottom-text">Closed ({{ closed_defects_count }})</span>
+                    <span class="defects-carry big-box-bottom-text">C/Fwd({{ carry_fwd_defects_count }})</span>
                 </div>
             </a>
         </div>
         
         <div class="col-3">
-            <div class="flight-details-box selection-box box-green">
+            <div class="flight-details-box big-box box-green">
                 <span>Documents</span>
-                <i class="bi bi-book selection-box-icon"></i>
-                <span class="documents-number selection-box-bottom-text">2 Documents</span>
+                <i class="bi bi-book big-box-icon"></i>
+                <span class="documents-number big-box-bottom-text">2 Documents</span>
             </div>
         </div>
 
         <div class="col-3">
-            <div class="flight-details-box selection-box box-green">
+            <div class="flight-details-box big-box box-green">
                 <span>Forms</span>
-                <i class="bi bi-ui-checks selection-box-icon"></i>
-                <span class="total-forms selection-box-bottom-text">Total 1,</span>
-                <span class="incomplete-forms selection-box-bottom-text">Incomplete 0</span>
+                <i class="bi bi-ui-checks big-box-icon"></i>
+                <span class="total-forms big-box-bottom-text">Total 1,</span>
+                <span class="incomplete-forms big-box-bottom-text">Incomplete 0</span>
             </div>
         </div>
 
@@ -53,39 +53,55 @@
     <div class="row">
 
         <div class="col-3">
-            <a href="{% url 'flight_servicing' airframe.id %}">
-                <div class="flight-details-box selection-box box-green">
-                    <span>Servicing</span>
-                    <i class="bi bi-speedometer selection-box-icon"></i>
-                    <span class="fuel selection-box-bottom-text">Fuel,</span>
-                    <span class="oil selection-box-bottom-text">Oil,</span>
-                    <span class="Hydr selection-box-bottom-text">Hydr</span>
-                </div>
+            <a href="{% url 'servicing' airframe.id %}">
+                {% if current_flight.fuel_is_done and current_flight.oil_is_done and current_flight.hyd_is_done and current_flight.water_is_done %}
+                    <div class="flight-details-box big-box box-green">
+                        <span>Servicing</span>
+                        <i class="bi bi-speedometer big-box-icon"></i>
+                    </div>
+                {% else %}
+                    <div class="flight-details-box big-box box-red">
+                        <span>Servicing</span>
+                        <i class="bi bi-speedometer big-box-icon"></i>
+                        {% if not current_flight.fuel_is_done %}
+                            <span class="fuel big-box-bottom-text">Fuel,</span>
+                        {% endif %}
+                        {% if not current_flight.oil_is_done %}
+                            <span class="oil big-box-bottom-text">Oil,</span>
+                        {% endif %}
+                        {% if not current_flight.hyd_is_done %}
+                            <span class="hyd big-box-bottom-text">Hydr,</span>
+                        {% endif %}
+                        {% if not current_flight.water_is_done %}
+                            <span class="water big-box-bottom-text">Water</span>
+                        {% endif %}
+                    </div>
+                {% endif %}
             </a>
         </div>
 
         <div class="col-3">
-            <div class="flight-details-box selection-box box-blue">
+            <div class="flight-details-box big-box box-blue">
                 <span>Planned Maint</span>
-                <i class="bi bi-calendar selection-box-icon"></i>
-                <span class="planned-maint selection-box-bottom-text">None</span>
+                <i class="bi bi-calendar big-box-icon"></i>
+                <span class="planned-maint big-box-bottom-text">None</span>
             </div>
         </div>
 
         <div class="col-3">
-            <div class="flight-details-box selection-box box-amber">
+            <div class="flight-details-box big-box box-amber">
                 <span>Ice Protection</span>
-                <i class="bi bi-snow selection-box-icon"></i>
-                <span class="fluid-type selection-box-bottom-text">Type IV,</span>
-                <span class="holdover-time selection-box-bottom-text">30 Min</span>
+                <i class="bi bi-snow big-box-icon"></i>
+                <span class="fluid-type big-box-bottom-text">Type IV,</span>
+                <span class="holdover-time big-box-bottom-text">30 Min</span>
             </div>
         </div>
 
         <div class="col-3">
             <a href="{% url 'flight_sign_off' airframe.id %}">
-                <div class="flight-details-box selection-box box-red">
+                <div class="flight-details-box big-box box-red">
                     <span>Flight Sign Off</span>
-                    <i class="bi bi-check-all selection-box-icon"></i>
+                    <i class="bi bi-check-all big-box-icon"></i>
                 </div>
             </a>
         </div>

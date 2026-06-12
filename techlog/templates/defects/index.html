@@ -8,20 +8,20 @@
     <div class="row">
 
         <div class="col-3">
-            <a href="{% url 'this_flight_defects' airframe.id %}">
-                <div class="flight-details-box selection-box {% if open_defects_count > 0 %}box-red{% else %}box-green{% endif %}">
+            <a href="{% url 'defects_this_flight' airframe.id %}">
+                <div class="flight-details-box big-box {% if open_defects_count > 0 %}box-red{% else %}box-green{% endif %}">
                     <span>This Flight Defects</span>
-                    <i class="bi bi-gear selection-box-icon"></i>
-                    <span class="defects-open selection-box-bottom-text">Open ({{ open_defects_count }})</span>
-                    <span class="defects-closed selection-box-bottom-text">Closed ({{ closed_defects_count }})</span>
-                    <span class="defects-carry selection-box-bottom-text">C/Fwd({{ carry_fwd_defects_count }})</span>
+                    <i class="bi bi-gear big-box-icon"></i>
+                    <span class="defects-open big-box-bottom-text">Open ({{ open_defects_count }})</span>
+                    <span class="defects-closed big-box-bottom-text">Closed ({{ closed_defects_count }})</span>
+                    <span class="defects-carry big-box-bottom-text">C/Fwd({{ carry_fwd_defects_count }})</span>
                 </div>
             </a>
         </div>
 
         <div class="col-3">
-            <a href="{% url 'this_flight_defects' airframe.id %}">
-                <div class="flight-details-box selection-box 
+            <a href="{% url 'defects_this_flight' airframe.id %}">
+                <div class="flight-details-box big-box 
                     {% if carry_fwd_action_overdue > 0 %}
                         box-red
                     {% elif carry_fwd_defects_count > 0 %}
@@ -30,19 +30,19 @@
                         box-green
                     {% endif %}">
                     <span>Open Carry Fwd</span>
-                    <i class="bi bi-calendar selection-box-icon"></i>
-                    <span class="defects-open selection-box-bottom-text">Open ({{ carry_fwd_defects_count }})</span>
+                    <i class="bi bi-calendar big-box-icon"></i>
+                    <span class="defects-open big-box-bottom-text">Open ({{ carry_fwd_defects_count }})</span>
                     <!-- if defect.due_at < current_time -->
-                    <span class="defects-closed selection-box-bottom-text">Overdue ({{ carry_fwd_action_overdue }})</span>
+                    <span class="defects-closed big-box-bottom-text">Overdue ({{ carry_fwd_action_overdue }})</span>
                 </div>
             </a>
         </div>
 
         <div class="col-3">
             <a href="{% url 'flight_defects' airframe.id %}">
-                <div class="flight-details-box selection-box box-green">
+                <div class="flight-details-box big-box box-green">
                     <span>Historical Defects</span>
-                    <i class="bi bi-hourglass-split selection-box-icon"></i>
+                    <i class="bi bi-hourglass-split big-box-icon"></i>
                 </div>
             </a>
         </div>

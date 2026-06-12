@@ -9,7 +9,7 @@
 
         {% for fluid in fluids %}
             <div class="col-3">
-                <div class="oil-page-box selection-box box-green">
+                <div class="oil-page-box big-box box-green">
                     <h1 class="oil-page-box-row">
                         {{fluid.item}} ({{fluid.max_level|floatformat:0}} {{fluid.get_units_of_measure_display}} )
                     </h1>
@@ -38,13 +38,13 @@
     <div class="row mt-5">
         
         <div class="col-2">
-            <div class="oil-page-small-box small-selection-box box-gray">
+            <div class="oil-page-small-box small-box box-gray">
                 Nil Uplift
             </div>
         </div>
         
         <div class="col-2">
-            <div class="oil-page-small-box small-selection-box box-amber">
+            <div class="oil-page-small-box small-box box-amber">
                 View usage statistics
             </div>
         </div>
