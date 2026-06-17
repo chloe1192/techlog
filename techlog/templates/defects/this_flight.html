@@ -16,7 +16,7 @@
 
         {% for defect in airframe_defects %}
         <div class="col-3">
-            <a class="defects-box color-filled-box 
+            <a href="{% url 'defects_details' current_airframe.id defect.id %}" class="defects-box color-filled-box 
                 {% if defect.action == 0 %}
                     box-red
                 {% elif defect.action == 1 %}

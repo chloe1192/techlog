@@ -27,22 +27,22 @@
 
                     <div class="form-field-100">
                         <span class="form-label form-item-50">Capacity </span>
-                        <span class="form-label form-item-50" id="oil_capacity_{{ tank.id }}">{{tank.max_level|floatformat:0}} {{tank.get_units_of_measure_display}}</span>
+                        <span class="form-label form-item-50" id="oil_capacity_{{ tank.id }}">{{tank.max_level}} {{tank.get_units_of_measure_display}}</span>
                     </div>
 
                     <div class="form-field-100">
                         <span class="form-label form-item-50">Arrival </span>
-                        <span class="form-label form-item-50" id="oil_arrival_{{ tank.id }}">{{tank.level|floatformat:0}}</span>
+                        <span class="form-label form-item-50" id="oil_arrival_{{ tank.id }}">{{tank.level}}</span>
                     </div>
 
                     <div class="form-field-100">
                         <span class="form-label form-item-50">Uplift </span>
-                        <input class="form-label form-item-50" id="oil_uplift_{{ tank.id }}" name="oil_uplift_{{ tank.id }}" type="number" value="">
+                        <input class="form-label form-item-50" id="oil_uplift_{{ tank.id }}" name="oil_uplift_{{ tank.id }}" type="number" step=".01" value="">
                     </div>
 
                     <div class="form-field-100">                        
                         <span class="form-label form-item-50">Departure </span>
-                        <input class="form-label form-item-50" id="oil_departure_{{ tank.id }}" name="oil_departure_{{ tank.id }}" onblur="calculateUplift({{tank.id}}, event)" type="number" value="">
+                        <input class="form-label form-item-50" id="oil_departure_{{ tank.id }}" name="oil_departure_{{ tank.id }}" onblur="calculateUplift({{tank.id}}, event)" type="number" step=".01" value="">
                     </div>
                 </div>
             {% endfor %}
@@ -57,22 +57,22 @@
 
                     <div class="form-field-100">
                         <span class="form-label form-item-50">Capacity </span>
-                        <span class="form-label form-item-50" id="oil_capacity_{{ tank.id }}">{{tank.max_level|floatformat:0}} {{tank.get_units_of_measure_display}}</span>
+                        <span class="form-label form-item-50" id="oil_capacity_{{ tank.id }}">{{tank.max_level}} {{tank.get_units_of_measure_display}}</span>
                     </div>
 
                     <div class="form-field-100">
                         <span class="form-label form-item-50">Arrival </span>
-                        <span class="form-label form-item-50" id="oil_arrival_{{ tank.id }}">{{tank.level|floatformat:0}}</span>
+                        <span class="form-label form-item-50" id="oil_arrival_{{ tank.id }}">{{tank.level}}</span>
                     </div>
 
                     <div class="form-field-100">
                         <span class="form-label form-item-50">Uplift </span>
-                        <input class="form-label form-item-50" id="oil_uplift_{{ tank.id }}" name="oil_uplift_{{ tank.id }}" type="number" value="">
+                        <input class="form-label form-item-50" id="oil_uplift_{{ tank.id }}" name="oil_uplift_{{ tank.id }}" type="number" step=".01" value="">
                     </div>
 
                     <div class="form-field-100">                        
                         <span class="form-label form-item-50">Departure </span>
-                        <input class="form-label form-item-50" id="oil_departure_{{ tank.id }}" name="oil_departure_{{ tank.id }}" onblur="calculateUplift({{tank.id}}, event)" type="number" value="">
+                        <input class="form-label form-item-50" id="oil_departure_{{ tank.id }}" name="oil_departure_{{ tank.id }}" onblur="calculateUplift({{tank.id}}, event)" type="number" step=".01" value="">
                     </div>
                 </div>
             {% endfor %}

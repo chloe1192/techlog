@@ -4,9 +4,9 @@ from itertools import chain
 
 from django.urls import reverse
 
-from .forms import AcceptanceForm, AirframeDefectCreateForm, AirframeEdit, AirframeEngineEdit, MaintenanceReleaseForm, RefuelingForm
+from .forms import AcceptanceForm, ActionCreate, AirframeDefectCreateForm, AirframeEdit, AirframeEngineEdit, MaintenanceReleaseForm, RefuelingForm
 
-from .models import Action, AircraftTypeFluid, Airframe, AirframeDefect, AircraftType, AirframeEngine, CurrentFlight, EngineModel, EngineFluids, Company, Defect, EngineModelFluid, EngineeringCompany, Operator, AirframeFluid, Flight, Airport, Refuel
+from .models import Action, ActionTypes, AircraftTypeFluid, Airframe, AirframeDefect, AircraftType, AirframeEngine, CurrentFlight, DeferCategory, EngineDefect, EngineModel, EngineFluids, Company, Defect, EngineModelFluid, EngineeringCompany, FamilyDefect, Operator, AirframeFluid, Flight, Airport, Refuel, TypeDefect
 from django.shortcuts import get_object_or_404, redirect, render
 
 def index(request):
@@ -372,7 +372,7 @@ def defects(request, id):
     carry_fwd_action_overdue = 0
 
     print("datetime.now()" + datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-    for defect in defect_actions:
+    for defect in airframe_defects:
         if defect.status == 0:
             open_defects_count = open_defects_count + 1
         if defect.status == 1:
@@ -429,6 +429,107 @@ def defects_create(request, id):
         'defects': defects
     }
     return render(request, 'defects/create.html', context)
+
+def defects_details(request, id, defect_id):
+    airframe = get_object_or_404(Airframe, id=id)
+    defect = get_object_or_404(AirframeDefect, airframe=airframe, id=defect_id)
+    engine_model = AirframeEngine.objects.filter(airframe=airframe).last()
+    family_defects = FamilyDefect.objects.filter(aircraft_family=airframe.aircraft_type.aircraft_family)
+    engine_defects = EngineDefect.objects.filter(engine_model=engine_model.engine_model)
+    type_defects = TypeDefect.objects.filter(aircraft_type=airframe.aircraft_type)
+    actions = Action.objects.filter(airframe_defect=defect)
+    for defea in family_defects:
+        print("family_defects")
+        print(defea.defect)
+    
+    defect_actions = Action.objects.filter(airframe_defect__airframe=airframe)
+    context = {
+        'airframe': airframe,
+        'defect': defect,
+        'actions': actions,
+        'family_defects': family_defects,
+        'engine_defects': engine_defects,
+        'type_defects': type_defects,
+        'defect_actions': defect_actions,
+    }
+    return render(request, 'defects/details.html', context)
+
+def defects_actions_create(request, id, defect_id):
+    airframe = get_object_or_404(Airframe, id=id)
+    airframe_defect = get_object_or_404(AirframeDefect, id=defect_id)
+    engineering_companies = EngineeringCompany.objects.all()
+    categories = DeferCategory
+    statuses = ActionTypes
+
+    if request.method == "POST":
+
+        print(f"request.POST: ----------- {request.POST}")
+        form = ActionCreate(request.POST)
+        deferred_at_date = f"{request.POST["deferred_at_date"]} {request.POST["deferred_at_time"]}"
+        deferred_at_date = datetime.strptime(deferred_at_date, "%Y-%m-%d %H:%M")
+
+        if form.is_valid():
+            obj = form.save(commit=False)
+            obj.airframe_defect = airframe_defect
+            obj.deferred_at = deferred_at_date
+            obj.save()
+            airframe_defect.status = obj.status
+            airframe_defect.save()
+            print(f"obj: ----------- {obj}")
+        else:
+            print(form.errors)
+
+    print(airframe_defect.defect)
+    context = {
+        'airframe': airframe,
+        'engineering_companies': engineering_companies,
+        'categories': categories,
+        'statuses': statuses,
+        'airframe_defect': airframe_defect
+    }
+    return render(request, 'defects/actions/create.html', context)
+
+def defects_actions_edit(request, id, defect_id, action_id):
+    page_title = "Action Edit"
+    return_url = reverse("defects_details", kwargs={"id": id, "defect_id": defect_id})
+    airframe = get_object_or_404(Airframe, id=id)
+    airframe_defect = get_object_or_404(AirframeDefect, id=defect_id)
+    engineering_companies = EngineeringCompany.objects.all()
+    categories = DeferCategory
+    statuses = ActionTypes
+    action = get_object_or_404(Action, id=action_id)
+
+    if request.method == "POST":
+
+        print(f"request.POST: ----------- {request.POST}")
+        form = ActionCreate(request.POST, instance=action)
+        deferred_at_date = f"{request.POST["deferred_at_date"]} {request.POST["deferred_at_time"]}"
+        deferred_at_date = datetime.strptime(deferred_at_date, "%Y-%m-%d %H:%M")
+
+        if form.is_valid():
+            obj = form.save(commit=False)
+            obj.airframe_defect = airframe_defect
+            obj.deferred_at = deferred_at_date
+            obj.save()
+            airframe_defect.status = obj.status
+            airframe_defect.save()
+            print(f"obj: ----------- {obj}")
+        else:
+            print(form.errors)
+
+    print(airframe_defect.defect)
+    print(f"action: {action}")
+    context = {
+        'return_url': return_url,
+        'page_title': page_title,
+        'airframe': airframe,
+        'action': action,
+        'engineering_companies': engineering_companies,
+        'categories': categories,
+        'statuses': statuses,
+        'airframe_defect': airframe_defect
+    }
+    return render(request, 'defects/actions/create.html', context)
 
 def flight_defects(request, id):
     airframe = get_object_or_404(Airframe, id=id)
@@ -563,7 +664,7 @@ def servicing_oil(request, id):
     if request.method == "POST":
         print(request.POST)
 
-        nil_uplift = request.POST['nil_uplift']
+        nil_uplift = request.POST.get('nil_uplift')
         print("request.POST['nil_uplift']")
         print(nil_uplift)
         if nil_uplift == "on":
@@ -582,6 +683,31 @@ def servicing_oil(request, id):
             tank_id = key.replace("oil_uplift_", "")
             print("tank_id")
             print(tank_id)
+
+            try:
+                tank = AirframeFluid.objects.get(
+                    id=tank_id,
+                    fluid_type=1
+                )
+                print("tank")
+                print(tank)
+
+                uplift = value
+                print("uplift")
+                print(uplift)
+
+                print("tank.level")
+                print(tank.level)
+
+                tank.level = float(tank.level) + float(uplift)
+                tank.save(update_fields=["level"])
+                print("tank.level")
+                print(tank.level)
+                current_flight.oil_is_done = True
+                current_flight.save()
+
+            except AirframeFluid.DoesNotExist:
+                print(f"Oil tank {tank_id} not found")
 
             try:
                 tank = EngineFluids.objects.get(
@@ -633,7 +759,7 @@ def servicing_hyd(request, id):
     if request.method == "POST":
         print(request.POST)
 
-        hyd_nil_uplift = request.POST['hyd_nil_uplift']
+        hyd_nil_uplift = request.POST.get('hyd_nil_uplift')
         print("request.POST['hyd_nil_uplift']")
         print(hyd_nil_uplift)
         if hyd_nil_uplift == "on":

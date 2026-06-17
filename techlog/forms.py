@@ -1,6 +1,6 @@
 from django import forms
 from django.forms import ModelForm, inlineformset_factory
-from .models import Airframe, AirframeDefect, AirframeEngine, CurrentFlight, Refuel, FluidTopUp
+from .models import Action, Airframe, AirframeDefect, AirframeEngine, CurrentFlight, Refuel, FluidTopUp
 
 class AirframeDefectCreateForm(ModelForm):
     
@@ -87,4 +87,18 @@ class AirframeEngineEdit(ModelForm):
         fields = [
             'engine_model',
             'engine_hours'
+        ]
+
+class ActionCreate(ModelForm):
+    class Meta:
+        model = Action
+        fields = [
+            'status',
+            'time',
+            'desc',
+            'category',
+            'engineering_company',
+            'defer_reason',
+            'deferred_at',
+            'due_at'
         ]

@@ -38,7 +38,7 @@ class DeferCategory(models.IntegerChoices):
     MEL_D = 3, "MEL CAT D - 120 Days"
     MEL_C = 4, "MEL CAT C - 10 Days"
     MEL_B = 5, "MEL CAT B - 3 Days"
-    MEL_A = 6, "MEL CAT A - 120 Days"
+    MEL_A = 6, "MEL CAT A"
 
 class CurrentFlightStatus(models.IntegerChoices):
     DRAFT = 0, "Draft"
@@ -48,6 +48,12 @@ class CurrentFlightStatus(models.IntegerChoices):
 class AirframeOrEngineFluid(models.IntegerChoices):
     AIRFRAME = 0, "Airframe Fluid"
     ENGINE = 1, "Engine Fluid"
+
+class ProcedureRequired(models.IntegerChoices):
+    NONE = 0, "None"
+    M = 1, "(M)"
+    O = 2, "(O)"
+    MO = 3, "(M) (O)"
 
 class Company(models.Model):
     name = models.CharField(max_length=200)
@@ -134,10 +140,10 @@ class Defect(models.Model):
     ata_chapter = models.IntegerField()
     ata_section = models.IntegerField()
     ata_item = models.CharField(max_length=6)
-    interval = models.CharField(max_length=1)
+    interval = models.IntegerField(choices=DeferCategory,default=DeferCategory.NA)
     installed_qty = models.IntegerField()
     required_qty = models.IntegerField()
-    procedure = models.CharField(max_length=1, blank=True, null=True)
+    procedure = models.IntegerField(choices=ProcedureRequired,default=ProcedureRequired.NONE)
     maint_note = models.TextField(blank=True, null=True)
     operations = models.TextField(blank=True, null=True)
     fuel_penalty = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)

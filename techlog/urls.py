@@ -32,12 +32,17 @@ urlpatterns = [
     path('airframe/<int:id>/flight_release_acceptance/', views.flight_release_acceptance, name='flight_release_acceptance'),
 
     path('airframe/<int:id>/flight_details/', views.flight_details, name='flight_details'),
+
     # defects
     path('airframe/<int:id>/defects/', views.defects, name='defects'),
     path('airframe/<int:id>/defects/create', views.defects_create, name='defects_create'),
+    path('airframe/<int:id>/defects/<int:defect_id>/details/', views.defects_details, name='defects_details'),
     path('airframe/<int:id>/defects/this_flight', views.defects_this_flight, name='defects_this_flight'),
+    path('airframe/<int:id>/defects/<int:defect_id>/actions/create/', views.defects_actions_create, name='defects_actions_create'),
+    path('airframe/<int:id>/defects/<int:defect_id>/actions/<int:action_id>/edit/', views.defects_actions_edit, name='defects_actions_edit'),
     path('airframe/<int:id>/flight_defects/', views.flight_defects, name='flight_defects'),
-    path('airframe/<int:id>/flight_defects_create/', views.flight_defects_create, name='flight_defects_create'),
+    #path('airframe/<int:id>/flight_defects_create/', views.flight_defects_create, name='flight_defects_create'),
+
     # servicing
     path('airframe/<int:id>/servicing/', views.servicing, name='servicing'),
     path('airframe/<int:id>/servicing/fuel/', views.servicing_fuel, name='servicing_fuel'),

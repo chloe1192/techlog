@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+{% block title %}Techlog - {{ page_title }}Techlog{% endblock %}
+{% include "header.html" %}
+{% load static %}
+
+{% block content %}
+
+<div class="dashboard flight-defects-create">
+
+    <form id="flight_defects_create" method="post" class="row">
+        {% csrf_token %}
+
+        <div class="form-half form-not-sent">
+            
+            <div class="form-creation-date"></div>
+            <!-- TODO move this to header page title -->
+            <h1 class="form-half-title">Defect Details</h1>
+
+            <!-- TODO temp select button untill a better solution -->
+            <button class="modal"></button>
+
+            <div class="form-field form-date-time-field form-field-100">
+                <input class="form-no-label form-item-100" type="text" value="{{defect.defect_title}}" name="defect_title" id="defect_title" placeholder="Title" data-auth-required="true">
+                <select class="form-no-label form-item-100" name="defect_template" id="defect_template">
+                    {% for family_defect in family_defects %}
+                        <option value="{{ family_defect.defect.id }}">{{ family_defect.defect }}</option>
+                    {% endfor %}
+                    {% for engine_defect in engine_defects %}
+                        <option value="{{ engine_defect.defect.id }}">{{ engine_defect.defect }}</option>
+                    {% endfor %}
+                    {% for type_defect in type_defects %}
+                        <option value="{{ type_defect.defect.id }}">{{ type_defect.defect }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="form-field form-date-time-field form-field-100">
+                <div class="form-item-25">
+                    <input class="form-big-checkbox" type="checkbox" name="is_pilot_report" id="is_pilot_report" 
+                    {% if defect.is_pilot_report %}
+                        checked
+                    {% endif %}
+                    >
+                    <label>Pilot Report</label>
+                </div>
+
+                <div class="form-item-25">
+                    <input class="form-big-checkbox" type="checkbox" name="is_cabin_log" id="is_cabin_log"
+                    {% if defect.is_cabin_log %}
+                        checked
+                    {% endif %}
+                    >
+                    <label>Cabin Log</label>
+                </div>
+
+                <div class="form-item-25">
+                    <input class="form-big-checkbox" type="checkbox" name="crs_not_required" id="crs_not_required"
+                    {% if defect.crs_not_required %}
+                        checked
+                    {% endif %}
+                    >
+                    <label>CRS not required</label>
+                </div>
+
+                <div class="form-item-25">
+                    <input class="form-big-checkbox" type="checkbox" name="is_etops" id="is_etops"
+                    {% if defect.is_etops %}
+                        checked
+                    {% endif %}
+                    >
+                    <label>ETOPS</label>
+                </div>
+            </div>
+
+            <div class="form-field form-textarea-field form-field-100">
+                <textarea class="form-no-label form-item-100" name="defect_text" id="defect_text" placeholder="Defect Text" value="{{defect.text}}"></textarea>
+            </div>
+
+            <div class="form-field form-input-field form-field-100">
+                <label class="form-item-20" for="ecam_message">ECAM</label>
+                <input class="form-with-label form-item-80" type="text" name="ecam_message" id="ecam_message" placeholder="ECAM Message" value="{{defect.ecam_message}}">
+            </div>
+            
+            <div class="form-field form-field-box-float-bottom form-field-box-side-auth form-field-30">
+
+                <a class="small-box small-box-icon-top box-green" href="#">
+                    <i class="bi bi-photo"></i>
+                    <span class="small-button-label small-button-label-bottom">Photos</span>
+                </a>
+
+                <a class="small-box small-box-icon-top box-green" href="#">
+                    <i class="bi bi-photo"></i>
+                    <span class="small-button-label small-button-label-bottom">Part request</span>
+                </a>
+
+            </div>
+
+            <div class="form-field form-field-70 form-sign-box">
+                <!-- mock up rels code should come form db user code defined in settings -->
+                <input hidden name="maint_rels_code">
+                <input class="form-auth form-auth-input form-auth-red" type="text" name="crew_auth_id" id="crew_auth_id">
+                <input class="form-auth form-auth-input form-auth-red" type="submit" name="crew_auth_sign" id="crew_auth_sign">
+            </div>
+
+        </div>
+
+        <div>
+            <a href="{% url 'defects_actions_create' current_airframe.id defect.id %}">
+                <i class="bi bi-plus"></i>
+            </a>
+        </div>
+
+    </form>
+    
+
+    {% for action in actions %}
+    <div class="col-3">
+        <a href="{% url 'defects_actions_edit' current_airframe.id defect.id action.id %}" class="defects-box color-filled-box 
+            {% if action.status == 0 %}
+                box-red
+            {% elif action.status == 1 %}
+                box-green
+            {% elif action.status == 2 %}
+                box-blue
+            {% endif %}
+                big-box w-100">
+            <span class="w-50 info info-left date-info">{{action.time|date:"y - M - d H:i"}}</span>
+            <span class="w-50 info info-right airframe-info">{{defect.airframe}}{{defect.airframe.msn}}-{{defect.id|stringformat:"05d"}}</span>
+            <div class="defect-title-box darker-background">
+                {{ action.desc}} - 
+                {{ action.category}} - 
+                {{ action.defer_reason}} - 
+                {{ action.deferred_at}} - 
+                {{ action.due_at}}
+            </div>
+            <span class="w-50 info info-left action-info">{{defect.action_time|date:"y - M - d H:i"}}</span>
+            <span class="w-50 info info-right airframe-info">{{defect.airframe}}{{defect.airframe.msn}}-{{defect.id|stringformat:"05d"}}</span>
+            <div class="defect-title-box defect-action-box darker-background">
+                {% for action in defect_actions %}
+                    {{ action.desc}}
+                {% endfor %}
+            </div>
+        </a>
+    </div>
+    {% endfor %}
+</div>
+
+<script>
+</script>
+{% endblock %}

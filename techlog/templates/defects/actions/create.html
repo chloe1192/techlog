@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+{% block title %}Techlog - {{ page_title }}Techlog{% endblock %}
+{% include "header.html" %}
+{% load static %}
+
+{% block content %}
+
+<div class="dashboard flight-defects-create">
+
+    <form id="flight_defects_create" method="post" class="row">
+        {% csrf_token %}
+        {{airframe_defect.defect.title}}<br>
+        {{airframe_defect.defect.ata_chapter}}-{{airframe_defect.defect.ata_section}}-{{airframe_defect.defect.ata_item}}<br>
+        {% if action %}
+            This is edit
+            {{action}}
+        {% endif %}
+
+        <div class="form-half form-not-sent">
+            
+            <div class="form-creation-date"></div>
+            <!-- TODO move this to header page title -->
+            <h1 class="form-half-title">Action create</h1>
+
+            <label>time</label>
+            <input type="datetime-local" id="time" name="time" {% if action %}value="{{action.time|date:'Y-m-d\\TH:i'}}"{% endif %} >
+
+            <label>desc</label>
+            <textarea id="desc" name="desc">{% if action %}{{action.desc}}{% endif %}</textarea>
+
+            <label>status</label>
+            <select id="status" name="status">
+                {% for status in statuses %}
+                    <option value="{{status.value}}" {% if action and status.value == action.status %}selected{% endif %}>{{status.label}}</option>
+                {% endfor %}
+            </select>
+            
+            <label>category</label>
+            <select id="category" name="category" onblur="dueTimeCalculator()">
+                {% for category in categories %}
+                    <option value="{{category.value}}"                    
+                        {% if action and category.value == action.category %} selected{% endif %}
+                    >{{category.label}}</option>
+                {% endfor %}
+            </select>
+
+            <label>engineering_company</label>
+            <select id="engineering_company" name="engineering_company">
+                {% for company in engineering_companies %}
+                    <option value="{{company.id}}"
+                        {% if action and company.id == action.engineering_company.id %} selected{% endif %}
+                    >{{company}}</option>
+                {% endfor %}
+            </select>
+
+            <label>defer_reason</label>
+            <textarea id="defer_reason" name="defer_reason">{% if action %}{{action.defer_reason}}{% endif %}</textarea>
+
+            <label>deferred_at</label>
+            <input type="date" id="deferred_at_date" name="deferred_at_date" {% if action %}value="{{action.deferred_at|date:'Y-m-d'}}"{% endif %} onblur="dueTimeCalculator()">    
+            <input type="time" id="deferred_at_time" name="deferred_at_time" {% if action %}value="{{action.deferred_at|date:'H:i'}}"{% endif %} onblur="dueTimeCalculator()">    
+
+            <label>due_at</label>       
+            <input type="datetime" id="due_at" name="due_at" {% if action %}value="{{action.due_at|date:'Y-m-d\\TH:i'}}"{% endif %} readonly>
+
+            <div class="form-field form-field-70 form-sign-box">
+                <!-- mock up rels code should come form db user code defined in settings -->
+                <input hidden name="maint_rels_code">
+                <input class="form-auth form-auth-input form-auth-red" type="text" name="crew_auth_id" id="crew_auth_id">
+                <input class="form-auth form-auth-input form-auth-red" type="submit" name="crew_auth_sign" id="crew_auth_sign">
+            </div>
+
+        </div>
+
+    </form>
+</div>
+
+
+<script type="text/javascript">
+
+    function dueTimeCalculator()
+    {
+        const category = document.getElementById("category")
+        const deferred_at_date = document.getElementById("deferred_at_date")
+        const deferred_at_time = document.getElementById("deferred_at_time")
+        const due_at = document.getElementById("due_at")
+        const deferred_at_datetime = new Date(
+            `${deferred_at_date.value}T${deferred_at_time.value}`
+        );
+        console.log(category.value)
+
+        if (category.value == 3) {
+            due_at.setAttribute("readonly", "readonly")
+            const dueDate = new Date(deferred_at_datetime);
+            dueDate.setDate(dueDate.getDate() + 120);
+
+            due_at.value = dueDate.toISOString().slice(0, 16);
+            console.log(dueDate)
+
+        }
+
+        if (category.value == 4) {
+            due_at.setAttribute("readonly", "readonly")
+            const dueDate = new Date(deferred_at_datetime);
+            dueDate.setDate(dueDate.getDate() + 10);
+
+            due_at.value = dueDate.toISOString().slice(0, 16);
+            console.log(dueDate)
+
+        }
+        
+        if (category.value == 5) {
+            due_at.setAttribute("readonly", "readonly")
+            const dueDate = new Date(deferred_at_datetime);
+            dueDate.setDate(dueDate.getDate() + 3);
+
+            due_at.value = dueDate.toISOString().slice(0, 16);
+            console.log(dueDate)
+
+        }
+        
+        if (category.value == 6) {
+            due_at.removeAttribute("readonly")
+        }
+
+    }
+</script>
+{% endblock %}
