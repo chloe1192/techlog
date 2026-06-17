@@ -20,8 +20,16 @@ from . import views
 
 urlpatterns = [
     path('', views.index, name='index'),
-    path('airframe/<int:airframe_id>/', views.airframe_index, name='airframe_index'),
-    path('operator/<int:id>', views.operator_index, name='operator_index'),    
+    path('operator/<int:id>', views.operator_index, name='operator_index'),
+
+    # airframe_editing    
+    path('airframes/list/', views.airframes_list, name='airframes_list'),
+    path('airframes/edit/<int:id>/', views.airframes_edit, name='airframes_edit'),
+
+    path('airframe/<int:id>/', views.flight_index, name='flight_index'),
+    
+    path('airframe/<int:id>/flight_release_maintenance/', views.flight_release_maintenance, name='flight_release_maintenance'),
+    path('airframe/<int:id>/flight_release_acceptance/', views.flight_release_acceptance, name='flight_release_acceptance'),
 
     path('airframe/<int:id>/flight_details/', views.flight_details, name='flight_details'),
     # defects
@@ -33,7 +41,11 @@ urlpatterns = [
     # servicing
     path('airframe/<int:id>/servicing/', views.servicing, name='servicing'),
     path('airframe/<int:id>/servicing/fuel/', views.servicing_fuel, name='servicing_fuel'),
+    path('airframe/<int:id>/servicing/oil/', views.servicing_oil, name='servicing_oil'),
+    path('airframe/<int:id>/servicing/hyd/', views.servicing_hyd, name='servicing_hyd'),
+    path('airframe/<int:id>/servicing/water/', views.servicing_water, name='servicing_water'),
     path('airframe/<int:airframe_id>/servicing/fuel/list/', views.servicing_refuel_list, name='servicing_refuel_list'),
+    
     path('airframe/<int:id>/flight_servicing/', views.flight_servicing, name='flight_servicing'),
     path('airframe/<int:id>/flight_fuel_levels/', views.flight_fuel_levels, name='flight_fuel_levels'),
     path('airframe/<int:id>/flight_oil_levels/', views.flight_oil_levels, name='flight_oil_levels'),
@@ -41,6 +53,5 @@ urlpatterns = [
     path('airframe/<int:id>/flight_water_levels/', views.flight_water_levels, name='flight_water_levels'),
     path('airframe/<int:id>/flight_ice_protection/', views.flight_ice_protection, name='flight_ice_protection'),
     path('airframe/<int:id>/planned_maintenance/', views.planned_maintenance, name='planned_maintenance'),
-    path('airframe/<int:id>/flight_sign_off/', views.flight_sign_off, name='flight_sign_off'),
     path('admin/', admin.site.urls),
 ]

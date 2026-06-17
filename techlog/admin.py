@@ -1,6 +1,7 @@
 from django.contrib import admin
 from .models import (
     Action,
+    AircraftFamily,
     Airframe,
     AirframeDefect,
     AircraftType,
@@ -38,10 +39,10 @@ class AircraftTypeFluidAdmin(admin.ModelAdmin):
     list_display = ['aircraft_type', 'item', 'fluid_type']
 
 class EngineFluidsAdmin(admin.ModelAdmin):
-    list_display = ['item', 'level', 'fluid_type', 'updated_at']
+    list_display = ['item', 'level', 'fluid_type', 'airframe_engine', 'updated_at']
 
 class AirframeFluidAdmin(admin.ModelAdmin):
-    list_display = ['item', 'level', 'fluid_type', 'updated_at']
+    list_display = ['item', 'level', 'fluid_type', 'airframe', 'updated_at']
 
 class OperatorAdmin(admin.ModelAdmin):
     list_display = ['name', 'company', 'created_at', 'updated_at']
@@ -145,6 +146,13 @@ class CurrentFlightAdmin(admin.ModelAdmin):
         'planned_flt_number'
     ]
 
+class AircraftFamilyAdmin(admin.ModelAdmin):
+    list_display = ['name', 'manufacturer']
+
+admin.site.register(
+    AircraftFamily,
+    AircraftFamilyAdmin
+)
 admin.site.register(
     CurrentFlight,
     CurrentFlightAdmin

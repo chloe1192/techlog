@@ -1,0 +1,110 @@
+<form method="post">
+    {% csrf_token %}
+    <label>Reg</label>
+    <input type="text" id="registration" name="registration" value="{{airframe.registration}}">
+
+    <label>msn</label>
+    <input type="number" id="msn" name="msn" value="{{airframe.msn}}">
+
+    <label>date_of_build</label>
+    <input type="datetime" id="date_of_build" name="date_of_build" value="{{airframe.date_of_build}}">
+
+    <label>operator</label>
+    {{airframe.operator.id}}
+    <select id="operator" name="operator">
+        {% for operator in operators %}
+            {% if operator.id == airframe.operator.id %}
+                <option value="{{operator.id}}" selected>{{operator.name}}</option>
+            {% else %}            
+                <option value="{{operator.id}}">{{operator.name}}</option>
+            {% endif %}
+        {% endfor %}
+    </select>
+
+    <label>aircraft_type</label>
+    <select id="aircraft_type" name="aircraft_type">
+        {% for type in aircraft_types %}
+            {% if type.id == airframe.aircraft_type.id %}
+                <option value="{{type.id}}" selected>{{type.name}}</option>
+            {% else %}            
+                <option value="{{type.id}}">{{type.name}}</option>
+            {% endif %}
+        {% endfor %}
+    </select>
+
+    <label>standard_empty_weight</label>
+    <input type="text" id="standard_empty_weight" name="standard_empty_weight" value="{{airframe.standard_empty_weight}}">
+    <input type="text" id="type_standard_empty_weight" value="{{aircraft_type_current.standard_empty_weight}}" hidden>
+
+    <label>basic_empty_weight</label>
+    <input type="text" id="basic_empty_weight" name="basic_empty_weight" value="{{airframe.basic_empty_weight}}">
+    <input type="text" id="type_basic_empty_weight" value="{{aircraft_type_current.basic_empty_weight}}" hidden>
+
+    <label>manufacturer_empty_weight</label>
+    <input type="text" id="manufacturer_empty_weight" name="manufacturer_empty_weight" value="{{airframe.manufacturer_empty_weight}}">
+    <input type="text" id="type_manufacturer_empty_weight" value="{{aircraft_type_current.manufacturer_empty_weight}}" hidden>
+
+    <label>operating_empty_weight</label>
+    <input type="text" id="operating_empty_weight" name="operating_empty_weight" value="{{airframe.operating_empty_weight}}">
+    <input type="text" id="type_operating_empty_weight" value="{{aircraft_type_current.operating_empty_weight}}" hidden>
+
+    <label>max_zero_fuel_weight</label>
+    <input type="text" id="max_zero_fuel_weight" name="max_zero_fuel_weight" value="{{airframe.max_zero_fuel_weight}}">
+    <input type="text" id="type_max_zero_fuel_weight" value="{{aircraft_type_current.max_zero_fuel_weight}}" hidden>
+
+    <label>max_landing_weight</label>
+    <input type="text" id="max_landing_weight" name="max_landing_weight" value="{{airframe.max_landing_weight}}">
+    <input type="text" id="type_max_landing_weight" value="{{aircraft_type_current.max_landing_weight}}" hidden>
+
+    <label>max_takeoff_weight</label>
+    <input type="text" id="max_takeoff_weight" name="max_takeoff_weight" value="{{airframe.max_takeoff_weight}}">
+    <input type="text" id="type_max_takeoff_weight" value="{{aircraft_type_current.max_takeoff_weight}}" hidden>
+
+    <label>max_ramp_weight</label>
+    <input type="text" id="max_ramp_weight" name="max_ramp_weight" value="{{airframe.max_ramp_weight}}">
+    <input type="text" id="type_max_ramp_weight" value="{{aircraft_type_current.max_ramp_weight}}" hidden>
+
+    <label>Engine model</label>
+    <select id="engine_models" name="engine_model">
+        {% for model in engine_models %}
+            {% if model.id == engine_model_current.id.last %}
+                <option value="{{model.id}}" selected>{{model.name}}</option>
+            {% else %}            
+                <option value="{{model.id}}">{{model.name}}</option>
+            {% endif %}
+        {% endfor %}
+    </select>
+    <label>Engine number</label>
+    <input type="number" id="engine_number" name="engine_number" value="{{engine_model_current.count}}">
+
+    <div id="copy_default_weight_values" onclick="copyWeight(event)">Copy Weight</div>
+    <input type="submit" name="action" value="create_engine_instance" value="Create Engines from type model">
+    <input type="submit" name="action" value="create_engine_fluids_instance" value="Create Engine Fluids from type model">
+    <input type="submit" name="action" value="create_airframe_fluids_instance" value="Create Airframe Fluids from type model">
+    <input type="submit" placeholder="Create Airframe">
+</form>
+<script>
+    function copyWeight(event) {
+        event.preventDefault();
+
+        const fields = [
+            "standard_empty_weight",
+            "basic_empty_weight",
+            "manufacturer_empty_weight",
+            "operating_empty_weight",
+            "max_zero_fuel_weight",
+            "max_landing_weight",
+            "max_takeoff_weight",
+            "max_ramp_weight"
+        ];
+
+        fields.forEach(field => {
+            const target = document.getElementById(field);
+            const source = document.getElementById(`type_${field}`);
+
+            if (target && source) {
+                target.value = source.value;
+            }
+        });
+    }
+</script>

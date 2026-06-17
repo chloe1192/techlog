@@ -1,6 +1,6 @@
 from django import forms
 from django.forms import ModelForm, inlineformset_factory
-from .models import AirframeDefect, CurrentFlight, Refuel
+from .models import Airframe, AirframeDefect, AirframeEngine, CurrentFlight, Refuel, FluidTopUp
 
 class AirframeDefectCreateForm(ModelForm):
     
@@ -48,4 +48,43 @@ class RefuelingForm(ModelForm):
             'fuel_supplier',
             'fuel_ticket_no',
             'bowser_uplift_in_lt'
+        ]
+
+class FluidTopUp(ModelForm):
+    class Meta:
+        model = FluidTopUp
+        fields = [
+            'planned_flt_number',
+            'airframe_or_engine_fluid',
+            'quantity',
+            'engine_fluid',
+            'airframe_fluid',
+            'engineering_company'
+        ]
+
+class AirframeEdit(ModelForm):
+    class Meta:
+        model = Airframe
+        fields = [
+            'registration',
+            'msn',
+            'date_of_build',
+            'aircraft_type',
+            'operator',
+            'standard_empty_weight',
+            'basic_empty_weight',
+            'manufacturer_empty_weight',
+            'operating_empty_weight',
+            'max_zero_fuel_weight',
+            'max_landing_weight',
+            'max_takeoff_weight',
+            'max_ramp_weight'
+        ]
+
+class AirframeEngineEdit(ModelForm):
+    class Meta:
+        model = AirframeEngine
+        fields = [
+            'engine_model',
+            'engine_hours'
         ]

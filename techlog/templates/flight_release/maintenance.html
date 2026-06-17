@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+{% block title %}Techlog - {{ page_title }}{% endblock %}
+{% include "header.html" %}
+{% load static %}
+
+{% block content %}
+
+<div class="dashboard flight-details row">
+
+    <form id="maint_release_form" method="post" class="form-half 
+            {% if maint_release_not_sent %}
+                form-not-sent
+            {% else %}
+                form-sent
+            {% endif %}
+        ">
+        {% csrf_token %}
+        <!-- if form_sent == true -> inputs blue bg -->
+
+        <h1 class="form-half-title">Maintenance Release</h1>
+
+        <div class="form-field form-date-time-field form-field-100">
+            <input class="form-label form-item-50" type="date" name="maint_release_date" id="maint_release_date"
+                {% if maint_release_not_sent %}
+                    data-auth-required="true" value="{{current_date|date:'Y-m-d'}}"
+                {% else %}
+                    data-auth-required="false" value="{{current_flight.maint_release_date|date:'Y-m-d'}}" disabled
+                {% endif %}
+            >
+            <i class="bi bi-clock" onclick="setTimeNow()"></i>
+            <input type="time" name="maint_release_time" id="maint_release_time"
+                {% if maint_release_not_sent %}
+                    data-auth-required="true"
+                {% else %}
+                    data-auth-required="false" value="{{current_flight.maint_release_date|date:'H:m'}}" disabled
+                {% endif %} 
+            >
+            <span class="form-text">Certifies that the work specified, except as otherwise specified, was carried out in accordance with Part-145 and in respect to thatwork the aircraft is considered ready for release to service</span>
+        </div>
+
+        <div class="form-field form-select-field form-field-100">
+            <label class="form-label form-item-100">Conduce Engineering</label>
+            <select class="form-label form-item-30" name="maint_release_eng_company" 
+                {% if maint_release_not_sent %}
+                    data-auth-required="true"
+                {% else %}
+                    data-auth-required="false" disabled
+                {% endif %}
+            >
+                {% for cpy in eng_cpy %}
+                    {% if current_flight.maint_release_eng_company.id == cpy.id %}
+                        <option value="{{cpy.id}}" selected>{{cpy.code}}</option>
+                    {% else %}
+                        <option value="{{cpy.id}}">{{cpy.code}}</option>
+                    {% endif %}
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-field form-field-box-group form-field-right form-field-70">
+            <!-- if hours = less than defined -> amber, else if = passed -> red -->
+            <a href="#" class="button rectangular-box rectangular-box-no-icon box-green">
+                <h2 class="button-title rectangular-box-title">Daily</h2>
+                <span class="date-time full-date">13-Dec-25 02:00</span>                    
+                <span class="date-time time-remaining">datetime.selected - datetime.now</span>
+            </a>
+            <!-- if hours = less than defined -> amber, else if = passed -> red -->
+            <a href="#" class="button rectangular-box rectangular-box-no-icon box-green">
+                <h2 class="button-title rectangular-box-title">Weekly</h2>
+                <span class="date-time full-date">13-Dec-25 02:00</span>                    
+                <span class="date-time time-remaining">datetime.selected - datetime.now</span>
+            </a>
+        </div>
+
+        <div class="form-field form-field-box-group form-field-left form-field-30">
+
+            <a href="#" class="button  box-green">
+            </a>
+
+            <a href="#" class="button small-button small-button-icon-top  box-green">
+                <i class="bi bi-settings"></i>
+                <h2 class="button-title rectangular-box-title"></h2>
+            </a>
+
+            <a href="#" class="button small-button small-button-icon-top  box-green">
+                <i class="bi bi-settings"></i>
+                <h2 class="button-title rectangular-box-title"></h2>
+            </a>
+
+        </div>
+        
+        <div class="form-field form-field-box-float-bottom form-field-box-side-auth form-field-30">
+
+            <a class="rectangular-box rectangular-box-icon-left box-green" href="#">
+                <i class="bi bi-settings"></i>
+                <h2 class="button-title rectangular-box-title">Defects Actioned (2)</h2>
+            </a>
+
+            <a class="small-box small-box-icon-top box-green" href="#">
+                <i class="bi bi-photo"></i>
+                <span class="small-button-label small-button-label-bottom">Forms 0/2</span>
+            </a>
+
+            <a class="small-box small-box-icon-top box-green" href="#">
+                <i class="bi bi-photo"></i>
+                <span class="small-button-label small-button-label-bottom">Planned Mx</span>
+            </a>
+
+        </div>           
+
+        <div class="form-field form-field-70 form-sign-box">
+            <!-- mock up rels code should come form db user code defined in settings -->
+            <input hidden name="maint_rels_code">
+            <input class="form-auth form-auth-input form-auth-red" type="text" name="crew_auth_id" id="crew_auth_id">
+            <input class="form-auth form-auth-input form-auth-red" type="submit" name="crew_auth_sign" id="crew_auth_sign">
+        </div>
+
+    </form>
+</div>
+
+<script>
+    function setTimeNow() {
+        const time_field = document.getElementById("maint_release_time");
+        const now = new Date();
+        const hh = String(now.getHours()).padStart(2, "0");
+        const mm = String(now.getMinutes()).padStart(2, "0");
+
+        const time = `${hh}:${mm}`;
+
+        time_field.value = time;
+    }
+
+    function setAcceptanceTimeNow() {
+        const time_field = document.getElementById("acceptance_time");
+        const now = new Date();
+        const hh = String(now.getHours()).padStart(2, "0");
+        const mm = String(now.getMinutes()).padStart(2, "0");
+
+        const time = `${hh}:${mm}`;
+
+        time_field.value = time;
+    }
+
+    function releaseFromMaint(event) {
+        event.preventDefault();
+
+        const form = event.target.closest("form") || document.querySelector("form");
+        const formData = new FormData(form);
+
+        const data = {};
+        formData.forEach((value, key) => {
+            data[key] = value;
+        });
+
+        console.log("Form Data:", data);
+        console.log("maint_rels_date:", data.maint_rels_date);
+        console.log("maint_rels_time:", data.maint_rels_time);
+        console.log("part_145_eng:", data.part_145_eng);
+        console.log("maint_rels_auth_id:", data.maint_rels_auth_id);
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        const form = document.querySelector("form");
+
+        form.querySelectorAll("input, select, textarea").forEach(el => {
+            el.addEventListener("input", releaseFromMaint);
+            el.addEventListener("change", releaseFromMaint);
+        });
+    });
+</script>
+
+{% endblock %}

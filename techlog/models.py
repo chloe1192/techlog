@@ -186,6 +186,10 @@ class EngineModelFluid(models.Model):
         max_digits=10,
         decimal_places=2
     )
+
+    engine_number = models.IntegerField(
+        max_length=2
+    )
     
     def __str__(self):
         return f"{self.engine_model} {self.item}"
@@ -355,7 +359,11 @@ class EngineFluids(models.Model):
     airframe_engine = models.ForeignKey(AirframeEngine, on_delete=models.CASCADE)
     units_of_measure = models.IntegerField(choices=UnitsOfMeasureVolume, default=UnitsOfMeasureVolume.LT) # 0 lt, 1 qts, 2 pct
     max_level = models.DecimalField(max_digits=10, decimal_places=2)
-    fluid_type = models.IntegerField(choices=FluidTypes, default=FluidTypes.FUEL)
+    fluid_type = models.IntegerField(choices=FluidTypes, default=FluidTypes.FUEL)    
+
+    engine_number = models.IntegerField(
+        max_length=2
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
