@@ -34,15 +34,18 @@ class ConpanyAdmin(admin.ModelAdmin):
 
 class EngineModelFluidAdmin(admin.ModelAdmin):
     list_display = ['engine_model', 'item', 'fluid_type']
+    save_as = True
 
 class AircraftTypeFluidAdmin(admin.ModelAdmin):
     list_display = ['aircraft_type', 'item', 'fluid_type']
+    save_as = True
 
 class EngineFluidsAdmin(admin.ModelAdmin):
     list_display = ['item', 'level', 'fluid_type', 'airframe_engine', 'updated_at']
 
 class AirframeFluidAdmin(admin.ModelAdmin):
     list_display = ['item', 'level', 'fluid_type', 'airframe', 'updated_at']
+    save_as = True
 
 class OperatorAdmin(admin.ModelAdmin):
     list_display = ['name', 'company', 'created_at', 'updated_at']
@@ -69,7 +72,12 @@ class AirportAdmin(admin.ModelAdmin):
     list_display = ('iata_code', 'name', 'created_at', 'updated_at')
 
 class RouteAdmin(admin.ModelAdmin):
-    list_display = ('operator', 'departure', 'arrival')
+    list_display = [
+        'flt_number',
+        'departure',
+        'arrival',
+        'operator__iata_code'
+    ]
     
 class FlightAdmin(admin.ModelAdmin):
     list_display = ('callsign', 'date_of_flight', 'airframe')

@@ -2,11 +2,14 @@ from datetime import datetime
 from decimal import Decimal
 from itertools import chain
 
+from django.http import JsonResponse
 from django.urls import reverse
+
+from .helpers import parse_datetime
 
 from .forms import AcceptanceForm, ActionCreate, AirframeDefectCreateForm, AirframeEdit, AirframeEngineEdit, MaintenanceReleaseForm, RefuelingForm
 
-from .models import Action, ActionTypes, AircraftTypeFluid, Airframe, AirframeDefect, AircraftType, AirframeEngine, CurrentFlight, DeferCategory, EngineDefect, EngineModel, EngineFluids, Company, Defect, EngineModelFluid, EngineeringCompany, FamilyDefect, Operator, AirframeFluid, Flight, Airport, Refuel, TypeDefect
+from .models import Action, ActionTypes, AircraftTypeFluid, Airframe, AirframeDefect, AircraftType, AirframeEngine, CurrentFlight, DeferCategory, EngineDefect, EngineModel, EngineFluids, Company, Defect, EngineModelFluid, EngineeringCompany, FamilyDefect, Operator, AirframeFluid, Flight, Airport, Refuel, Route, TypeDefect
 from django.shortcuts import get_object_or_404, redirect, render
 
 def index(request):
@@ -15,6 +18,14 @@ def index(request):
         'operators': operators,
     }
     return render(request, 'index.html', context)
+
+def routes_list(request, operator_id):
+    operator = get_object_or_404(Operator, id=operator_id)
+    routes = Route.objects.filter(operator=operator)
+    context = {
+        'routes': routes
+    }
+    return render(request, 'airline_management/operator_management/routes/list.html', context)
 
 def airframes_list(request, id=0):
     request.session['current_operator_id'] = id
@@ -198,27 +209,12 @@ def flight_release_maintenance(request, id):
         print(request.POST)
         print(f"request.POST[maint_release_date] {request.POST["maint_release_date"]}")
         maint_release_date = request.POST.get("maint_release_date")
-        acceptance_date = request.POST.get("acceptance_date")
         if maint_release_date is not None:
             maint_release_date = f"{request.POST["maint_release_date"]} {request.POST["maint_release_time"]}"
             maint_release_date = datetime.strptime(maint_release_date, "%Y-%m-%d %H:%M")
 
             if current_flight is not None:
                 form = MaintenanceReleaseForm(request.POST, instance=current_flight)
-
-                if form.is_valid():
-                    obj = form.save(commit=False)
-                    obj.maint_release_date = maint_release_date
-                    obj.airframe = airframe
-                    obj.save()
-                else:
-                    print(form.errors)
-        if acceptance_date is not None:
-            acceptance_date = f"{request.POST["acceptance_date"]} {request.POST["acceptance_time"]}"
-            acceptance_date = datetime.strptime(acceptance_date, "%Y-%m-%d %H:%M")
-
-            if current_flight is not None:
-                form = AcceptanceForm(request.POST, instance=current_flight)
 
                 if form.is_valid():
                     obj = form.save(commit=False)
@@ -255,40 +251,26 @@ def flight_release_acceptance(request, id):
     page_title = "Flight Sign Off"
     return_url = request.META.get("HTTP_REFERER")
     airframe = get_object_or_404(Airframe, id=id)
+    fuel_tanks = AirframeFluid.objects.filter(airframe=airframe, fluid_type=0)
     current_flight = CurrentFlight.objects.filter(airframe=airframe).first()
+    routes = Route.objects.filter(operator__airframe=airframe)
 
     if current_flight is None:
         current_flight = CurrentFlight.objects.create(airframe=airframe)
 
     if request.method == "POST":
-        print('request.POST["maint_release_date"]')
-        print(request.POST)
-        maint_release_date = request.POST.get("maint_release_date")
-        acceptance_date = request.POST.get("acceptance_date")
-        if maint_release_date is not None:
-            maint_release_date = f"{request.POST["maint_release_date"]} {request.POST["maint_release_time"]}"
-            maint_release_date = datetime.strptime(maint_release_date, "%Y-%m-%d %H:%M")
-
-            if current_flight is not None:
-                form = MaintenanceReleaseForm(request.POST, instance=current_flight)
-
-                if form.is_valid():
-                    obj = form.save(commit=False)
-                    obj.maint_release_date = maint_release_date
-                    obj.airframe = airframe
-                    obj.save()
-                else:
-                    print(form.errors)
+        print(f"post:: ------------- {request.POST}")
+        acceptance_date = f"{request.POST.get("acceptance_date")} {request.POST.get("acceptance_time")}"
         if acceptance_date is not None:
-            acceptance_date = f"{request.POST["acceptance_date"]} {request.POST["acceptance_time"]}"
             acceptance_date = datetime.strptime(acceptance_date, "%Y-%m-%d %H:%M")
+            print(f"maint_release_date:: ------------- {acceptance_date}")
 
             if current_flight is not None:
                 form = AcceptanceForm(request.POST, instance=current_flight)
 
                 if form.is_valid():
                     obj = form.save(commit=False)
-                    obj.maint_release_date = maint_release_date
+                    obj.acceptance_date = acceptance_date
                     obj.airframe = airframe
                     obj.save()
                 else:
@@ -304,15 +286,20 @@ def flight_release_acceptance(request, id):
 
     eng_cpy = EngineeringCompany.objects.all()
     current_date = datetime.now()
+    total_fob = 0
+    for fuel_tank in fuel_tanks:
+        total_fob = total_fob + fuel_tank.level
     context = {
         'airframe': airframe,
         'maintenance_release_not_sent': maintenance_release_not_sent,
         'acceptance_not_sent': acceptance_not_sent,
+        'routes': routes,
         'eng_cpy': eng_cpy,
         'current_flight': current_flight,
         'current_date': current_date,
         'return_url': return_url,
-        'page_title': page_title
+        'page_title': page_title,
+        'total_fob': total_fob
     }
     return render(request, 'flight_release/acceptance.html', context)
 
@@ -333,15 +320,17 @@ def operator_index(request, id=0):
 def flight_details(request, id):
     page_title = "Flight Details"
     last_flight = Flight.objects.filter(airframe=id).order_by("-created_at").first()
+    airframe = get_object_or_404(Airframe, id=id)
+    current_flight = get_object_or_404(CurrentFlight, airframe=airframe)
     airframe_defects = AirframeDefect.objects.filter(airframe=id)
+    flight_no_options = Route.objects.filter(flt_number=current_flight.planned_flt_number)
     defect_actions = Action.objects.filter(airframe_defect__airframe=id)
     airports = Airport.objects.all()
     open_defects_count = 0
     closed_defects_count = 0
     carry_fwd_defects_count = 0
     return_url = request.META.get("HTTP_REFERER")
-
-    for defect in defect_actions:
+    for defect in airframe_defects:
         if defect.status == 0:
             open_defects_count = open_defects_count + 1
         if defect.status == 1:
@@ -349,8 +338,43 @@ def flight_details(request, id):
         if defect.status == 2:
             carry_fwd_defects_count = carry_fwd_defects_count + 1
 
+    if request.method == "POST":
+
+        off_blocks_datetime = parse_datetime(
+            request.POST.get("departure_date"),
+            request.POST.get("off_blocks")
+        )
+
+        off_ground_datetime = parse_datetime(
+            request.POST.get("departure_date"),
+            request.POST.get("off_ground")
+        )
+
+        on_ground_datetime = parse_datetime(
+            request.POST.get("arrival_date"),
+            request.POST.get("on_ground")
+        )
+
+        on_blocks_datetime = parse_datetime(
+            request.POST.get("arrival_date"),
+            request.POST.get("on_blocks")
+        )
+
+        print(request.POST)
+        current_flight.flight_route_id=request.POST.get('flight_number')
+        current_flight.off_blocks=off_blocks_datetime
+        current_flight.off_ground=off_ground_datetime
+        current_flight.on_ground=on_ground_datetime
+        current_flight.on_blocks=on_blocks_datetime
+        current_flight.save()
+
+        return JsonResponse({
+            "success": True
+        })
     context = {
         'page_title': page_title,
+        'current_flight': current_flight,
+        'flight_no_options': flight_no_options,
         'open_defects_count': open_defects_count,
         'closed_defects_count': closed_defects_count,
         'carry_fwd_defects_count': carry_fwd_defects_count,
@@ -360,7 +384,7 @@ def flight_details(request, id):
     }
     if request.method == "POST":
         print(request.POST)
-    return render(request, 'flight_details.html', context)
+    return render(request, 'flight/details.html', context)
 
 def defects(request, id):
     airframe = get_object_or_404(Airframe, id=id)
@@ -617,6 +641,9 @@ def servicing_fuel(request, id):
             obj = form.save(commit=False)
             obj.airframe = airframe
             obj.save()
+            current_flight.required_fuel_in_kg = obj.planned_dep_fuel_in_kg
+            current_flight.block_fuel_in_kg = obj.departure_fob_in_kg
+            current_flight.save()
             
             fuel_tanks = AirframeFluid.objects.filter(
                 airframe=airframe,

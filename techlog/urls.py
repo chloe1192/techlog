@@ -21,7 +21,8 @@ from . import views
 urlpatterns = [
     path('', views.index, name='index'),
     path('operator/<int:id>', views.operator_index, name='operator_index'),
-
+    # operator management
+    path('operator/<int:operator_id>/routes/', views.routes_list, name='routes_list'),
     # airframe_editing    
     path('airframes/list/', views.airframes_list, name='airframes_list'),
     path('airframes/edit/<int:id>/', views.airframes_edit, name='airframes_edit'),

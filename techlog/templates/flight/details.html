@@ -1,0 +1,203 @@
+{% extends "base.html" %}
+{% block title %}Techlog - {{ page_title }}{% endblock %}
+{% include "header.html" %}
+{% load static %}
+
+{% block content %}
+
+<div class="dashboard flight-details">
+
+    <form method="post" class="row" id="current_flight_form" onchange="updateCurrentFlight(this)">
+        {% csrf_token %}
+        <div class="col-6">
+
+            <h1>Depart</h1>
+            <label>Departure Date</label>
+            <input type="date" name="departure_date" id="departure_date" value="{{current_flight.off_blocks|date:'Y-m-d'}}">
+
+            <label>Flight No</label>
+            <select name="flight_number" id="flight_number" onblur="setDepartureAirport(this)">
+                {% for flight in flight_no_options %}
+                    <option value="{{flight.id}}" 
+                        data-departure="{{flight.departure.id}}" 
+                        data-departure-iata="{{flight.departure.iata_code}}"
+                        data-departure-icao="{{flight.departure.icao_code}}"
+                        data-departure-name="{{flight.departure.name}}"
+                        data-arrival="{{flight.arrival.id}}"
+                        data-arrival-iata="{{flight.arrival.iata_code}}"
+                        data-arrival-icao="{{flight.arrival.icao_code}}"
+                        data-arrival-name="{{flight.arrival.name}}"
+                        {% if flight.id == current_flight.flight_route.id %}
+                            selected
+                        {% endif %}
+                    >{{flight.flt_number}} - {{flight.departure}} - {{flight.arrival}}</option>
+                {% endfor %}
+            </select>
+
+            <label>Not Flown</label>
+            <input type="checkbox" name="not_flown" id="not_flown">
+
+            <label>Schdl</label>
+            <input type="hidden" id="departure_airport" name="departure_airport" value="{{ current_flight.flight_route.departure.id }}">
+            <input type="text" name="departure_airport_iata" id="departure_airport_iata" disabled value="{{ current_flight.flight_route.departure.iata_code }}">
+            <input type="text" name="departure_airport_icao" id="departure_airport_icao" disabled value="{{ current_flight.flight_route.departure.icao_code }}">
+            <input type="text" name="departure_airport_name" id="departure_airport_name" disabled value="{{ current_flight.flight_route.departure.name }}">
+
+            <a href="takeoff_delays/">
+                <div class="flight-details-box big-box box-gray">
+                    <span>Take Off / Delays</span>
+                    <i class="bi bi-airplane big-box-icon"></i>
+                    <span class="date-of-flight big-box-bottom-text">Delay (0 mins recorded)</span>
+                </div>
+            </a>
+            <label>Off blocks</label>
+            <input type="time" name="off_blocks" id="off_blocks" value="{{current_flight.off_blocks|date:'H:i'}}">
+            <label>Airborne</label>
+            <input type="time" name="off_ground" id="off_ground" value="{{current_flight.off_ground|date:'H:i'}}">
+            <div class="row">
+
+                <div class="col-4">
+                    <a href="{% url 'defects' current_airframe.id %}">
+                        <div class="flight-details-box rectangular-box box-gray">
+                            <i class="bi bi-gear big-box-icon"></i>
+                            <span>Defects</span>
+                            <span class="date-of-flight big-box-bottom-text">(0 mins recorded)</span>
+                        </div>
+                    </a>
+
+                    <a href="defects/">
+                        <div class="flight-details-box rectangular-box box-gray">
+                            <input type="checkbox">
+                            <span>Nil Further Defects</span>
+                        </div>
+                    </a>
+                </div>
+
+                <div class="col-4">
+                    <a href="#">
+                        <div class="flight-details-box small-box box-green">
+                            <i class="bi bi-person-check big-box-icon"></i>
+                            <span>Cabin</span>
+                            <span class="cabin-defects big-box-bottom-text">(0)</span>
+                        </div>
+                    </a>
+
+                    <a href="defects/">
+                        <div class="flight-details-box small-box box-blue">
+                            <i class="bi bi-calendar-check big-box-icon"></i>
+                            <span>C/Fwd</span>
+                            <span class="carry-foward-defects big-box-bottom-text">({{carry_fwd_defects_count}})</span>
+                        </div>
+                    </a>
+                
+                    <a href="defects/">
+                        <div class="flight-details-box rectangular-box box-green">
+                            <input type="checkbox">
+                            <span>Remote Ice Protect</span>
+                        </div>
+                    </a>
+
+                </div>
+
+                <div class="col-4">
+
+                    <a href="defects/">
+                        <div class="flight-details-box big-box box-amber">
+                            <span>Extra Flight Info</span>
+                            <i class="bi bi-info big-box-icon"></i>
+                            <span class="date-of-flight big-box-bottom-text">Total 2, Incomplete 0</span>
+                        </div>
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="col-6">
+
+            <h1>Arrive</h1>
+            <label>Arrival Date</label>
+            <input type="date" name="arrival_date" id="arrival_date">
+            
+            <label>Schdl</label>
+            <input type="hidden" id="arrival_airport" name="arrival_airport" value="{{ current_flight.flight_route.arrival.id }}">
+            <input type="text" name="arrival_airport_iata" id="arrival_airport_iata" value="{{ current_flight.flight_route.arrival.iata_code }}">
+            <input type="text" name="arrival_airport_icao" id="arrival_airport_icao" value="{{ current_flight.flight_route.arrival.icao_code }}">
+            <input type="text" name="arrival_airport_name" id="arrival_airport_name" value="{{ current_flight.flight_route.arrival.name }}">
+
+            <label>Not Flown</label>
+            <input type="checkbox" name="not_flown" id="not_flown">
+
+            <label>on_ground</label>
+            <input type="time" name="on_ground" id="on_ground" value="{{current_flight.on_ground|date:'H:i'}}">
+            <label>on_blocks</label>
+            <input type="time" name="on_blocks" id="on_blocks" value="{{current_flight.on_blocks|date:'H:i'}}">
+
+
+        </div>
+        <div class="bg-red">
+            <input type="submit" placeholder="INIT FLIGHT TEST">
+        </div>
+    </form>
+</div>
+
+<script>
+
+    function updateCurrentFlight(form) {
+        syncButtonLoading();
+        setTimeout(() => {
+            flightUpdatePost(form)            
+            syncButtonLoaded();
+        }
+        , 5000);
+    }
+
+    function flightUpdatePost(form) {
+        console.log(form)
+        const formData = new FormData(form)
+        console.log(formData);
+        fetch(this.action || window.location.href, {
+            method: "POST",
+            body: formData
+        })
+        .then(response =>
+            response.json()
+        )
+        .then(data => {
+            console.log(data);
+        });
+    }
+
+    function setDepartureAirport(flight) {
+        console.log("flight")
+        const flight_options = flight.options[flight.selectedIndex];
+        const departure_airport_input = document.getElementById('departure_airport')
+        const departure_airport_iata_input = document.getElementById('departure_airport_iata')
+        const departure_airport_icao_input = document.getElementById('departure_airport_icao')
+        const departure_airport_name_input = document.getElementById('departure_airport_name')
+        const arrival_airport_input = document.getElementById('arrival_airport')
+        const arrival_airport_iata_input = document.getElementById('arrival_airport_iata')
+        const arrival_airport_icao_input = document.getElementById('arrival_airport_icao')
+        const arrival_airport_name_input = document.getElementById('arrival_airport_name')
+        departure_airport_input.value = flight_options.dataset.departure
+        departure_airport_iata_input.value = flight_options.dataset.departureIata
+        departure_airport_icao_input.value = flight_options.dataset.departureIcao
+        departure_airport_name_input.value = flight_options.dataset.departureName
+        arrival_airport_input.value = flight_options.dataset.arrival
+        arrival_airport_iata_input.value = flight_options.dataset.arrivalIata
+        arrival_airport_icao_input.value = flight_options.dataset.arrivalIcao
+        arrival_airport_name_input.value = flight_options.dataset.arrivalName
+        console.log(flight_options.dataset)
+    }
+
+    function setOperator(operator_id){
+        sessionStorage.setItem(
+            'current_operator',
+            operator_id
+        );
+    }
+</script>
+
+{% endblock %}

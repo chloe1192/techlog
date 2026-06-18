@@ -21,7 +21,7 @@
 
         <div class="col-3">
             <a href="{% url 'flight_release_acceptance' airframe.id %}">
-                <div class="flight-details-box big-box box-green">
+                <div class="flight-details-box big-box {% if current_flight.acceptance_date %}box-green{% else %} box-amber{% endif %}">
                     <span>Flight Acceptance</span>
                     <i class="bi bi-airplane big-box-icon"></i>
                     <span class="flight-pair big-box-bottom-text">{{current_flight.departure}}-{{current_flight.arrival}},</span>

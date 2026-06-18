@@ -1,6 +1,6 @@
 from django import forms
 from django.forms import ModelForm, inlineformset_factory
-from .models import Action, Airframe, AirframeDefect, AirframeEngine, CurrentFlight, Refuel, FluidTopUp
+from .models import Action, Airframe, AirframeDefect, AirframeEngine, CurrentFlight, Flight, Refuel, FluidTopUp, Route
 
 class AirframeDefectCreateForm(ModelForm):
     
@@ -101,4 +101,38 @@ class ActionCreate(ModelForm):
             'defer_reason',
             'deferred_at',
             'due_at'
+        ]
+
+class CreateRoute(ModelForm):
+    class Meta:
+        model = Route
+        fields = [
+            'operator',
+            'flt_number',
+            'departure',
+            'arrival',
+            'scheduled_off_ground',
+            'scheduled_on_ground'
+        ]
+
+class CompleteFlight(ModelForm):
+    class Meta:
+        model = Flight
+        fields = [
+            'airframe',
+            'flight_route',
+            'actual_arrival',
+            'callsign',
+            'date_of_flight',
+            'off_blocks',
+            'date_of_flight',
+            'off_ground',
+            'on_ground',
+            'on_blocks',
+            'required_fuel_in_kg',
+            'block_fuel_in_kg',
+            'maint_release_date',
+            'maint_release_eng_company',
+            'acceptance_date',
+            'planned_flt_number',
         ]

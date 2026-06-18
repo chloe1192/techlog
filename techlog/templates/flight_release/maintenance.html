@@ -49,9 +49,9 @@
             >
                 {% for cpy in eng_cpy %}
                     {% if current_flight.maint_release_eng_company.id == cpy.id %}
-                        <option value="{{cpy.id}}" selected>{{cpy.code}}</option>
+                        <option value="{{cpy.id}}" selected>{{cpy.code}} - {{cpy.name}}</option>
                     {% else %}
-                        <option value="{{cpy.id}}">{{cpy.code}}</option>
+                        <option value="{{cpy.id}}">{{cpy.code}} - {{cpy.name}}</option>
                     {% endif %}
                 {% endfor %}
             </select>

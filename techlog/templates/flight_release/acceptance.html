@@ -31,13 +31,19 @@
                 {% if acceptance_not_sent %}
                     data-auth-required="true"
                 {% else %}
-                    data-auth-required="false" value="{{current_flight.acceptance_date|date:'H:m'}}" disabled
+                    data-auth-required="false" value="{{current_flight.acceptance_date|date:'H:i'}}" disabled
                 {% endif %}
             >
         </div>
         <div class="form-field form-input-field form-field-100">
             <label class="form-item-20" for="">Planned Flight No.</label>
-            <input class="form-item-20" name="planned_flt_number" id="planned_flt_number" data-auth-required="true">
+
+            <input class="form-control" list="datalistOptions" id="planned_flt_number" name="planned_flt_number" placeholder="Type to search...">
+            <datalist id="datalistOptions">
+                {% for route in routes %}
+                    <option value="{{route.flt_number}}">{{route.flt_number}}</option>
+                {% endfor %}
+            </datalist>
             <span class="form-text form-item-100">I hereby certify I have previous Electronic journey and Technical Log, Maintenance Deferment Items and that security check and pre-flight is completed</span>
         </div>
         
@@ -75,7 +81,7 @@
             <a href="{% url 'servicing' airframe.id %}" class="box rectangular-box rectangular-box-no-icon box-green">
                 <h2 class="button-title rectangular-box-title">FOB</h2>
                 <!-- TODO integrate with servicing page -->
-                <span class="rectangular-box-label">18000kg</span>
+                <span class="rectangular-box-label">{{total_fob|floatformat:'0'}} {{total_fob.get_units_of_measure_display}}</span>
             </a>
 
         </div>

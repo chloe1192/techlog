@@ -67,7 +67,7 @@
     <label>Engine model</label>
     <select id="engine_models" name="engine_model">
         {% for model in engine_models %}
-            {% if model.id == engine_model_current.id.last %}
+            {% if model.id == engine_model_current.last.engine_model.id %}
                 <option value="{{model.id}}" selected>{{model.name}}</option>
             {% else %}            
                 <option value="{{model.id}}">{{model.name}}</option>

@@ -68,7 +68,7 @@ class EngineeringCompany(models.Model):
     code = models.TextField()
 
     def __str__(self):
-        return self.code
+        return f"{self.code} - {self.name}"
 
 class Operator(models.Model):
     name = models.CharField(max_length=200)
@@ -409,8 +409,8 @@ class Route(models.Model):
     flt_number = models.CharField(max_length=7, blank=True, null=True)
     departure = models.ForeignKey(Airport, on_delete=models.RESTRICT, related_name='departure_airport')
     arrival = models.ForeignKey(Airport, on_delete=models.RESTRICT, related_name='arrival_airport', blank=True, null=True)
-    scheduled_off_ground = models.DateTimeField(blank=True, null=True)
-    scheduled_on_ground = models.DateTimeField(blank=True, null=True)
+    scheduled_off_ground = models.TimeField(blank=True, null=True)
+    scheduled_on_ground = models.TimeField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
