@@ -5,82 +5,199 @@
 
 {% block content %}
 <div class="dashboard">
+    <div class="container-fluid">
 
-    <div class="top-header">
-        <div class="aircraft-info">
-            <h1>Defects</h1>
-            <h2>{{ Airframe }}</h2>
-            <small>{{ Airframe.aircraft_type }}</small>
+        <!-- Aircraft Information Section -->
+        <div class="section-container mb-lg">
+            <div class="section-header mb-lg">
+                <i class="bi bi-airplane"></i>{{ Airframe }}
+            </div>
+            <div class="row gap-md">
+                <div class="col-auto">
+                    <span class="badge bg-info">Corrections</span>
+                </div>
+                <div class="col-auto">
+                    <span class="badge bg-warning">A/C Ops Limitations</span>
+                </div>
+                <div class="col-auto">
+                    <span class="badge bg-success">{{ Airframe }}</span>
+                </div>
+                <div class="col-auto">
+                    <span class="badge bg-secondary">Last 7 Days</span>
+                </div>
+                <div class="col-auto">
+                    <span class="badge bg-primary">Battery Status</span>
+                </div>
+            </div>
         </div>
 
-        <div class="status-tile">Corrections</div>
-        <div class="status-tile">A/C Ops Limitations</div>
-        <div class="status-tile">{{ Airframe }}</div>
-        <div class="status-tile">Last 7 Days</div>
-        <div class="status-tile">Battery</div>
+        <!-- Main Navigation Grid -->
+        <div class="row gap-md mb-lg">
+            <div class="col-lg-3 col-md-4 col-sm-6">
+                <div class="section-container text-center cursor-pointer h-100">
+                    <div class="section-header justify-content-center">
+                        <i class="bi bi-card-list"></i>
+                    </div>
+                    <h5 class="text-white">Flight Details</h5>
+                </div>
+            </div>
+
+            <div class="col-lg-3 col-md-4 col-sm-6">
+                <div class="section-container text-center cursor-pointer h-100">
+                    <div class="section-header justify-content-center">
+                        <i class="bi bi-tools"></i>
+                    </div>
+                    <h5 class="text-white">Defects</h5>
+                </div>
+            </div>
+
+            <div class="col-lg-3 col-md-4 col-sm-6">
+                <div class="section-container text-center cursor-pointer h-100">
+                    <div class="section-header justify-content-center">
+                        <i class="bi bi-file-earmark"></i>
+                    </div>
+                    <h5 class="text-white">Documents</h5>
+                </div>
+            </div>
+
+            <div class="col-lg-3 col-md-4 col-sm-6">
+                <div class="section-container text-center cursor-pointer h-100">
+                    <div class="section-header justify-content-center">
+                        <i class="bi bi-clipboard-check"></i>
+                    </div>
+                    <h5 class="text-white">Forms</h5>
+                </div>
+            </div>
+
+            <div class="col-lg-3 col-md-4 col-sm-6">
+                <div class="section-container text-center cursor-pointer h-100">
+                    <div class="section-header justify-content-center">
+                        <i class="bi bi-tools"></i>
+                    </div>
+                    <h5 class="text-white">Servicing</h5>
+                </div>
+            </div>
+
+            <div class="col-lg-3 col-md-4 col-sm-6">
+                <div class="section-container text-center cursor-pointer h-100">
+                    <div class="section-header justify-content-center">
+                        <i class="bi bi-calendar-week"></i>
+                    </div>
+                    <h5 class="text-white">Planned Maintenance</h5>
+                </div>
+            </div>
+
+            <div class="col-lg-3 col-md-4 col-sm-6">
+                <div class="section-container text-center cursor-pointer h-100">
+                    <div class="section-header justify-content-center">
+                        <i class="bi bi-snow"></i>
+                    </div>
+                    <h5 class="text-white">Ice Protection</h5>
+                </div>
+            </div>
+
+            <div class="col-lg-3 col-md-4 col-sm-6">
+                <div class="section-container text-center cursor-pointer h-100 border-top">
+                    <div class="section-header justify-content-center">
+                        <i class="bi bi-check2-square"></i>
+                    </div>
+                    <h5 class="text-white">Flight Sign Off</h5>
+                </div>
+            </div>
+        </div>
+
+        <!-- Fluids Section -->
+        <div class="row mb-lg">
+            <div class="col-12">
+                <div class="section-container">
+                    <div class="section-header mb-lg">
+                        <i class="bi bi-droplet-fill"></i>Fluid Levels
+                    </div>
+
+                    <div class="row gap-md">
+                        <!-- Airframe Fluids -->
+                        {% for airframe_fluid in Airframe_Fluids %}
+                            <div class="col-md-4">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h6 class="card-title text-info">{{ airframe_fluid }}</h6>
+                                        <p class="mb-0">
+                                            <span class="badge bg-success">{{ airframe_fluid.level }}</span>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+
+                        <!-- Engine Fluids -->
+                        {% for engine_fluid in Engine_Fluids %}
+                            <div class="col-md-4">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h6 class="card-title text-warning">{{ engine_fluid }}</h6>
+                                        <p class="mb-0">
+                                            <span class="badge bg-warning">{{ engine_fluid.level }}</span>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Defects Section -->
+        <div class="row">
+            <div class="col-12">
+                <div class="section-container">
+                    <div class="section-header mb-lg">
+                        <i class="bi bi-exclamation-triangle"></i>Technical Defects
+                    </div>
+
+                    {% if Airframe_Defects %}
+                        <div class="table-responsive">
+                            <table class="table table-dark table-hover">
+                                <thead class="table-secondary">
+                                    <tr>
+                                        <th>Defect Description</th>
+                                        <th>ATA Chapter</th>
+                                        <th>Maintenance Note</th>
+                                        <th>Operations</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for techlog in Airframe_Defects %}
+                                        <tr>
+                                            <td>
+                                                <strong>{{ techlog.defect.title }}</strong>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-info">
+                                                    {{ techlog.defect.ata_1 }}.{{ techlog.defect.ata_2 }}.{{ techlog.defect.ata_3 }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <small>{{ techlog.defect.maint_note|truncatewords:10 }}</small>
+                                            </td>
+                                            <td>
+                                                <small>{{ techlog.defect.operations|truncatewords:10 }}</small>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-success">
+                            <i class="bi bi-check-circle me-2"></i>No active defects
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
     </div>
-
-    <div class="metro-grid">
-
-        <div class="metro-tile">
-            <h3>Flight Details</h3>
-            <div class="tile-icon">✈</div>
-        </div>
-
-        <div class="metro-tile">
-            <h3>Defects</h3>
-            <div class="tile-icon">⚙</div>
-        </div>
-
-        <div class="metro-tile">
-            <h3>Documents</h3>
-            <div class="tile-icon">📚</div>
-        </div>
-
-        <div class="metro-tile">
-            <h3>Forms</h3>
-            <div class="tile-icon">📋</div>
-        </div>
-
-        <div class="metro-tile">
-            <h3>Servicing</h3>
-            <div class="tile-icon">⏱</div>
-        </div>
-
-        <div class="metro-tile">
-            <h3>Planned Maint.</h3>
-            <div class="tile-icon">📅</div>
-        </div>
-
-        <div class="metro-tile">
-            <h3>Ice Protection</h3>
-            <div class="tile-icon">❄</div>
-        </div>
-
-        <div class="metro-tile alert">
-            <h3>Flight Sign Off</h3>
-            <div class="tile-icon">☑</div>
-        </div>
-
-    </div>
-
 </div>
-
-
-{% for airframe_fluid in Airframe_Fluids %}
-    <div>{{ airframe_fluid }} - {{ airframe_fluid.level}}</div>
-{% endfor %}
-
-{% for engine_fluid in Engine_Fluids %}
-    <div>{{ engine_fluid }} - {{ engine_fluid.level}}</div>
-{% endfor %}
-<br><br>
-<div>Defects</div>
-{% for techlog in Airframe_Defects %}
-    <div>{{ techlog.defect.title }} {{ techlog.defect.ata_1 }} - {{ techlog.defect.ata_2 }} - {{ techlog.defect.ata_3 }}<br><br>
-        <div>{{ techlog.defect.maint_note }}</div><br>
-        <div>{{ techlog.defect.operations }}</div>
-    </div>
-{% endfor %}
 
 {% endblock %}

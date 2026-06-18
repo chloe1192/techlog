@@ -73,7 +73,7 @@
             </div>
 
             <div class="form-field form-textarea-field form-field-100">
-                <textarea class="form-no-label form-item-100" name="defect_text" id="defect_text" placeholder="Defect Text" value="{{defect.text}}"></textarea>
+                <textarea class="form-no-label form-item-100" name="defect_text" id="defect_text" placeholder="Defect Text">{{defect.defect_text}}</textarea>
             </div>
 
             <div class="form-field form-input-field form-field-100">
@@ -114,34 +114,31 @@
     
 
     {% for action in actions %}
-    <div class="col-3">
-        <a href="{% url 'defects_actions_edit' current_airframe.id defect.id action.id %}" class="defects-box color-filled-box 
-            {% if action.status == 0 %}
-                box-red
-            {% elif action.status == 1 %}
-                box-green
-            {% elif action.status == 2 %}
-                box-blue
-            {% endif %}
-                big-box w-100">
-            <span class="w-50 info info-left date-info">{{action.time|date:"y - M - d H:i"}}</span>
-            <span class="w-50 info info-right airframe-info">{{defect.airframe}}{{defect.airframe.msn}}-{{defect.id|stringformat:"05d"}}</span>
-            <div class="defect-title-box darker-background">
-                {{ action.desc}} - 
-                {{ action.category}} - 
-                {{ action.defer_reason}} - 
-                {{ action.deferred_at}} - 
-                {{ action.due_at}}
-            </div>
-            <span class="w-50 info info-left action-info">{{defect.action_time|date:"y - M - d H:i"}}</span>
-            <span class="w-50 info info-right airframe-info">{{defect.airframe}}{{defect.airframe.msn}}-{{defect.id|stringformat:"05d"}}</span>
-            <div class="defect-title-box defect-action-box darker-background">
-                {% for action in defect_actions %}
-                    {{ action.desc}}
-                {% endfor %}
-            </div>
-        </a>
-    </div>
+        <div class="col-3">
+            <a href="{% url 'defects_actions_edit' current_airframe.id defect.id action.id %}" class="defects-box color-filled-box 
+                {% if action.status == 0 %}
+                    box-red
+                {% elif action.status == 1 %}
+                    box-green
+                {% elif action.status == 2 %}
+                    box-blue
+                {% endif %}
+                    big-box w-100">
+                <span class="w-50 info info-left date-info">{{action.time|date:"y - M - d H:i"}}</span>
+                <span class="w-50 info info-right airframe-info">{{defect.airframe}}{{defect.airframe.msn}}-{{defect.id|stringformat:"05d"}}</span>
+                <div class="defect-title-box darker-background">
+                    {{ action.desc}} - 
+                    {{ action.get_category_display }}
+                </div>
+                <span class="w-50 info info-left action-info">{{defect.action_time|date:"y - M - d H:i"}}</span>
+                <span class="w-50 info info-right airframe-info">{{defect.airframe}}{{defect.airframe.msn}}-{{defect.id|stringformat:"05d"}}</span>
+                <div class="defect-title-box defect-action-box darker-background">
+                    Defer reason: {{ action.defer_reason}}<br>
+                    Defer date: {{ action.deferred_at}}<br>
+                    Defer due at: {{ action.due_at}}<br>
+                </div>
+            </a>
+        </div>
     {% endfor %}
 </div>
 

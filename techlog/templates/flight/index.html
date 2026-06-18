@@ -9,7 +9,7 @@
 
         <div class="col-3">
             <a href="{% url 'flight_release_maintenance' airframe.id %}">
-                <div class="flight-details-box big-box {% if current_flight.maint_release_date %}box-green{% else %} box-amber{% endif %}">
+                <div class="flight-details-box big-box {% if current_flight.maint_release_date %}box-green{% else %}box-amber{% endif %}">
                     <span>Maintenance Release</span>
                     <i class="bi bi-airplane big-box-icon"></i>
                     <span class="flight-pair big-box-bottom-text">{{current_flight.departure}}-{{current_flight.arrival}},</span>
@@ -21,7 +21,15 @@
 
         <div class="col-3">
             <a href="{% url 'flight_release_acceptance' airframe.id %}">
-                <div class="flight-details-box big-box {% if current_flight.acceptance_date %}box-green{% else %} box-amber{% endif %}">
+                <div class="flight-details-box big-box 
+                    {% if current_flight.maint_release_date and current_flight.acceptance_date %}
+                        box-green
+                    {% elif current_flight.maint_release_date  %}
+                        box-amber
+                    {% else %}
+                        box-gray
+                    {% endif %}"
+                >
                     <span>Flight Acceptance</span>
                     <i class="bi bi-airplane big-box-icon"></i>
                     <span class="flight-pair big-box-bottom-text">{{current_flight.departure}}-{{current_flight.arrival}},</span>
@@ -33,7 +41,15 @@
 
         <div class="col-3">
             <a href="{% url 'flight_details' airframe.id %}">
-                <div class="flight-details-box big-box box-green">
+                <div class="flight-details-box big-box
+                    {% if current_flight.maint_release_date and current_flight.acceptance_date and current_flight.status == 0 %}
+                        box-amber
+                    {% elif current_flight.maint_release_date and current_flight.acceptance_date is None %}
+                        box-gray
+                    {% else %}
+                        box-green
+                    {% endif %}"
+                >
                     <span>Flight Details</span>
                     <i class="bi bi-airplane big-box-icon"></i>
                     <span class="flight-pair big-box-bottom-text">{{current_flight.departure}}-{{current_flight.arrival}},</span>
@@ -45,7 +61,14 @@
 
         <div class="col-3">
             <a href="{% url 'defects' airframe.id %}">
-                <div class="flight-details-box big-box {% if open_defects_count > 0 %}box-red{% else %}box-green{% endif %}">
+                <div class="flight-details-box big-box 
+                    {% if open_defects_count > 0 %}
+                        box-red
+                    {% elif  open_defects_count == 0 and carry_fwd_defects_count > 0 %}
+                        box-blue
+                    {% else %}
+                        box-green
+                    {% endif %}">
                     <span>Defects</span>
                     <i class="bi bi-gear big-box-icon"></i>
                     <span class="defects-open big-box-bottom-text">Open ({{ open_defects_count }})</span>

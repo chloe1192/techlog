@@ -41,7 +41,7 @@
 
                 <div class="form-field form-text-field box rectangular-box box-gray">
                     <label class="form-label form-item-50">Planned Dep Fuel</label>
-                    <input class="form-label form-item-50 data-refueling-active-false" type="number" id="planned_dep_fuel_in_kg" name="planned_dep_fuel_in_kg" onblur="calculateVolume()" value="78000">
+                    <input class="form-label form-item-50 data-refueling-active-false" type="number" id="planned_dep_fuel_in_kg" name="planned_dep_fuel_in_kg" onblur="calculateVolume()" value="{{current_flight.required_fuel_in_kg}}">
                 </div>
                 
                 <div class="form-field form-text-field box rectangular-box box-gray">

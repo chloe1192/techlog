@@ -4,100 +4,184 @@
 
 {% block content %}
 <div class="dashboard">
+    <div class="container-fluid">
 
-    <div class="row">
+        <!-- Fuel Planning Section -->
+        <div class="row mb-lg">
+            <div class="col-12">
+                <div class="form-section">
+                    <div class="form-section-title">
+                        <i class="bi bi-fuel-pump-fill me-2"></i>Fuel Planning
+                    </div>
 
-        <div class="form-field form-field-100">
-            <label class="form-label form-item-100">Planned Flight No.</label>
-            <input class="form-label form-item-100" type="text" id="flt_number" name="flt_number" value="{{ current_flight.flt_number }}">
+                    <div class="row gap-md">
+                        <div class="col-md-6">
+                            <div class="form-group-container">
+                                <label class="form-group-label">Planned Flight Number</label>
+                                <input type="text" class="form-control" id="flt_number" name="flt_number" 
+                                    value="{{ current_flight.flt_number }}">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group-container">
+                                <label class="form-group-label">Specific Gravity</label>
+                                <input type="number" class="form-control" id="specific_gravity" name="specific_gravity" 
+                                    value="0.78" step="0.01">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row gap-md">
+                        <div class="col-md-6">
+                            <div class="form-group-container">
+                                <label class="form-group-label">Required Fuel (kg)</label>
+                                <input type="number" class="form-control" id="required_fuel" name="required_fuel" 
+                                    onchange="calculateVolume()">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group-container">
+                                <label class="form-group-label">Required Uplift</label>
+                                <div class="input-group">
+                                    <span class="input-group-text" id="required_fuel_in_volume">0 kg</span>
+                                    <span class="input-group-text">=</span>
+                                    <span class="input-group-text" id="required_fuel_in_weight">0 liters</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row gap-md mt-md">
+                        <div class="col-md-4">
+                            <button class="btn btn-warning w-100">
+                                <i class="bi bi-x-circle me-2"></i>Clear Arrival
+                            </button>
+                        </div>
+                        <div class="col-md-4">
+                            <button class="btn btn-info w-100">
+                                <i class="bi bi-check-circle me-2"></i>Nil Refueling
+                            </button>
+                        </div>
+                        <div class="col-md-4">
+                            <button class="btn btn-danger w-100">
+                                <i class="bi bi-stop-circle me-2"></i>Cancel Refueling
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <div class="form-field-100">
+        <!-- Fuel Tanks Grid -->
+        <div class="row mb-lg gap-md">
+            {% for tank in fuel_tanks %}
+                <div class="col-lg-4 col-md-6 col-sm-12">
+                    <div class="section-container">
+                        <div class="section-header">
+                            <i class="bi bi-droplet"></i>
+                            {{tank.item}}
+                        </div>
 
-            <a href="#" class="button rectangular-box box-gray">
-                <h2 class="button-title rectangular-box-title">Clear Arrival</h2>
-            </a>
+                        <div class="row gap-md">
+                            <div class="col-6">
+                                <div class="form-group-container">
+                                    <label class="form-group-label">Capacity</label>
+                                    <div class="form-control-wrapper">
+                                        <input type="text" class="form-control" 
+                                            value="{{tank.max_level|floatformat:0}} {{tank.get_units_of_measure_display}}" 
+                                            disabled>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="form-group-container">
+                                    <label class="form-group-label">Arrival</label>
+                                    <div class="form-control-wrapper">
+                                        <input type="text" class="form-control" id="oil_arrival_{{ forloop.counter }}" 
+                                            value="{{tank.level|floatformat:0}}" disabled>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
-            <a href="#" class="button rectangular-box box-gray">
-                <h2 class="button-title rectangular-box-title">Nil Refueling</h2>
-            </a>
-
-            <a href="#" class="button rectangular-box box-gray">
-                <i class="bi bi-fuel-pump-fill"></i>
-                <h2 class="button-title rectangular-box-title">Cancel Refueling</h2>
-            </a>
-
-            <div class="form-field form-text-field">
-                <label class="form-label form-item-50">Required Fuel</label>
-                <input class="form-label form-item-50" type="number" id="required_fuel" name="required_fuel" onchange="calculateVolume()">
-            </div>
-            
-            <div class="form-field form-text-field">
-                <label class="form-label form-item-50">Specific Gravity</label>
-                <input class="form-label form-item-50" type="number" id="specific_gravity" name="specific_gravity" value="0.78">
-            </div>
-            
-            <div class="form-field form-text-field">
-                <label class="form-label form-item-100">Required Uplift</label>
-                <div class="form-field-group">
-                    <span class="form-label form-item-50" id="required_fuel_in_volume">Fuel in Kg....</span>
-                    <span class="form-label form-item-50">Lt</span>
+                        <div class="row gap-md">
+                            <div class="col-6">
+                                <div class="form-group-container">
+                                    <label class="form-group-label">Pre Fuel</label>
+                                    <input type="number" class="form-control" value="{{tank.level}}">
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="form-group-container">
+                                    <label class="form-group-label">Required</label>
+                                    <input type="number" class="form-control" value="{{current_flight.required_fuel_in_kg}}">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="form-field-group">
-                    <span class="form-label form-item-50" id="required_fuel_in_weight">Fuel in liters....</span>
-                    <span class="form-label form-item-50">{{ fuel.get_units_of_measure_display }}</span>
+            {% endfor %}
+
+            <!-- Total Summary -->
+            <div class="col-lg-4 col-md-6 col-sm-12">
+                <div class="section-container border-top">
+                    <div class="section-header">
+                        <i class="bi bi-calculator"></i>Total Summary
+                    </div>
+
+                    <div class="row gap-md">
+                        <div class="col-6">
+                            <div class="form-group-container">
+                                <label class="form-group-label">Total Capacity</label>
+                                <div class="form-control-wrapper">
+                                    <input type="text" class="form-control" 
+                                        value="{{total_fuel.max_level|floatformat:0}} {{total_fuel.get_units_of_measure_display}}" 
+                                        disabled>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="form-group-container">
+                                <label class="form-group-label">Total Arrival</label>
+                                <div class="form-control-wrapper">
+                                    <input type="text" class="form-control" 
+                                        value="{{total_fuel.level|floatformat:0}}" disabled>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-
-            <a href="#" class="button rectangular-box rectangular-box-icon-left box-gray">
-                <i class="bi bi-fuel-pump-fill"></i>
-                <h2 class="button-title rectangular-box-title">Multiple Refueling</h2>
-            </a>
         </div>
 
-        
+        <!-- Multiple Refueling Option -->
+        <div class="row">
+            <div class="col-12">
+                <button class="btn btn-primary btn-lg w-100">
+                    <i class="bi bi-fuel-pump me-2"></i>Configure Multiple Refueling
+                </button>
+            </div>
+        </div>
+
     </div>
+</div>
 
-    <div class="row">
-        {% for tank in fuel_tanks %}
-            <div class="form-field form-field-20 box-green">
+<script>
+    function calculateVolume() {
+        const requiredFuel = document.getElementById('required_fuel').value;
+        const specificGravity = document.getElementById('specific_gravity').value;
+        const volumeElement = document.getElementById('required_fuel_in_volume');
+        const weightElement = document.getElementById('required_fuel_in_weight');
+        
+        if (requiredFuel && specificGravity) {
+            const volume = (requiredFuel / specificGravity).toFixed(2);
+            volumeElement.textContent = requiredFuel + ' kg';
+            weightElement.textContent = volume + ' liters';
+        }
+    }
+</script>
 
-                <h1 class="form-label form-item-100">
-                    {{tank.item}} ({{tank.get_units_of_measure_display}})
-                </h1>
-
-                <div class="form-field-group">
-                    <span class="form-label form-item-50">Capacity </span>
-                    <span class="form-label form-item-50" id="oil_arrival_{{ forloop.counter }}">{{tank.max_level|floatformat:0}} {{tank.get_units_of_measure_display}}</span>
-                </div>
-
-                <div class="form-field-group">
-                    <span class="form-label form-item-50">Arrival </span>
-                    <span class="form-label form-item-50" id="oil_arrival_{{ forloop.counter }}">{{tank.level|floatformat:0}}</span>
-                </div>
-
-                <div class="form-field-group">
-                    <span class="form-label form-item-50">Pre Fuel </span>
-                    <input class="form-label form-item-50" type="number" value="{{tank.level}}">
-                </div>
-
-                <div class="form-field-group">                        
-                    <span class="form-label form-item-50">Required </span>
-                    <input class="form-label form-item-50" type="number" value="{{current_flight.required_fuel_in_kg}}">
-                </div>
-            </div>
-        {% endfor %}
-    
-        <div class="form-field form-field-20 box-green">
-
-            <h1 class="form-label form-item-100">
-                Total ()
-            </h1>
-
-            <div class="form-field-group">
-                <span class="form-label form-item-50">Capacity </span>
-                <span class="form-label form-item-50" id="oil_arrival_{{ forloop.counter }}">{{total_fuel.max_level|floatformat:0}} {{total_fuel.get_units_of_measure_display}}</span>
-            </div>
+{% endblock %}
 
             <div class="form-field-group">
                 <span class="form-label form-item-50">Arrival </span>

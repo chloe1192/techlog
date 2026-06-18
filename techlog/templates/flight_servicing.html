@@ -4,47 +4,60 @@
 
 {% block content %}
 <div class="dashboard">
-
-    <div class="row">
-
-        <div class="col-3">
-            <a href="{% url 'flight_fuel_levels' airframe.id %}">
-                <div class="fuel-box big-box box-green">
-                    <span>Fuel</span>
-                    <i class="bi bi-fuel-pump-fill big-box-icon"></i>
-                </div>
-            </a>
-        </div>
-
-        <div class="col-3">
-            <a href="{% url 'flight_oil_levels' airframe.id %}">
-                <div class="oil-box big-box {% if open_defects_count > 0 %}box-red{% else %}box-green{% endif %}">
-                    <span>ENG/APU/IDG Oil</span>
-                    <i class="bi bi-droplet big-box-icon"></i>
-                </div>
-            </a>
-        </div>
+    <div class="container-fluid">
         
-        <div class="col-3">
-            <a href="{% url 'flight_hydraulic_levels' airframe.id %}">
-                <div class="hyd-box big-box box-green">
-                    <span>Hydraulic Fluid</span>
-                    <i class="bi bi-airplane-fill big-box-icon"></i>
-                </div>
-            </a>
-        </div>
+        <!-- Service Options Grid -->
+        <div class="row mb-lg gap-md">
+            <div class="col-lg-3 col-md-6 col-sm-12">
+                <a href="{% url 'flight_fuel_levels' airframe.id %}" class="text-decoration-none">
+                    <div class="fuel-box section-container text-center cursor-pointer h-100">
+                        <div class="section-header justify-content-center">
+                            <i class="bi bi-fuel-pump-fill"></i>
+                        </div>
+                        <h5 class="text-white">Fuel Management</h5>
+                        <p class="text-muted mb-0">Fuel levels & quantity</p>
+                    </div>
+                </a>
+            </div>
 
-        <div class="col-3">
-            <a href="{% url 'flight_water_levels' airframe.id %}">
-                <div class="flight-details-box big-box box-green">
-                    <span>Water/Waste</span>
-                    <i class="bi bi-droplet-fill big-box-icon"></i>
-                </div>
-            </a>
+            <div class="col-lg-3 col-md-6 col-sm-12">
+                <a href="{% url 'flight_oil_levels' airframe.id %}" class="text-decoration-none">
+                    <div class="oil-box section-container text-center cursor-pointer h-100 {% if open_defects_count > 0 %}box-red{% else %}box-green{% endif %}">
+                        <div class="section-header justify-content-center">
+                            <i class="bi bi-droplet-fill"></i>
+                        </div>
+                        <h5 class="text-white">Engine Fluids</h5>
+                        <p class="text-muted mb-0">Oil & APU levels</p>
+                    </div>
+                </a>
+            </div>
+
+            <div class="col-lg-3 col-md-6 col-sm-12">
+                <a href="{% url 'flight_hydraulic_levels' airframe.id %}" class="text-decoration-none">
+                    <div class="hyd-box section-container text-center cursor-pointer h-100">
+                        <div class="section-header justify-content-center">
+                            <i class="bi bi-droplet"></i>
+                        </div>
+                        <h5 class="text-white">Hydraulic Fluid</h5>
+                        <p class="text-muted mb-0">Pressure levels</p>
+                    </div>
+                </a>
+            </div>
+
+            <div class="col-lg-3 col-md-6 col-sm-12">
+                <a href="{% url 'flight_water_levels' airframe.id %}" class="text-decoration-none">
+                    <div class="section-container text-center cursor-pointer h-100">
+                        <div class="section-header justify-content-center">
+                            <i class="bi bi-water"></i>
+                        </div>
+                        <h5 class="text-white">Water & Waste</h5>
+                        <p class="text-muted mb-0">Tank levels</p>
+                    </div>
+                </a>
+            </div>
         </div>
 
     </div>
-
 </div>
 
 {% endblock %}

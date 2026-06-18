@@ -4,53 +4,74 @@
 
 {% block content %}
 <div class="dashboard">
+    <div class="container-fluid">
+        <!-- Oil Levels Grid -->
+        <div class="row mb-lg">
+            {% for fluid in fluids %}
+                <div class="col-lg-3 col-md-6 col-sm-12">
+                    <div class="oil-page-box section-container">
+                        <div class="section-header">
+                            <i class="bi bi-droplet-fill"></i>
+                            {{fluid.item}} ({{fluid.max_level|floatformat:0}} {{fluid.get_units_of_measure_display}})
+                        </div>
+                        
+                        <div class="form-group-container">
+                            <label class="form-group-label">Arrival</label>
+                            <div class="form-control-wrapper">
+                                <input type="text" class="form-control" id="oil_arrival_{{ forloop.counter }}" 
+                                    value="{{fluid.level}}" disabled>
+                            </div>
+                        </div>
 
-    <div class="row">
+                        <div class="form-group-container">
+                            <label class="form-group-label">Usage/Hour</label>
+                            <div class="form-control-wrapper">
+                                <input type="text" class="form-control" value="---" disabled>
+                            </div>
+                        </div>
 
-        {% for fluid in fluids %}
-            <div class="col-3">
-                <div class="oil-page-box big-box box-green">
-                    <h1 class="oil-page-box-row">
-                        {{fluid.item}} ({{fluid.max_level|floatformat:0}} {{fluid.get_units_of_measure_display}} )
-                    </h1>
-                    <div class="oil-page-box-row">
-                        <span class="oil-page-box-item">Arrival </span>
-                        <span class="oil-page-box-item" id="oil_arrival_{{ forloop.counter }}">{{fluid.level}}</span>
+                        <div class="form-group-container">
+                            <label class="form-group-label">Uplift</label>
+                            <div class="form-control-wrapper">
+                                <input type="number" class="form-control" 
+                                    id="oil_uplift_{{ forloop.counter }}" 
+                                    name="oil_uplift_{{ forloop.counter }}">
+                            </div>
+                        </div>
+
+                        <div class="form-group-container">
+                            <label class="form-group-label">Departure</label>
+                            <div class="form-control-wrapper">
+                                <input type="number" class="form-control" 
+                                    id="oil_departure_{{ forloop.counter }}" 
+                                    name="oil_departure_{{ forloop.counter }}" 
+                                    onchange="updateUplift({{ forloop.counter }})" 
+                                    value="{{fluid.level}}">
+                            </div>
+                        </div>
                     </div>
-                    <div class="oil-page-box-row">
-                        <span class="oil-page-box-item">Usage/Hour </span>
-                        <span>---</span>
-                    </div>
-                    <div class="oil-page-box-row">
-                        <span class="oil-page-box-item">Uplift </span>
-                        <input class="oil-page-box-item" type="number" id="oil_uplift_{{ forloop.counter }}" name="oil_uplift_{{ forloop.counter }}">
-                         
-                    </div>
-                    <div class="oil-page-box-row">                        
-                        <span class="oil-page-box-item">Departure </span>
-                        <input class="oil-page-box-item" type="number" id="oil_departure_{{ forloop.counter }}" name="oil_departure_{{ forloop.counter }}" onchange="updateUplift({{ forloop.counter }})" value="{{fluid.level}}"></div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="row gap-md">
+            <div class="col-lg-2 col-md-3 col-sm-6">
+                <div class="oil-page-small-box small-box box-gray" style="cursor: pointer;">
+                    <i class="bi bi-check-circle"></i>
+                    <span>Nil Uplift</span>
                 </div>
             </div>
-        {% endfor %}
-        
-    </div>
-
-    <div class="row mt-5">
-        
-        <div class="col-2">
-            <div class="oil-page-small-box small-box box-gray">
-                Nil Uplift
-            </div>
-        </div>
-        
-        <div class="col-2">
-            <div class="oil-page-small-box small-box box-amber">
-                View usage statistics
+            <div class="col-lg-2 col-md-3 col-sm-6">
+                <div class="oil-page-small-box small-box box-amber" style="cursor: pointer;">
+                    <i class="bi bi-graph-up"></i>
+                    <span>View Stats</span>
+                </div>
             </div>
         </div>
     </div>
-
 </div>
+
 <script>
     function updateUplift(id) {
         const oil_uplfit = document.getElementById("oil_uplift_" + id)

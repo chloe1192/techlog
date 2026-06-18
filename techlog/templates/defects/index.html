@@ -9,7 +9,14 @@
 
         <div class="col-3">
             <a href="{% url 'defects_this_flight' airframe.id %}">
-                <div class="flight-details-box big-box {% if open_defects_count > 0 %}box-red{% else %}box-green{% endif %}">
+                <div class="flight-details-box big-box
+                    {% if carry_fwd_action_overdue > 0 %}
+                        box-red
+                    {% elif carry_fwd_defects_count > 0 %}
+                        box-blue
+                    {% else %}
+                        box-green
+                    {% endif %}">
                     <span>This Flight Defects</span>
                     <i class="bi bi-gear big-box-icon"></i>
                     <span class="defects-open big-box-bottom-text">Open ({{ open_defects_count }})</span>

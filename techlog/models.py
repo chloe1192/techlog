@@ -156,7 +156,7 @@ class Defect(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.title
+        return f"{self.title} --- {self.ata_chapter}-{self.ata_section}-{self.ata_item}"
    
 class EngineModel(models.Model):
     name = models.CharField(max_length=200)
