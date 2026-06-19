@@ -41,7 +41,7 @@
 
                 <div class="form-field form-text-field box rectangular-box box-gray">
                     <label class="form-label form-item-50">Planned Dep Fuel</label>
-                    <input class="form-label form-item-50 data-refueling-active-false" type="number" id="planned_dep_fuel_in_kg" name="planned_dep_fuel_in_kg" onblur="calculateVolume()" value="{{current_flight.required_fuel_in_kg}}">
+                    <input class="form-label form-item-50 data-refueling-active-false" type="number" id="planned_dep_fuel_in_kg" name="planned_dep_fuel_in_kg" onblur="calculateFuelVolume()" value="{{current_flight.required_fuel_in_kg}}">
                 </div>
                 
                 <div class="form-field form-text-field box rectangular-box box-gray">
@@ -68,7 +68,7 @@
             </div>
 
             
-            {% for tank in fuel_tanks %}
+            {% for tank in fluid_tanks %}
                 <div class="form-group form-group-20 box-green fuel-tank-single" data-tank-id="{{tank.id}}">
 
                     <h1 class="form-label form-item-100">
@@ -82,7 +82,7 @@
 
                     <div class="form-field-100">
                         <span class="form-label form-item-50">Arrival </span>
-                        <span class="form-label form-item-50" id="fuel_arrival_{{ tank.id }}">{{tank.level|floatformat:0}}</span>
+                        <input class="form-label form-item-50" id="fluid_arrival_{{ tank.id }}" name="fluid_arrival_{{ tank.id }}" value="{{tank.level|floatformat:0}}" readonly>
                     </div>
 
                     <div class="form-field-100">
@@ -92,7 +92,7 @@
 
                     <div class="form-field-100">                        
                         <span class="form-label form-item-50">Departure </span>
-                        <input class="form-label form-item-50" id="departure_fob_in_kg_{{ tank.id }}" name="departure_fob_in_kg_{{ tank.id }}" onblur="setDepartureFuel(event)" type="number" value="">
+                        <input class="form-label form-item-50" id="fluid_departure_{{ tank.id }}" name="fluid_departure_{{ tank.id }}" onblur="setDepartureFuel(event)" type="number" value="">
                     </div>
                 </div>
             {% endfor %}
@@ -105,12 +105,12 @@
 
                 <div class="form-field-100">
                     <span class="form-label form-item-50">Capacity </span>
-                    <span class="form-label form-item-50" id="fuel_capacity_total">{{total_fuel.max_level|floatformat:0}} {{total_fuel.get_units_of_measure_display}}</span>
+                    <span class="form-label form-item-50" id="fuel_capacity_total">{{total_fluid.max_level|floatformat:0}} {{total_fluid.units_of_measure}}</span>
                 </div>
 
                 <div class="form-field-100">
                     <span class="form-label form-item-50">Arrival </span>
-                    <span class="form-label form-item-50" id="fuel_arrival_total">{{total_fuel.level|floatformat:0}}</span>
+                    <span class="form-label form-item-50" id="fluid_arrival_total">{{total_fluid.level|floatformat:0}}</span>
                 </div>
 
                 <div class="form-field-100">
@@ -120,7 +120,7 @@
 
                 <div class="form-field-100">                        
                     <span class="form-label form-item-50">Departure</span>
-                    <input class="form-label form-item-50" id="departure_fob_in_kg" name="departure_fob_in_kg" onchange="calculateVolume()" type="number" value="" readonly>
+                    <input class="form-label form-item-50" id="departure_fob_in_kg" name="departure_fob_in_kg" onchange="calculateFuelVolume()" type="number" value="" readonly>
                     <input class="form-label form-item-50" id="required_uplift_in_lt" name="required_uplift_in_lt" type="number" value="" hidden>
                 </div>
 
@@ -205,42 +205,6 @@
 
 </div>
 <script>
-    function calculateVolume(){
-        const required_fuel = document.getElementById("planned_dep_fuel_in_kg").value
-        const specific_gravity = document.getElementById("specific_gravity").value
-        const fuel_pre_total = document.getElementById("pre_refuel_in_kg").value
-        const departure_fob_in_kg = document.getElementById("departure_fob_in_kg").value
-        const required_uplift_in_lt = document.getElementById("required_uplift_in_lt")
-        const calculated_uplift_in_lt = document.getElementById("calculated_uplift_in_lt")
-        const required_fuel_in_volume = document.getElementById("required_fuel_in_volume")
-        const required_fuel_in_weight = document.getElementById("required_fuel_in_weight")
-        console.log("required_uplift_in_lt")
-        console.log(required_uplift_in_lt)
-        console.log("fuel_pre_total")
-        console.log(fuel_pre_total)
-        console.log("specific_gravity")
-        console.log(specific_gravity)
-        console.log("required_fuel")
-        console.log(required_fuel)
-        if (fuel_pre_total && specific_gravity && required_fuel) {
-            required_fuel_in_weight.textContent = required_fuel - fuel_pre_total
-            required_fuel_in_volume.textContent = Math.round((required_fuel - fuel_pre_total) / specific_gravity)
-            if (departure_fob_in_kg) {
-                console.log("departure_fob_in_kg")
-                console.log(departure_fob_in_kg)
-                required_uplift_in_lt.value = Math.round((departure_fob_in_kg - fuel_pre_total) / specific_gravity)
-                console.log("required_uplift_in_lt")
-                console.log(required_uplift_in_lt)
-                calculated_uplift_in_lt.textContent = Math.round((departure_fob_in_kg - fuel_pre_total) / specific_gravity)
-                console.log("calculated_uplift_in_lt")
-                console.log(calculated_uplift_in_lt)
-            }
-        } else {
-            required_fuel_in_weight.textContent = ""
-            required_fuel_in_volume.textContent = ""
-        }
-    }
-
     function activateRefueling(event, button) {
         event.preventDefault();
 
@@ -275,61 +239,21 @@
         console.log(button.getAttribute('data-refueling-active'));
     }
 
-    function copyArrivalFuel() {
-        event.preventDefault()
-        document.querySelectorAll(".fuel-tank-single").forEach(tank => {
-            const tankId = tank.dataset.tankId;
-
-            const arrival = document.getElementById(`fuel_arrival_${tankId}`);
-            const preFuel = document.getElementById(`pre_refuel_in_kg_${tankId}`);
-            const arrival_total = document.getElementById("fuel_arrival_total")
-            const preFuel_total = document.getElementById("pre_refuel_in_kg")
-
-            preFuel.value = arrival.textContent.trim();
-            preFuel_total.value = arrival_total.textContent.trim();
-            calculateVolume()
-        });
-    }
-
     document.addEventListener("DOMContentLoaded", () => {
         const form = document.querySelector("form");
 
         form.querySelectorAll("input, select, textarea").forEach(el => {
-            el.addEventListener("input", calculateVolume);
-            el.addEventListener("change", calculateVolume);
+            el.addEventListener("input", calculateFuelVolume);
+            el.addEventListener("change", calculateFuelVolume);
         });
     });
-    
-    function setDepartureFuel(event) {
-        event.preventDefault();
-
-        let total_departure_fuel = 0;
-
-        document.querySelectorAll(".fuel-tank-single").forEach(tank => {
-            const tankId = tank.dataset.tankId;
-
-            const input = document.getElementById(`departure_fob_in_kg_${tankId}`);
-
-            if (input && input.value) {
-                total_departure_fuel += Number(input.value) || 0;
-            }
-        });
-
-        const departure_fob_in_kg = document.getElementById("departure_fob_in_kg");
-
-        if (departure_fob_in_kg) {
-            departure_fob_in_kg.value = total_departure_fuel;
-        }
-
-        calculateVolume();
-    }
 
     document.addEventListener("DOMContentLoaded", () => {
         const form = document.querySelector("form");
 
         form.querySelectorAll("input, select, textarea").forEach(el => {
-            el.addEventListener("input", calculateVolume);
-            el.addEventListener("change", calculateVolume);
+            el.addEventListener("input", calculateFuelVolume);
+            el.addEventListener("change", calculateFuelVolume);
         });
     });
 </script>

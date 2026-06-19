@@ -1,6 +1,6 @@
 from django import forms
 from django.forms import ModelForm, inlineformset_factory
-from .models import Action, Airframe, AirframeDefect, AirframeEngine, CurrentFlight, Flight, Refuel, FluidTopUp, Route
+from .models import Action, Airframe, AirframeDefect, AirframeEngine, CurrentFlight, Flight, FlightFluid, FlightPhase, FluidInstance, Refuel, FluidTopUp, Route
 
 class AirframeDefectCreateForm(ModelForm):
     
@@ -135,4 +135,45 @@ class CompleteFlight(ModelForm):
             'maint_release_eng_company',
             'acceptance_date',
             'planned_flt_number',
+        ]
+
+class CurrentFlightDepartureFluids(ModelForm):
+    class Meta:
+        model = FlightFluid
+        exclude = [
+            'flight',
+            'phase'
+        ]
+
+    def save(self, commit=True):
+        obj = super().save(commit=False)
+        obj.phase = FlightPhase.DEPARTURE
+
+        if commit:
+            obj.save()
+
+        return obj
+
+class CurrentFlightArrivalFluids(ModelForm):
+    class Meta:
+        model = FlightFluid
+        exclude = [
+            'flight',
+            'phase'
+        ]
+
+    def save(self, commit=True):
+        obj = super().save(commit=False)
+        obj.phase = FlightPhase.ARRIVAL
+
+        if commit:
+            obj.save()
+
+        return obj
+    
+class UpdateFluidTanks(ModelForm):
+    class Meta:
+        model = FluidInstance
+        fields = [
+            'level',
         ]

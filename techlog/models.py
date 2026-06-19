@@ -1,6 +1,6 @@
 from datetime import datetime
-
 from django.db import models
+from django.db.models import Q
 
 class FluidTypes(models.IntegerChoices):
     FUEL = 0, "Fuel"
@@ -8,7 +8,7 @@ class FluidTypes(models.IntegerChoices):
     HYD = 2, "Hyd"
     WATER = 3, "Water/Waste"
 
-class UnitsOfMeasureVolume(models.IntegerChoices):
+class UnitsOfMeasure(models.IntegerChoices):
     LT = 0, "Liters"
     QTS = 1, "Quarts"
     PCT = 2, "Percentage"
@@ -54,6 +54,14 @@ class ProcedureRequired(models.IntegerChoices):
     M = 1, "(M)"
     O = 2, "(O)"
     MO = 3, "(M) (O)"
+
+class FluidOwnerType(models.IntegerChoices):
+    AIRFRAME = 0
+    ENGINE = 1
+
+class FlightPhase(models.IntegerChoices):
+    DEPARTURE = 0
+    ARRIVAL = 1
 
 class Company(models.Model):
     name = models.CharField(max_length=200)
@@ -118,7 +126,7 @@ class AircraftTypeFluid(models.Model):
     )
 
     units_of_measure = models.IntegerField(
-        choices=UnitsOfMeasureVolume
+        choices=UnitsOfMeasure
     )
 
     max_level = models.DecimalField(
@@ -134,7 +142,6 @@ class AircraftTypeFluid(models.Model):
     def __str__(self):
         return f"{self.aircraft_type} {self.item}"
 
-       
 class Defect(models.Model):
     title = models.CharField(max_length=200)
     ata_chapter = models.IntegerField()
@@ -166,7 +173,7 @@ class EngineModel(models.Model):
 
     def __str__(self):
         return self.name
-    
+
 class EngineModelFluid(models.Model):
     engine_model = models.ForeignKey(
         EngineModel,
@@ -180,7 +187,7 @@ class EngineModelFluid(models.Model):
     )
 
     units_of_measure = models.IntegerField(
-        choices=UnitsOfMeasureVolume
+        choices=UnitsOfMeasure
     )
 
     max_level = models.DecimalField(
@@ -255,51 +262,51 @@ class Airframe(models.Model):
     max_ramp_weight = models.IntegerField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    """ 
+        def save(self, *args, **kwargs):
+            if not self.pk:
+                at = self.aircraft_type
 
-    def save(self, *args, **kwargs):
-        if not self.pk:
-            at = self.aircraft_type
+                self.basic_empty_weight = at.basic_empty_weight
+                self.operating_empty_weight = at.operating_empty_weight
+                self.standard_empty_weight = at.manufacturer_empty_weight
+                self.max_zero_fuel_weight = at.max_zero_fuel_weight
+                self.max_landing_weight = at.max_landing_weight
+                self.max_takeoff_weight = at.max_takeoff_weight
+                self.max_ramp_weight = at.max_ramp_weight
 
-            self.basic_empty_weight = at.basic_empty_weight
-            self.operating_empty_weight = at.operating_empty_weight
-            self.standard_empty_weight = at.manufacturer_empty_weight
-            self.max_zero_fuel_weight = at.max_zero_fuel_weight
-            self.max_landing_weight = at.max_landing_weight
-            self.max_takeoff_weight = at.max_takeoff_weight
-            self.max_ramp_weight = at.max_ramp_weight
+            super().save(*args, **kwargs)
 
-        super().save(*args, **kwargs)
-
-    def create_default_fluids(self):
-        templates = AircraftTypeFluid.objects.filter(
-            aircraft_type=self.aircraft_type
-        )
-
-        for template in templates:
-            AirframeFluid.objects.create(
-                airframe=self,
-                aircraft_type_fluid=template
+        def create_default_fluids(self):
+            templates = AircraftTypeFluid.objects.filter(
+                aircraft_type=self.aircraft_type
             )
-    
-    def get_available_defects(self):
-        family_defects = Defect.objects.filter(
-            familydefect__aircraft_family=self.aircraft_type.aircraft_family
-        )
 
-        type_defects = Defect.objects.filter(
-            typedefect__aircraft_type=self.aircraft_type
-        )
+            for template in templates:
+                AirframeFluid.objects.create(
+                    airframe=self,
+                    aircraft_type_fluid=template
+                )
+        
+        def get_available_defects(self):
+            family_defects = Defect.objects.filter(
+                familydefect__aircraft_family=self.aircraft_type.aircraft_family
+            )
 
-        engine_models = AirframeEngine.objects.filter(
-            airframe=self
-        ).values_list("engine_model", flat=True)
+            type_defects = Defect.objects.filter(
+                typedefect__aircraft_type=self.aircraft_type
+            )
 
-        engine_defects = Defect.objects.filter(
-            enginedefect__engine_model__in=engine_models
-        )
+            engine_models = AirframeEngine.objects.filter(
+                airframe=self
+            ).values_list("engine_model", flat=True)
 
-        return (family_defects | type_defects | engine_defects).distinct()
+            engine_defects = Defect.objects.filter(
+                enginedefect__engine_model__in=engine_models
+            )
 
+            return (family_defects | type_defects | engine_defects).distinct()
+    """
     def __str__(self):
         return self.registration
 
@@ -332,7 +339,7 @@ class AirframeFluid(models.Model):
     aircraft_type_fluid = models.ForeignKey(AircraftTypeFluid, on_delete=models.RESTRICT)
     item = models.CharField(max_length=200)
     level = models.DecimalField(max_digits=10, decimal_places=2)
-    units_of_measure = models.IntegerField(choices=UnitsOfMeasureVolume, default=UnitsOfMeasureVolume.LT) # 0 lt, 1 qts, 2 pct, 3 gal
+    units_of_measure = models.IntegerField(choices=UnitsOfMeasure, default=UnitsOfMeasure.LT) # 0 lt, 1 qts, 2 pct, 3 gal
     max_level = models.DecimalField(max_digits=10, decimal_places=2)
     airframe = models.ForeignKey(Airframe, on_delete=models.RESTRICT)
     fluid_type = models.IntegerField(choices=FluidTypes, default=FluidTypes.FUEL)
@@ -363,7 +370,7 @@ class EngineFluids(models.Model):
     item = models.CharField(max_length=200)
     level = models.DecimalField(max_digits=10, decimal_places=2)
     airframe_engine = models.ForeignKey(AirframeEngine, on_delete=models.CASCADE)
-    units_of_measure = models.IntegerField(choices=UnitsOfMeasureVolume, default=UnitsOfMeasureVolume.LT) # 0 lt, 1 qts, 2 pct
+    units_of_measure = models.IntegerField(choices=UnitsOfMeasure, default=UnitsOfMeasure.LT) # 0 lt, 1 qts, 2 pct
     max_level = models.DecimalField(max_digits=10, decimal_places=2)
     fluid_type = models.IntegerField(choices=FluidTypes, default=FluidTypes.FUEL)    
 
@@ -391,6 +398,112 @@ class EngineFluids(models.Model):
     def __str__(self):
         return self.item
 
+class FluidTemplate(models.Model):
+   
+    name = models.CharField(
+        max_length=200
+    )
+    owner_type = models.IntegerField(
+        choices=FluidOwnerType.choices
+    )
+    aircraft_type = models.ForeignKey(
+        AircraftType,
+        on_delete=models.CASCADE,
+        blank=True,
+        null=True
+    )
+    engine_model = models.ForeignKey(
+        EngineModel,
+        on_delete=models.CASCADE,
+        blank=True,
+        null=True
+    )
+    fluid_type = models.IntegerField(
+        choices=FluidTypes
+    )
+    units_of_measure = models.IntegerField(
+        choices=UnitsOfMeasure
+    )
+    max_level = models.DecimalField(
+        max_digits=10,
+        decimal_places=2
+    )
+
+    class Meta:
+        constraints = [
+            models.CheckConstraint(
+                name="fluid_template_owner_consistency",
+                condition=(
+                    models.Q(
+                        owner_type=FluidOwnerType.AIRFRAME,
+                        aircraft_type__isnull=False,
+                        engine_model__isnull=True,
+                    )
+                    |
+                    models.Q(
+                        owner_type=FluidOwnerType.ENGINE,
+                        aircraft_type__isnull=True,
+                        engine_model__isnull=False,
+                    )
+                ),
+            )
+        ]
+    
+    def __str__(self):
+        return f"{self.aircraft_type} {self.name}"
+
+class FluidInstance(models.Model):
+    fluid_template = models.ForeignKey(
+        FluidTemplate, on_delete=models.RESTRICT
+    )
+    airframe = models.ForeignKey(
+        Airframe,
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE
+    )
+    airframe_engine = models.ForeignKey(
+        AirframeEngine,
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE
+    )
+    level = models.DecimalField(
+        max_digits=10,
+        decimal_places=2
+    )
+
+    class Meta:
+        constraints = [
+            models.CheckConstraint(
+                name="fluid_instance_owner_consistency",
+                condition=(
+                    models.Q(
+                        airframe__isnull=False,
+                        airframe_engine__isnull=True,
+                    )
+                    |
+                    models.Q(
+                        airframe__isnull=True,
+                        airframe_engine__isnull=False,
+                    )
+                ),
+            ),            
+            models.UniqueConstraint(
+                fields=["fluid_template", "airframe"],
+                condition=Q(airframe__isnull=False),
+                name="unique_airframe_fluid",
+            ),
+            models.UniqueConstraint(
+                fields=["fluid_template", "airframe_engine"],
+                condition=Q(airframe_engine__isnull=False),
+                name="unique_engine_fluid",
+            ),
+        ]
+        unique_together = ('fluid_template', 'airframe', 'airframe_engine')
+
+    def __str__(self):
+        return f"{self.level} - {self.fluid_template.units_of_measure}"
    
 class Airport(models.Model):
     iata_code = models.CharField(max_length=3)
@@ -442,7 +555,7 @@ class Flight(models.Model):
 
     def __str__(self):
         return f"{self.flight_route} {self.date_of_flight} {self.airframe.registration}"
-    
+ 
 class CurrentFlight(models.Model):
     airframe = models.ForeignKey(Airframe, on_delete=models.CASCADE, unique=True)
     flight_route = models.ForeignKey(Route, on_delete=models.RESTRICT, blank=True, null=True)
@@ -544,7 +657,6 @@ class Action(models.Model):
         self.airframe_defect.save()
         super().save(*args, **kwargs)
 
-
 class Cabin(models.Model):
     cabin_type = models.BooleanField()
     created_at = models.DateTimeField(auto_now_add=True)
@@ -631,6 +743,61 @@ class FlightEngineFluidsArrival(models.Model):
 
     class Meta:
         unique_together = ("flight", "fluid")
+
+class FlightFluid(models.Model):
+    flight = models.ForeignKey(
+        Flight,
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE
+    )
+    current_flight = models.ForeignKey(
+        CurrentFlight,
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE
+    )
+    fluid = models.ForeignKey(
+        FluidInstance,
+        on_delete=models.CASCADE
+    )
+    phase = models.IntegerField(
+        choices=FlightPhase
+    )
+    level = models.DecimalField(
+        max_digits=8,
+        decimal_places=2
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
+    class Meta:
+        constraints = [
+            models.CheckConstraint(
+                name="flight_fluid_dep_or_arr_consistency",
+                condition=(
+                    models.Q(
+                        flight__isnull=False,
+                        current_flight__isnull=True,
+                    )
+                    |
+                    models.Q(
+                        flight__isnull=True,
+                        current_flight__isnull=False
+                    )
+                ),
+            )
+        ]
+        unique_together = ("flight", "current_flight", "fluid", "phase")
+
+    def __str__(self):
+        owner = self.current_flight or self.flight
+
+        if not owner:
+            return f"{self.fluid} = {self.level}"
+
+        return f"{owner} = {self.level} {self.fluid.fluid_template.units_of_measure}"
 
 # TODO this should be user based
 class UserSettings(models.Model):

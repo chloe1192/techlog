@@ -281,9 +281,19 @@
 
             <!-- Button trigger modal -->
             <!-- Button trigger modal -->
-            <a href="{% url 'flight_arrival_fuel' current_airframe.id %}">
-                fuelModal
-            </button>
+            <a href="{% url 'flight_arrival_fluids' current_airframe.id 0 %}" class="btn btn-danger">
+                Fuel on arrival
+            </a>
+            <a href="{% url 'flight_arrival_fluids' current_airframe.id 1 %}" class="btn btn-danger">
+                Oil on arrival
+            </a>
+            <a href="{% url 'flight_arrival_fluids' current_airframe.id 2 %}" class="btn btn-danger">
+                Hyd on arrival
+            </a>
+            <a href="{% url 'flight_arrival_fluids' current_airframe.id 3 %}" class="btn btn-danger">
+                Water on arrival
+            </a>
+            <br>
 
             <!-- SUBMIT BUTTON -->
             <div class="row">

@@ -36,7 +36,8 @@ urlpatterns = [
     # flight
     path('airframe/<int:airframe_id>/flight_details/', views.flight_details, name='flight_details'),
     path('airframe/<int:airframe_id>/flight_save/', views.flight_save, name='flight_save'),
-    path('airframe/<int:airframe_id>/flight/arrival/fuel/', views.flight_arrival_fuel, name='flight_arrival_fuel'),
+    path('airframe/<int:airframe_id>/flight/departure/fluids/<int:fluid_type>/', views.flight_departure_fluids, name='flight_departure_fluids'),
+    path('airframe/<int:airframe_id>/flight/arrival/fluids/<int:fluid_type>/', views.flight_arrival_fluids, name='flight_arrival_fluids'),
 
     # defects
     path('airframe/<int:airframe_id>/defects/', views.defects, name='defects'),

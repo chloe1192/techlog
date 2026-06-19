@@ -4,11 +4,12 @@ from itertools import chain
 from django.http import JsonResponse
 from django.urls import reverse
 from .helpers import parse_datetime, parse_date, loop_trough_fluids
-from .forms import AcceptanceForm, ActionCreate, AirframeDefectCreateForm, AirframeEdit, AirframeEngineEdit, CompleteFlight, MaintenanceReleaseForm, RefuelingForm
-from .models import Action, ActionTypes, AircraftTypeFluid, Airframe, AirframeDefect, AircraftType, AirframeEngine, CurrentFlight, DeferCategory, EngineDefect, EngineModel, EngineFluids, Company, Defect, EngineModelFluid, EngineeringCompany, FamilyDefect, FlightAirframeFluidsArrival, FlightAirframeFluidsDeparture, Operator, AirframeFluid, Flight, Airport, Refuel, Route, TypeDefect
+from .forms import AcceptanceForm, ActionCreate, AirframeDefectCreateForm, AirframeEdit, AirframeEngineEdit, CompleteFlight, CurrentFlightArrivalFluids, CurrentFlightDepartureFluids, MaintenanceReleaseForm, RefuelingForm, UpdateFluidTanks
+from .models import Action, ActionTypes, AircraftTypeFluid, Airframe, AirframeDefect, AircraftType, AirframeEngine, CurrentFlight, DeferCategory, EngineDefect, EngineModel, EngineFluids, Company, Defect, EngineModelFluid, EngineeringCompany, FamilyDefect, FlightAirframeFluidsArrival, FlightAirframeFluidsDeparture, FlightFluid, FlightPhase, FluidInstance, Operator, AirframeFluid, Flight, Airport, Refuel, Route, TypeDefect
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 from django.forms.models import model_to_dict
+from django.db.models import Q
 
 def index(request):
     operators = Operator.objects.all()
@@ -414,36 +415,236 @@ def flight_details(request, airframe_id):
         print(request.POST)
     return render(request, 'flight/details.html', context)
 
-def flight_arrival_fuel(request, airframe_id):
-    page_title = "Arrival Fuel"
+# TODO implement agnostic function on the same as arrival
+def flight_departure_fluids(request, airframe_id, fluid_type):
+    page_title = "Departure Fluids"
+    if fluid_type == 0:
+        template = 'flight/departure/fuel.html'
+    else:
+        template = 'flight/departure/fluids.html'
+
+    match fluid_type:
+        case 0:
+            page_title = "Departure Fuel"
+        case 1:
+            page_title = "Departure Oil"
+        case 2:
+            page_title = "Departure Hydraulic"
+        case _:
+            page_title = "Departure Fluids"
+    
     return_url = reverse('flight_details', kwargs={'airframe_id': airframe_id})
-   
-    total_fuel = {
+    current_flight = get_object_or_404(CurrentFlight, airframe_id=airframe_id)
+    airframe = Airframe.objects.get(id=airframe_id)
+
+    fluid_tanks = FluidInstance.objects.filter(
+        Q(airframe_id=airframe_id) |
+        Q(airframe_engine__airframe_id=airframe_id),
+        fluid_template__fluid_type=fluid_type
+    )
+    total_fluid = {
         'max_level': 0,
-        'units_of_measure': 0,
+        'units_of_measure': None,
         'level': 0,
     }
-    fuel_tanks = AirframeFluid.objects.filter(airframe_id=airframe_id, fluid_type=0)
-    for tank in fuel_tanks:
-        total_fuel['max_level'] = tank.max_level + total_fuel['max_level']
-        total_fuel['units_of_measure'] = tank.get_units_of_measure_display
-        total_fuel['level'] = tank.level + total_fuel['level']
+    for f in fluid_tanks:
+        total_fluid["max_level"] += f.fluid_template.max_level
+        total_fluid["level"] = f.level + total_fluid['level']
+        total_fluid["fluid_type"] = f.fluid_template.fluid_type
+        total_fluid["units_of_measure"] = f.fluid_template.get_units_of_measure_display()
 
     if request.method == "POST":
-        fuel_dict = loop_trough_fluids(request.POST, fuel_tanks, 'fuel_departure_', 'fuel_arrival_')
-        request.session["current_flight_fuel"] = fuel_dict
+        if fluid_type == 0:
+            print('POST DATA:  ---------------------------------------')
+            print(request.POST)
+            print('POST DATA:  ---------------------------------------')
+            form = RefuelingForm(request.POST)
+            nil_uplift = request.POST.get('nil_uplift')
+            if nil_uplift == "on":
+
+                current_flight.refuel_is_done = True
+                current_flight.save()
+
+                #return redirect('servicing', airframe_id=airframe_id)
+            
+            if form.is_valid():
+                obj = form.save(commit=False)
+                obj.airframe = airframe
+                obj.save()
+                current_flight.required_fuel_in_kg = obj.planned_dep_fuel_in_kg
+                current_flight.block_fuel_in_kg = obj.departure_fob_in_kg            
+                current_flight.refuel_is_done = True
+                current_flight.save()
+            else:
+                print(form.errors)
+
+        fluid_dict = loop_trough_fluids(
+            request.POST,
+            fluid_tanks,
+            'fluid_departure_',
+            "fluid_arrival_"
+        )
+
+        for fluid_id, values in fluid_dict.items():
+
+            instance = FlightFluid.objects.filter(
+                current_flight=current_flight,
+                fluid_id=fluid_id
+            ).first()
+
+            fluid_instance = FluidInstance.objects.filter(
+                id=fluid_id
+            ).first()
+
+            data = {
+                "level": values["fluid_departure_"],
+                "fluid": fluid_id,
+                "current_flight": current_flight
+            }
+
+            fluid_form = UpdateFluidTanks(data=data, instance=fluid_instance)
+
+            if fluid_form.is_valid():
+                fluid_form.save()
+            else:
+                return form.errors
+
+            if instance:
+                form = CurrentFlightDepartureFluids(data=data, instance=instance)
+            else:
+                form = CurrentFlightDepartureFluids(data=data)
+
+            if form.is_valid():
+                form.save()
+            else:
+                print(form.errors)
+
+    context = {
+        'page_title': page_title,
+        'return_url': return_url,
+        'current_flight': current_flight,
+        'fluid_tanks': fluid_tanks,
+        'total_fluid': total_fluid
+    }
+    return render(request, template, context)
+
+def flight_arrival_fluids(request, airframe_id, fluid_type):
+    page_title = "Arrival Fluids"
+
+    match fluid_type:
+        case 0:
+            page_title = "Arrival Fuel"
+        case 1:
+            page_title = "Arrival Oil"
+        case 2:
+            page_title = "Arrival Hydraulic"
+        case _:
+            page_title = "Arrival Fluids"
+    
+    return_url = reverse('flight_details', kwargs={'airframe_id': airframe_id})
+    current_flight = get_object_or_404(CurrentFlight, airframe_id=airframe_id)
+
+    from django.db.models import Q
+
+    fluid_tanks = FluidInstance.objects.filter(
+        Q(airframe_id=airframe_id) |
+        Q(airframe_engine__airframe_id=airframe_id),
+        fluid_template__fluid_type=fluid_type
+    )
+    total_fluid = {
+        'max_level': 0,
+        'units_of_measure': None,
+        'level': 0,
+    }
+    for f in fluid_tanks:
+        total_fluid["max_level"] += f.fluid_template.max_level
+        total_fluid["level"] = f.level + total_fluid['level']
+        total_fluid["fluid_type"] = f.fluid_template.fluid_type
+        total_fluid["units_of_measure"] = f.fluid_template.get_units_of_measure_display()
+
+    if request.method == "POST":
+
+        fluid_dict = loop_trough_fluids(
+            request.POST,
+            fluid_tanks,
+            'fluid_departure_',
+            "fluid_arrival_"
+        )
+
+        for fluid_id, values in fluid_dict.items():
+
+            instance = FlightFluid.objects.filter(
+                current_flight=current_flight,
+                fluid_id=fluid_id
+            ).first()
+
+            fluid_instance = FluidInstance.objects.filter(
+                id=fluid_id
+            ).first()
+
+            data = {
+                "level": values["fluid_arrival_"],
+                "fluid": fluid_id,
+                "current_flight": current_flight
+            }
+
+            fluid_form = UpdateFluidTanks(data=data, instance=fluid_instance)
+            
+            if fluid_form.is_valid():
+                fluid_form.save()
+            else:
+                return form.errors
+
+            if instance:
+                form = CurrentFlightArrivalFluids(data, instance=instance)
+            else:
+                form = CurrentFlightArrivalFluids(data)
+
+            if form.is_valid():
+                form.save()
+            else:
+                print(form.errors)
+
+    context = {
+        'page_title': page_title,
+        'return_url': return_url,
+        'fluid_tanks': fluid_tanks,
+        'total_fluid': total_fluid
+    }
+    return render(request, 'flight/arrival/fluids.html', context)
+
+def flight_arrival_fuel(request, airframe_id, fluid_type):
+    page_title = "Arrival Fuel"
+    return_url = reverse('flight_details', kwargs={'airframe_id': airframe_id})
+
+    if fluid_type == 0:
+        total_fuel = {
+            'max_level': 0,
+            'units_of_measure': 0,
+            'level': 0,
+        }
+        fuel_tanks = FluidInstance.objects.filter(airframe_id=airframe_id, fluid_template__fluid_type=0)
+        for tank in fuel_tanks:
+            total_fuel['max_level'] = tank.fluid_template.max_level + total_fuel['max_level']
+            total_fuel['units_of_measure'] = tank.fluid_template.get_units_of_measure_display
+            total_fuel['level'] = tank.level + total_fuel['level']
+
+        if request.method == "POST":
+            fuel_dict = loop_trough_fluids(request.POST, fuel_tanks, 'fuel_departure_', 'fuel_arrival_')
+            request.session["current_flight_fuel"] = fuel_dict
 
 
-    for tank_id, values in request.session["current_flight_fuel"].items():
-        print("tank_id:", tank_id)
-        print("values:", values)
+        for tank_id, values in request.session["current_flight_fuel"].items():
+            print("tank_id:", tank_id)
+            print("values:", values)
+
     context = {
         'page_title': page_title,
         'return_url': return_url,
         'fuel_tanks': fuel_tanks,
         'total_fuel': total_fuel
     }
-    return render(request, 'flight/arrival/fuel.html', context)
+    return render(request, 'flight/arrival/fluids.html', context)
 
 @require_POST
 def flight_save(request, airframe_id):
@@ -709,57 +910,96 @@ def servicing_fuel(request, airframe_id):
         'units_of_measure': 0,
         'level': 0,
     }
-    fuel_tanks = AirframeFluid.objects.filter(airframe_id=airframe_id, fluid_type=0)
+    fluid_type = 0
+    fuel_tanks = FluidInstance.objects.filter(
+        Q(airframe_id=airframe_id) |
+        Q(airframe_engine__airframe_id=airframe_id),
+        fluid_template__fluid_type=fluid_type
+    )
+
     for tank in fuel_tanks:
-        total_fuel['max_level'] = tank.max_level + total_fuel['max_level']
-        total_fuel['units_of_measure'] = tank.get_units_of_measure_display
-        total_fuel['level'] = tank.level + total_fuel['level']
+        total_fuel["max_level"] += tank.fluid_template.max_level
+        total_fuel["level"] = tank.level + total_fuel['level']
+        total_fuel["fluid_type"] = tank.fluid_template.fluid_type
+        total_fuel["units_of_measure"] = tank.fluid_template.get_units_of_measure_display()
         
     fuel_uplift_not_sent = True
 
     if request.method == "POST":
-        print(request.POST)
+
         form = RefuelingForm(request.POST)
-        print(form.is_valid())
         nil_uplift = request.POST.get('nil_uplift')
-        print("request.POST['nil_uplift']")
-        print(nil_uplift)
         if nil_uplift == "on":
-            print("if nil_uplift == on:") 
+
             current_flight.refuel_is_done = True
             current_flight.save()
-            return redirect('servicing', airframe_id=airframe_id)
+
+            #return redirect('servicing', airframe_id=airframe_id)
         
         if form.is_valid():
             obj = form.save(commit=False)
             obj.airframe = airframe
             obj.save()
+            print('obj')
+            print(obj)
             current_flight.required_fuel_in_kg = obj.planned_dep_fuel_in_kg
-            current_flight.block_fuel_in_kg = obj.departure_fob_in_kg
-            current_flight.save()
-            
-            fuel_tanks = AirframeFluid.objects.filter(
-                airframe=airframe,
-                fluid_type=0  # fuel
-            )
+            current_flight.block_fuel_in_kg = obj.departure_fob_in_kg            
             current_flight.refuel_is_done = True
             current_flight.save()
+            print('request.POST')
+            print(request.POST)
+            print('fuel_tanks')
+            print(fuel_tanks)
 
-            for tank in fuel_tanks:
-                key = f"departure_fob_in_kg_{tank.id}"
-                print("key")
-                print(key)
-                uplift = request.POST.get(key)
-                print("uplift")
-                print(uplift)
+            fluid_dict = loop_trough_fluids(
+                request.POST,
+                fuel_tanks,
+                'fluid_departure_',
+                "fluid_arrival_"
+            )
+            print('fluid_dict')
+            print(fluid_dict)
 
-                if uplift:
-                    tank.level = uplift
-                    print("tank.level")
-                    print(tank.level)
-                    tank.save()
+            for fluid_id, values in fluid_dict.items():
 
-            return redirect('servicing', airframe_id=airframe_id)
+                instance = FlightFluid.objects.filter(
+                    current_flight=current_flight,
+                    fluid_id=fluid_id
+                ).first()
+                print('instance')
+                print(instance)
+
+                data = {
+                    "level": values["fluid_departure_"],
+                    "fluid": fluid_id,
+                    "current_flight": current_flight
+                }
+
+                if instance:
+                    form = CurrentFlightDepartureFluids(data, instance=instance)
+                else:
+                    form = CurrentFlightDepartureFluids(data)
+
+                if form.is_valid():
+                    form.save()
+                else:
+                    print(form.errors)
+
+                for tank in fuel_tanks:
+                    key = f"departure_fob_in_kg_{tank.id}"
+                    print("key")
+                    print(key)
+                    uplift = request.POST.get(key)
+                    print("uplift")
+                    print(uplift)
+
+                    if uplift:
+                        tank.level = uplift
+                        print("tank.level")
+                        print(tank.level)
+                        tank.save()
+
+                #return redirect('servicing', airframe_id=airframe_id)
             
         else:
             print(form.errors)
