@@ -77,3 +77,36 @@ function setDepartureFuel(event) {
 
     calculateFuelVolume();
 }
+
+function calculateFluidDifference(uplift_or_usage) 
+{
+    document.querySelectorAll(".fuel-tank-single").forEach(tank => {
+        const tankId = tank.dataset.tankId;
+        const arrival = document.getElementById(`fluid_arrival_${tankId}`);
+        const departure = document.getElementById(`fluid_departure_${tankId}`);
+        if (uplift_or_usage == 'uplift' && departure.value) {
+            const uplift = document.getElementById(`fluid_uplift_${tankId}`)
+            uplift.value = departure.value - arrival.value
+        } else if (uplift_or_usage == 'usage' && arrival.value) {            
+            const usage = document.getElementById(`fluid_usage_${tankId}`)
+            usage.value = departure.value - arrival.value
+        }
+    });
+
+}
+
+function diversionAirportId() {
+    const aiportIdInput = document.getElementById('actual_arrival_airport');
+    const input = document.getElementById('actual_arrival_airport_datalist');
+    const datalist = document.getElementById('airportDatalistOptions');
+    const option = [...datalist.options].find(
+        opt => opt.value === input.value
+    );
+
+    if (option) {
+        console.log(option.dataset.actualArrivalAirport)
+        aiportIdInput.value = option.dataset.actualArrivalAirport
+        console.log(aiportIdInput)
+        console.log('Matched option:', option.dataset);
+    }
+}

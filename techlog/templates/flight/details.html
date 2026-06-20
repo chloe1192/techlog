@@ -273,6 +273,13 @@
                                     <input type="checkbox" class="form-check-input me-2" id="diversion" name="diversion">
                                     <span class="form-group-label d-inline">Diversion</span>
                                 </label>
+                                <input hidden id="actual_arrival_airport" name="actual_arrival">
+                                <input class="form-control" list="airportDatalistOptions" id="actual_arrival_airport_datalist" name="actual_arrival_airport_datalist" onchange="diversionAirportId()" placeholder="Type to search...">
+                                <datalist id="airportDatalistOptions">
+                                    {% for airport in airports %}
+                                        <option value="{{airport.iata_code}}" data-actual-arrival-airport="{{airport.id}}">{{airport.iata_code}}</option>
+                                    {% endfor %}
+                                </datalist>
                             </div>
                         </div>
                     </div>

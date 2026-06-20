@@ -14,19 +14,11 @@ from .models import (
     EngineeringCompany,
     FamilyDefect,
     Operator,
-    AirframeFluid,
-    EngineFluids,
     Airport,
     Flight,
     AirframeEngine,
     Route,
     TypeDefect,
-    FlightAirframeFluidsDeparture,
-    FlightAirframeFluidsArrival,
-    FlightEngineFluidsDeparture,
-    FlightEngineFluidsArrival,
-    AircraftTypeFluid,
-    EngineModelFluid,
     UserSettings
 )
 class ConpanyAdmin(admin.ModelAdmin):
@@ -179,37 +171,6 @@ admin.site.register(TypeDefect, TypeDefectAdmin)
 admin.site.register(Action, ActionAdmin)
 admin.site.register(Configuration, ConfigurationAdmin)
 admin.site.register(AirframeEngine, AirframeEngineAdmin)
-admin.site.register(
-    FlightAirframeFluidsDeparture,
-    FlightAirframeFluidsDepartureAdmin
-)
-
-admin.site.register(
-    FlightAirframeFluidsArrival,
-    FlightAirframeFluidsArrivalAdmin
-)
-
-admin.site.register(
-    FlightEngineFluidsDeparture,
-    FlightEngineFluidsDepartureAdmin
-)
-
-admin.site.register(
-    FlightEngineFluidsArrival,
-    FlightEngineFluidsArrivalAdmin
-)
-
-admin.site.register(
-    EngineModelFluid,
-    EngineModelFluidAdmin
-)
-
-admin.site.register(
-    AircraftTypeFluid,
-    AircraftTypeFluidAdmin
-)
-admin.site.register(EngineFluids, EngineFluidsAdmin)
-admin.site.register(AirframeFluid, AirframeFluidAdmin)
 admin.site.register(Operator, OperatorAdmin)
 admin.site.register(Defect, DefectAdmin)
 admin.site.register(Company, ConpanyAdmin)

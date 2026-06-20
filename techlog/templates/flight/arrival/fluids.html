@@ -7,7 +7,7 @@
 
     <div class="row">
 
-    <form id="fuelArrivalForm" method="post" class="row">
+    <form id="fluidArrivalForm" method="post" class="row">
         {% csrf_token %}
         <!-- if form_sent == true -> inputs blue bg -->
         <div class="form-full 
@@ -18,7 +18,7 @@
             {% endif %}
         ">
             
-            {% for tank in fluid_tanks %}
+            {% for tank in departure_fluid_tanks %}
                 <div class="form-group form-group-20 box-green fuel-tank-single" data-tank-id="{{tank.id}}">
 
                     <h1 class="form-label form-item-100">
@@ -102,7 +102,7 @@
     function transmitFlightFuelData(event) {
         event.preventDefault();
 
-        form = document.getElementById('fuelArrivalForm')
+        form = document.getElementById('fluidArrivalForm')
         const formData = new FormData(form)
         console.log(formData);
         fetch(this.action || window.location.href, {

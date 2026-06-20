@@ -112,35 +112,6 @@ class AircraftType(models.Model):
 
     def __str__(self):
         return self.name
-    
-class AircraftTypeFluid(models.Model):
-    aircraft_type = models.ForeignKey(
-        AircraftType,
-        on_delete=models.CASCADE
-    )
-
-    item = models.CharField(max_length=200)
-
-    fluid_type = models.IntegerField(
-        choices=FluidTypes
-    )
-
-    units_of_measure = models.IntegerField(
-        choices=UnitsOfMeasure
-    )
-
-    max_level = models.DecimalField(
-        max_digits=10,
-        decimal_places=2
-    )
-
-    default_level = models.DecimalField(
-        max_digits=10,
-        decimal_places=2
-    )
-    
-    def __str__(self):
-        return f"{self.aircraft_type} {self.item}"
 
 class Defect(models.Model):
     title = models.CharField(max_length=200)
@@ -173,39 +144,6 @@ class EngineModel(models.Model):
 
     def __str__(self):
         return self.name
-
-class EngineModelFluid(models.Model):
-    engine_model = models.ForeignKey(
-        EngineModel,
-        on_delete=models.CASCADE
-    )
-
-    item = models.CharField(max_length=200)
-
-    fluid_type = models.IntegerField(
-        choices=FluidTypes
-    )
-
-    units_of_measure = models.IntegerField(
-        choices=UnitsOfMeasure
-    )
-
-    max_level = models.DecimalField(
-        max_digits=10,
-        decimal_places=2
-    )
-
-    default_level = models.DecimalField(
-        max_digits=10,
-        decimal_places=2
-    )
-
-    engine_number = models.IntegerField(
-        max_length=2
-    )
-    
-    def __str__(self):
-        return f"{self.engine_model} {self.item}"
 
 class FamilyDefect(models.Model):
     aircraft_family = models.ForeignKey(
@@ -334,69 +272,6 @@ class AirframeEngine(models.Model):
 
     def __str__(self):
         return f"{self.airframe} {self.engine_number}"
-
-class AirframeFluid(models.Model):
-    aircraft_type_fluid = models.ForeignKey(AircraftTypeFluid, on_delete=models.RESTRICT)
-    item = models.CharField(max_length=200)
-    level = models.DecimalField(max_digits=10, decimal_places=2)
-    units_of_measure = models.IntegerField(choices=UnitsOfMeasure, default=UnitsOfMeasure.LT) # 0 lt, 1 qts, 2 pct, 3 gal
-    max_level = models.DecimalField(max_digits=10, decimal_places=2)
-    airframe = models.ForeignKey(Airframe, on_delete=models.RESTRICT)
-    fluid_type = models.IntegerField(choices=FluidTypes, default=FluidTypes.FUEL)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        unique_together = ("airframe", "aircraft_type_fluid")
-
-    def save(self, *args, **kwargs):
-        if not self.pk:
-            atf = self.aircraft_type_fluid
-            if self.item is None:
-                self.level = atf.default_level
-
-            self.item = atf.item
-            self.max_level = atf.max_level
-            self.fluid_type = atf.fluid_type
-            self.units_of_measure = atf.units_of_measure
-
-        super().save(*args, **kwargs)
-
-    def __str__(self):
-        return self.item
-
-class EngineFluids(models.Model):
-    engine_model_fluid = models.ForeignKey(EngineModelFluid, on_delete=models.RESTRICT)
-    item = models.CharField(max_length=200)
-    level = models.DecimalField(max_digits=10, decimal_places=2)
-    airframe_engine = models.ForeignKey(AirframeEngine, on_delete=models.CASCADE)
-    units_of_measure = models.IntegerField(choices=UnitsOfMeasure, default=UnitsOfMeasure.LT) # 0 lt, 1 qts, 2 pct
-    max_level = models.DecimalField(max_digits=10, decimal_places=2)
-    fluid_type = models.IntegerField(choices=FluidTypes, default=FluidTypes.FUEL)    
-
-    engine_number = models.IntegerField(
-        max_length=2
-    )
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    
-    class Meta:
-        unique_together = ("airframe_engine", "engine_model_fluid")
-
-    def save(self, *args, **kwargs):
-        if not self.pk:
-            emf = self.engine_model_fluid
-
-            self.item = emf.item
-            self.level = emf.default_level
-            self.max_level = emf.max_level
-            self.fluid_type = emf.fluid_type
-            self.units_of_measure = emf.units_of_measure
-
-        super().save(*args, **kwargs)
-
-    def __str__(self):
-        return self.item
 
 class FluidTemplate(models.Model):
    
@@ -605,17 +480,25 @@ class Refuel(models.Model):
     fuel_ticket_no = models.CharField(max_length=10, default="")
     bowser_uplift_in_lt = models.IntegerField()
     created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        constraints = [
+            models.CheckConstraint(
+                name="flight_fluid_current_or_saved_consistency",
+                condition=(
+                    models.Q(
+                        actual_flight__isnull=False,
+                        planned_flt_number__isnull=True,
+                    )
+                    |
+                    models.Q(
+                        actual_flight__isnull=True,
+                        planned_flt_number__isnull=False
+                    )
+                ),
+            )
+        ]
 
-class FluidTopUp(models.Model):
-    planned_flt_number = models.ForeignKey(CurrentFlight, on_delete=models.CASCADE, blank=True, null=True)
-    actual_flight = models.ForeignKey(Flight, on_delete=models.RESTRICT, blank=True, null=True)
-    airframe = models.ForeignKey(Airframe, on_delete=models.RESTRICT)
-    airframe_or_engine_fluid = models.IntegerField(choices=AirframeOrEngineFluid,default=AirframeOrEngineFluid.AIRFRAME)
-    quantity = models.DecimalField(max_digits=10, decimal_places=2)
-    engine_fluid = models.ForeignKey(EngineFluids, on_delete=models.CASCADE, blank=True, null=True)
-    airframe_fluid = models.ForeignKey(AirframeFluid, on_delete=models.CASCADE, blank=True, null=True)
-    engineering_company = models.ForeignKey(EngineeringCompany, on_delete=models.RESTRICT, blank=True, null=True)
-    created_at = models.DateTimeField(auto_now_add=True)
 
 class AirframeDefect(models.Model):
     airframe = models.ForeignKey(Airframe, on_delete=models.RESTRICT)
@@ -707,42 +590,6 @@ class Configuration(models.Model):
 
     def __str__(self):
         return str(self.airframe)
-    
-class FlightAirframeFluidsDeparture(models.Model):
-    flight = models.ForeignKey(Flight, on_delete=models.CASCADE)
-    fluid = models.ForeignKey(AirframeFluid, on_delete=models.CASCADE)
-    fluid_level = models.DecimalField(max_digits=6, decimal_places=2)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        unique_together = ("flight", "fluid")
-
-class FlightAirframeFluidsArrival(models.Model):
-    flight = models.ForeignKey(Flight, on_delete=models.CASCADE)
-    fluid = models.ForeignKey(AirframeFluid, on_delete=models.CASCADE)
-    fluid_level = models.DecimalField(max_digits=6, decimal_places=2)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        unique_together = ("flight", "fluid")
-
-class FlightEngineFluidsDeparture(models.Model):
-    flight = models.ForeignKey(Flight, on_delete=models.CASCADE)
-    fluid = models.ForeignKey(EngineFluids, on_delete=models.CASCADE)
-    fluid_level = models.DecimalField(max_digits=6, decimal_places=2)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        unique_together = ("flight", "fluid")
-
-class FlightEngineFluidsArrival(models.Model):
-    flight = models.ForeignKey(Flight, on_delete=models.CASCADE)
-    fluid = models.ForeignKey(EngineFluids, on_delete=models.CASCADE)
-    fluid_level = models.DecimalField(max_digits=6, decimal_places=2)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        unique_together = ("flight", "fluid")
 
 class FlightFluid(models.Model):
     flight = models.ForeignKey(
