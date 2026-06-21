@@ -165,42 +165,6 @@ def airframes_edit(request, airframe_id):
     }
     return render(request, 'airframes/create.html', context)
 
-def airframe_index(request, airframe_id):
-    request.session['current_airframe_id'] = airframe_id
-    page_title = "Main Menu"
-    current_flight = CurrentFlight.objects.filter(airframe=airframe_id).order_by("-created_at").first()
-    airframe = get_object_or_404(Airframe, id=airframe_id)
-    airframe_defects = AirframeDefect.objects.filter(airframe=airframe)
-    engine_fluids = EngineFluids.objects.filter(airframe_engine=airframe_id)
-    airframe_fluids = AirframeFluid.objects.filter(airframe=airframe)
-    defect_actions = Action.objects.filter(airframe_defect__airframe=airframe_id)
-    open_defects_count = 0
-    closed_defects_count = 0
-    carry_fwd_defects_count = 0
-    return_url = request.META.get("HTTP_REFERER")
-
-    for defect in defect_actions:
-        if defect.status == 0:
-            open_defects_count = open_defects_count + 1
-        if defect.status == 1:
-            closed_defects_count = closed_defects_count + 1
-        if defect.status == 2:
-            carry_fwd_defects_count = carry_fwd_defects_count + 1
-
-    context = {
-        'airframe': airframe,
-        'airframe_defects': airframe_defects,
-        'engine_fluids': engine_fluids,
-        'airframe_fluids': airframe_fluids,
-        'page_title': page_title,
-        'open_defects_count': open_defects_count,
-        'closed_defects_count': closed_defects_count,
-        'carry_fwd_defects_count': carry_fwd_defects_count,
-        'current_flight': current_flight,
-        'return_url': return_url
-    }
-    return render(request, 'airframe_index.html', context)
-
 def flight_release_maintenance(request, airframe_id):
     page_title = "Flight Sign Off"
     return_url = reverse('flight_index', kwargs={'airframe_id': airframe_id})
@@ -632,39 +596,6 @@ def flight_arrival_fluids(request, airframe_id, fluid_type):
     }
     return render(request, 'flight/arrival/fluids.html', context)
 
-def flight_arrival_fuel(request, airframe_id, fluid_type):
-    page_title = "Arrival Fuel"
-    return_url = reverse('flight_details', kwargs={'airframe_id': airframe_id})
-
-    if fluid_type == 0:
-        total_fuel = {
-            'max_level': 0,
-            'units_of_measure': 0,
-            'level': 0,
-        }
-        fuel_tanks = FluidInstance.objects.filter(airframe_id=airframe_id, fluid_template__fluid_type=0)
-        for tank in fuel_tanks:
-            total_fuel['max_level'] = tank.fluid_template.max_level + total_fuel['max_level']
-            total_fuel['units_of_measure'] = tank.fluid_template.get_units_of_measure_display
-            total_fuel['level'] = tank.level + total_fuel['level']
-
-        if request.method == "POST":
-            fuel_dict = loop_trough_fluids(request.POST, fuel_tanks, 'fuel_departure_', 'fuel_arrival_')
-            request.session["current_flight_fuel"] = fuel_dict
-
-
-        for tank_id, values in request.session["current_flight_fuel"].items():
-            print("tank_id:", tank_id)
-            print("values:", values)
-
-    context = {
-        'page_title': page_title,
-        'return_url': return_url,
-        'fuel_tanks': fuel_tanks,
-        'total_fuel': total_fuel
-    }
-    return render(request, 'flight/arrival/fluids.html', context)
-
 @require_POST
 def flight_save(request, airframe_id):
     airframe = get_object_or_404(Airframe, id=airframe_id)
@@ -897,28 +828,6 @@ def defects_actions_edit(request, airframe_id, defect_id, action_id):
         'airframe_defect': airframe_defect
     }
     return render(request, 'defects/actions/create.html', context)
-
-def flight_defects(request, airframe_id):
-    airframe = get_object_or_404(Airframe, id=airframe_id)
-    airframe_defects = AirframeDefect.objects.filter(airframe=airframe)
-    print(airframe_defects)
-    context = {
-        'airframe': airframe,
-        'airframe_defects': airframe_defects,
-    }
-    return render(request, 'flight_defects.html', context)
-
-def flight_defects_create(request, airframe_id):
-    airframe = get_object_or_404(Airframe, id=airframe_id)
-    defects = Defect.objects.all()
-    airframe_defects = AirframeDefect.objects.filter(airframe=airframe)
-    print(airframe_defects)
-    context = {
-        'airframe': airframe,
-        'airframe_defects': airframe_defects,
-        'defects': defects
-    }
-    return render(request, 'flight_defects_create.html', context)
 
 def servicing(request, airframe_id):
     page_title = "Servicing"
@@ -1351,63 +1260,6 @@ def servicing_refuel_list(request, airframe_id):
         }
 
     return render(request, 'servicing/refuel_list.html', context)
-
-def flight_servicing(request, id):
-    airframe = get_object_or_404(Airframe, id=id)
-    airframe_fluids = AirframeFluid.objects.filter(airframe=airframe)
-    engine_fluids = EngineFluids.objects.filter(airframe_engine__airframe=airframe)
-    print(engine_fluids)
-    airframe_defects = AirframeDefect.objects.filter(airframe=airframe)
-    context = {
-        'airframe': airframe,
-        'airframe_defects': airframe_defects,
-        'airframe_fluids': airframe_fluids,
-    }
-    return render(request, 'flight_servicing.html', context)
-
-def flight_fuel_levels(request, airframe_id):
-    current_flight = Flight.objects.filter(airframe=airframe_id).order_by("-created_at").first()
-    total_fuel = {
-        'max_level': 0,
-        'units_of_measure': 0,
-    }
-    fuel_tanks = AirframeFluid.objects.filter(airframe_id=airframe_id, fluid_type=0)
-    for tank in fuel_tanks:
-        total_fuel['max_level'] = tank.max_level + total_fuel['max_level']
-        total_fuel['units_of_measure'] = tank.get_units_of_measure_display
-
-    print(total_fuel)
-    context = {
-        'total_fuel': total_fuel,
-        'fuel_tanks': fuel_tanks,
-        'current_flight': current_flight
-    }
-    return render(request, 'flight_fuel_levels.html', context)
-
-def flight_oil_levels(request, airframe_id):
-    airframe_fluids = AirframeFluid.objects.filter(airframe=airframe_id,fluid_type=1)
-    engine_fluids = EngineFluids.objects.filter(airframe_engine__airframe=airframe_id,fluid_type=1)
-    fluids = chain(airframe_fluids, engine_fluids)
-    context = {
-        'fluids': fluids
-    }
-    return render(request, 'flight_oil_levels.html', context)
-
-def flight_hydraulic_levels(request, airframe_id):
-    fluids = AirframeFluid.objects.filter(airframe=airframe_id,fluid_type=2)
-    context = {
-        'fluids': fluids
-    }
-    return render(request, 'flight_hydraulic_levels.html', context)
-
-def flight_water_levels(request, airframe_id):
-    fluids = AirframeFluid.objects.filter(airframe=airframe_id,fluid_type=3).order_by("item")
-    current_flight = Flight.objects.filter(airframe=airframe_id).order_by("-created_at").first()
-    context = {
-        'current_flight': current_flight,
-        'fluids': fluids
-    }
-    return render(request, 'flight_water_levels.html', context)
 
 def flight_ice_protection(request):
     context = {

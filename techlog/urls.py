@@ -47,8 +47,6 @@ urlpatterns = [
     path('airframe/<int:airframe_id>/defects/this_flight', views.defects_this_flight, name='defects_this_flight'),
     path('airframe/<int:airframe_id>/defects/<int:defect_id>/actions/create/', views.defects_actions_create, name='defects_actions_create'),
     path('airframe/<int:airframe_id>/defects/<int:defect_id>/actions/<int:action_id>/edit/', views.defects_actions_edit, name='defects_actions_edit'),
-    path('airframe/<int:airframe_id>/flight_defects/', views.flight_defects, name='flight_defects'),
-    #path('airframe/<int:airframe_id>/flight_defects_create/', views.flight_defects_create, name='flight_defects_create'),
 
     # servicing
     path('airframe/<int:airframe_id>/servicing/', views.servicing, name='servicing'),
