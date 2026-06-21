@@ -17,6 +17,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from . import views
+from airport_briefing import views as ab_views
 
 urlpatterns = [
     path('', views.index, name='index'),
@@ -58,5 +59,7 @@ urlpatterns = [
     path('airframe/<int:airframe_id>/servicing/fuel/list/', views.servicing_refuel_list, name='servicing_refuel_list'),
     
     path('airframe/<int:airframe_id>/planned_maintenance/', views.planned_maintenance, name='planned_maintenance'),
+
+    path('airport_briefing/', ab_views.index, name='airport_briefing_index'),
     path('admin/', admin.site.urls),
 ]

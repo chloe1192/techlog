@@ -1,13 +1,15 @@
 
-function setUsedFuel() {
+function setUsedFluid() {
     document.querySelectorAll(".fuel-tank-single").forEach(tank => {
         const tankId = tank.dataset.tankId;
-        const departure = document.getElementById(`fuel_departure_${tankId}`);
-        const arrival = document.getElementById(`level${tankId}`);
-        const usage = document.getElementById(`fuel_usage_${tankId}`)
-        console.log(usage)
+        const departure = document.getElementById(`fluid_departure_${tankId}`);
+        const arrival = document.getElementById(`fluid_arrival_${tankId}`);
+        const usage = document.getElementById(`fluid_usage_${tankId}`)
 
-        usage.value = departure.value - arrival.value;
+        if (arrival.value != ""){
+            usage.value = departure.value - arrival.value;
+        }
+
     });        
 }
 

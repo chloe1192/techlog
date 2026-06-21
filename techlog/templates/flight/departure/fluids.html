@@ -53,36 +53,11 @@
                     </div>
                 </div>
             {% endfor %}
-
-            {% if total_fluid.fluid_type == 0 %}
-                <div class="form-group form-group-20 box-green fuel-tank-total">
-
-                    <h1 class="form-label form-item-100">
-                        Total ({{total_fluid.units_of_measure}})
-                    </h1>
-
-                    <div class="form-field-100">
-                        <span class="form-label form-item-50">Capacity </span>
-                        <span class="form-label form-item-50" id="fuel_capacity_total">{{total_fluid.max_level|floatformat:0}} {{total_fluid.units_of_measure}}</span>
-                    </div>
-
-                    <div class="form-field-100">
-                        <span class="form-label form-item-50">Arrival</span>
-                        <input class="form-label form-item-50" id="fuel_arrival_total" name="fuel_arrival_total" readonly type="number" value="">
-                    </div>
-
-                    <div class="form-field-100">
-                        <span class="form-label form-item-50">Uplift </span>
-                        <input class="form-label form-item-50" id="fuel_uplift_total" name="fuel_uplift_total" type="number" value="">
-                    </div>
-
-                    <div class="form-field-100">                        
-                        <span class="form-label form-item-50">Departure </span>
-                        <input class="form-label form-item-50" id="fuel_departure_total" name="fuel_departure_total" type="number" onblur="calculateFluidUplift()" value="{{total_fluid.level|floatformat:0}}">
-                    </div>
-
-                </div>
-            {% endif %}
+            
+                <h2 class="button-title rectangular-box-title">
+                    <input type="checkbox" name="nil_uplift" id="nil_uplift">
+                    Nil Oils/Fluids
+                </h2>
 
         </div>
 
