@@ -100,3 +100,21 @@ def save_departure_fuel_data(current_flight, fuel_required, block_fuel):
     current_flight.refuel_is_done = True
     current_flight.save()
     print(f'departure fuel saved:--------------------- fuel required: {fuel_required}, block fuel {block_fuel}')
+
+def fluids_are_done(flight_fluids, fluid_instances):
+    fluids_statuses = {
+        'fuel': False,
+        'oil': False,
+        'hyd': False,
+        'water': False,
+    }
+
+    if fluid_instances.filter(fluid_template__fluid_type=0).count() == flight_fluids.filter(fluid__fluid_template__fluid_type=0).count():
+        fluids_statuses['fuel'] = True
+    if fluid_instances.filter(fluid_template__fluid_type=1).count() == flight_fluids.filter(fluid__fluid_template__fluid_type=1).count():
+        fluids_statuses['oil'] = True
+    if fluid_instances.filter(fluid_template__fluid_type=2).count() == flight_fluids.filter(fluid__fluid_template__fluid_type=2).count():
+        fluids_statuses['hyd'] = True
+    if fluid_instances.filter(fluid_template__fluid_type=3).count() == flight_fluids.filter(fluid__fluid_template__fluid_type=3).count():
+        fluids_statuses['water'] = True
+    return fluids_statuses

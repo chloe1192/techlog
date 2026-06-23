@@ -7,18 +7,17 @@ from .models import (
     AircraftType,
     Configuration,
     CurrentFlight,
-    EngineDefect,
     EngineModel,
     Company,
     Defect,
     EngineeringCompany,
-    FamilyDefect,
+    FluidInstance,
+    FluidTemplate,
     Operator,
     Airport,
     Flight,
     AirframeEngine,
     Route,
-    TypeDefect,
     UserSettings
 )
 class ConpanyAdmin(admin.ModelAdmin):
@@ -80,15 +79,6 @@ class AirframeEngineAdmin(admin.ModelAdmin):
 class ConfigurationAdmin(admin.ModelAdmin):    
     list_display = ['airframe']
 
-class FamilyDefectAdmin(admin.ModelAdmin):
-    list_display = ['aircraft_family', 'defect']
-
-class EngineDefectAdmin(admin.ModelAdmin):
-    list_display = ['engine_model', 'defect']
-
-class TypeDefectAdmin(admin.ModelAdmin):
-    list_display = ['aircraft_type', 'defect']
-
 class FlightAirframeFluidsDepartureAdmin(admin.ModelAdmin):
     list_display = (
         'flight',
@@ -149,6 +139,22 @@ class CurrentFlightAdmin(admin.ModelAdmin):
 class AircraftFamilyAdmin(admin.ModelAdmin):
     list_display = ['name', 'manufacturer']
 
+class FluidTemplateAdmin(admin.ModelAdmin):
+    list_display = ['name', 'aircraft_type', 'engine_model']
+
+class FluidInstanceAdmin(admin.ModelAdmin):
+    list_display = ['fluid_template', 'airframe', 'airframe_engine']
+
+admin.site.register(
+    FluidInstance,
+    FluidInstanceAdmin
+)
+
+admin.site.register(
+    FluidTemplate,
+    FluidTemplateAdmin
+)
+
 admin.site.register(
     AircraftFamily,
     AircraftFamilyAdmin
@@ -165,9 +171,6 @@ admin.site.register(
     UserSettings,
     UserSettingsAdmin
 )
-admin.site.register(FamilyDefect, FamilyDefectAdmin)
-admin.site.register(EngineDefect, EngineDefectAdmin)
-admin.site.register(TypeDefect, TypeDefectAdmin)
 admin.site.register(Action, ActionAdmin)
 admin.site.register(Configuration, ConfigurationAdmin)
 admin.site.register(AirframeEngine, AirframeEngineAdmin)

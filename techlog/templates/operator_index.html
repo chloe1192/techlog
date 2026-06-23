@@ -10,11 +10,11 @@
     <div class="row">
 
         <div class="col-3">
-            {% for airframe in airframes %}
-            <div>
                 <a href="{% url 'airframes_create' operator.id %}">
                     <i class="bi bi-plus">Create</i>                    
                 </a>
+            {% for airframe in airframes %}
+            <div>
                 <a href="{% url 'flight_index' airframe.id %}" onclick="setAirframe({{airframe.id}})">{{ airframe.registration }}</a>
                 <a href="{% url 'airframes_edit' airframe.id %}">
                     <i class="bi bi-edit">Edit</i>                    

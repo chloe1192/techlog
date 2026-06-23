@@ -1,0 +1,78 @@
+{% load static %}
+{% if current_airframe %}
+<div class="d-flex flex-column flex-shrink-0 p-3 text-bg-dark h-100">
+	<a
+		href="/"
+		class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none"
+		>
+	</a>
+	<hr />
+	<ul class="nav nav-pills flex-column mb-auto">
+
+		<li class="nav-item">
+			<a href="{% url 'flight_index' current_airframe.id %}" class="nav-link {% if request.resolver_match.url_name == 'flight_index' %}active{% endif %}" aria-current="page">
+				<i class="bi bi-airplane"></i>
+				{{current_airframe}}
+			</a>
+		</li>
+		<li>
+			<a href="{% url 'flight_details' current_airframe.id %}" class="nav-link {% if request.resolver_match.url_name == 'flight_details' %}active{% endif %} text-white">				
+				<i class="bi bi-ui-checks"></i>
+				Flight Page
+			</a>
+		</li>
+		<li>
+			<a href="{% url 'servicing' current_airframe.id %}" class="nav-link {% if request.resolver_match.url_name == 'servicing' %}active{% endif %} text-white">				
+				<i class="bi bi-speedometer"></i>
+				Sevicing
+			</a>
+		</li>
+		<li>
+			<a href="{% url 'defects' current_airframe.id %}" class="nav-link {% if request.resolver_match.url_name == 'defects' %}active{% endif %} text-white">				
+				<i class="bi bi-gear"></i>
+				Defects
+			</a>
+		</li>
+		<li>
+			<a href="{% url 'defects' current_airframe.id %}" class="nav-link {% if request.resolver_match.url_name == 'defects' %}active{% endif %} text-white">				
+				<i class="bi bi-snow"></i>
+				Ice protection
+			</a>
+		</li>
+		<li>
+			<a href="{% url 'defects' current_airframe.id %}" class="nav-link {% if request.resolver_match.url_name == 'defects' %}active{% endif %} text-white">				
+				<i class="bi bi-hammer"></i>
+				Planned Maintenance
+			</a>
+		</li>
+
+	</ul>
+	<hr />
+	<div class="dropdown">
+		<a
+			href="#"
+			class="d-flex align-items-center text-white text-decoration-none dropdown-toggle"
+			data-bs-toggle="dropdown"
+			aria-expanded="false"
+			>
+		<img
+            src="{% static 'imgs/logos/operators/' %}{{ current_operator.icao_code }}.png"
+			 alt="{{current_operator.name}}"
+			width="32"
+			height="32"
+			class="rounded-circle bg-light me-2"
+			/>
+		<strong>{{current_operator.icao_code}}_OPS</strong>
+		</a>
+		<ul class="dropdown-menu dropdown-menu-dark text-small shadow">
+			<li><a class="dropdown-item" href="#">New project...</a></li>
+			<li><a class="dropdown-item" href="#">Settings</a></li>
+			<li><a class="dropdown-item" href="#">Profile</a></li>
+			<li>
+				<hr class="dropdown-divider" />
+			</li>
+			<li><a class="dropdown-item" href="#">Sign out</a></li>
+		</ul>
+	</div>
+</div>
+{% endif %}

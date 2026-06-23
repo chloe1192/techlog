@@ -3,9 +3,9 @@ from decimal import Decimal
 from itertools import chain
 from django.http import JsonResponse
 from django.urls import reverse
-from .helpers import parse_datetime, parse_date, loop_trough_fluids, save_departure_fuel_data, set_flight_fluid, update_fluid_tanks
+from .helpers import fluids_are_done, parse_datetime, parse_date, loop_trough_fluids, save_departure_fuel_data, set_flight_fluid, update_fluid_tanks
 from .forms import AcceptanceForm, ActionCreate, AirframeDefectCreateForm, AirframeEdit, AirframeEngineEdit, CompleteFlight, CurrentFlightArrivalFluids, CurrentFlightDepartureFluids, MaintenanceReleaseForm, RefuelingForm, UpdateFluidTanks
-from .models import Action, ActionTypes, Airframe, AirframeDefect, AircraftType, AirframeEngine, CurrentFlight, DeferCategory, EngineDefect, EngineModel, Company, Defect, EngineeringCompany, FamilyDefect, FlightFluid, FlightPhase, FluidInstance, Operator, Flight, Airport, Refuel, Route, TypeDefect
+from .models import Action, ActionTypes, AircraftFamily, Airframe, AirframeDefect, AircraftType, AirframeEngine, CurrentFlight, DeferCategory, EngineModel, Company, Defect, EngineeringCompany, FlightFluid, FlightPhase, FluidInstance, FluidTemplate, Operator, Flight, Airport, Refuel, Route
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 from django.forms.models import model_to_dict
@@ -43,10 +43,9 @@ def operator_index(request, operator_id):
     return render(request, 'operator_index.html', context)
 
 def airframes_list(request, airframe_id):
-    request.session['current_operator_id'] = airframe_id
     page_title = "Operator Selection"
     return_url = reverse("index")
-    airframes = Airframe.objects.filter(operator=id)
+    airframes = Airframe.objects.filter(operator=airframe_id)
     return_url = request.META.get("HTTP_REFERER")
 
     context = {
@@ -110,42 +109,39 @@ def airframes_edit(request, airframe_id):
                         engine_hours=0,
                         engine_number=k,
                     )
-        
-        if request.POST.get("action") == "create_engine_fluids_instance":
-            engine_type_fluids = EngineModelFluid.objects.filter(engine_model=engine_type_current.engine_model)
-            if engine_model_current.exists():
-                for fluid in engine_type_fluids:
 
-                    for engine in engine_model_current:
-                        if fluid.engine_number == engine.engine_number:
-                            print(f"fluid.engine_number; {fluid.engine_number} {fluid}")
-                            EngineFluids.objects.create(
-                                engine_model_fluid=fluid,
-                                item=fluid.item,
-                                level=fluid.default_level,
-                                units_of_measure=fluid.units_of_measure,
-                                max_level=fluid.max_level,
-                                fluid_type=fluid.fluid_type,
+        if request.POST.get("action") == "create_fluids_instance":
+            fluids_template = FluidTemplate.objects.filter(
+                Q(engine_model=engine_type_current.engine_model) |
+                Q(aircraft_type=aircraft_type_current)
+                )
+            if engine_model_current.exists():
+                for fluid in fluids_template:
+                    print("fluid")
+                    print(fluid)
+                    
+                    if fluid.engine_model is not None:
+                        for engine in engine_model_current:
+                            print("flengineuid")
+                            print(engine)
+                            print(f"fluid.engine_number; {engine.engine_number} {fluid}")
+                            FluidInstance.objects.create(
+                                fluid_template = fluid,
                                 airframe_engine=engine,
-                                engine_number=engine.engine_number
+                                level=fluid.max_level
                             )
+
+                    if fluid.aircraft_type is not None:
+                        print(f"fluid.engine_number; {fluid.aircraft_type} {fluid}")
+                        FluidInstance.objects.create(
+                            fluid_template = fluid,
+                            airframe=airframe,
+                            level=fluid.max_level
+                        )
+
  
             else:
                 print("No engines")
-
-        if request.POST.get("action") == "create_airframe_fluids_instance":
-            aircraft_type_fluids = AircraftTypeFluid.objects.filter(aircraft_type=aircraft_type_current)
-            for fluid in aircraft_type_fluids:
-                print(f"fluid; {fluid} {airframe}")
-                AirframeFluid.objects.create(
-                    aircraft_type_fluid=fluid,
-                    item=fluid.item,
-                    level=fluid.default_level,
-                    units_of_measure=fluid.units_of_measure,
-                    max_level=fluid.max_level,
-                    fluid_type=fluid.fluid_type,
-                    airframe=airframe
-                )
 
         form = AirframeEdit(request.POST, instance=airframe)
         if form.is_valid():
@@ -286,9 +282,18 @@ def flight_index(request, airframe_id):
     current_flight = CurrentFlight.objects.filter(airframe=airframe_id).order_by("-created_at").first()
     airframe_defects = AirframeDefect.objects.filter(airframe=airframe)
     defect_actions = Action.objects.filter(airframe_defect__airframe=airframe_id)
+    departure_fluids = FlightFluid.objects.filter(current_flight=current_flight,phase=0)
+    fluid_tanks = FluidInstance.objects.filter(
+        Q(airframe=airframe) |
+        Q(airframe_engine__airframe=airframe)
+    ).select_related('fluid_template', 'airframe_engine__engine_model')
     open_defects_count = 0
     closed_defects_count = 0
     carry_fwd_defects_count = 0
+
+    dep_fluids_status = fluids_are_done(departure_fluids, fluid_tanks)
+    dep_fluids_complete = all(dep_fluids_status.values())
+    print(dep_fluids_status)
 
     for defect in defect_actions:
         if defect.status == 0:
@@ -306,7 +311,9 @@ def flight_index(request, airframe_id):
         'closed_defects_count': closed_defects_count,
         'carry_fwd_defects_count': carry_fwd_defects_count,
         'current_flight': current_flight,
-        'return_url': return_url
+        'return_url': return_url,
+        'dep_fluids_status': dep_fluids_status,
+        'dep_fluids_complete': dep_fluids_complete
     }
     return render(request, 'flight/index.html', context)
 
@@ -409,20 +416,20 @@ def flight_departure_fluids(request, airframe_id, fluid_type):
     fluid_tanks = {
 
     }
+
+    fluid_tanks = FluidInstance.objects.filter(
+        Q(airframe_id=airframe_id) |
+        Q(airframe_engine__airframe_id=airframe_id),
+        fluid_template__fluid_type=fluid_type
+    )
+
     if last_flight is not None:
 
-        fluid_tanks = FlightFluid.objects.filter(
-            Q(airframe_id=airframe_id) |
-            Q(airframe_engine__airframe_id=airframe_id),
+        fluid_tanks_last = FlightFluid.objects.filter(
+            phase=1,
             flight__airframe=airframe
-        ).last()
-    else:
-
-        fluid_tanks = FluidInstance.objects.filter(
-            Q(airframe_id=airframe_id) |
-            Q(airframe_engine__airframe_id=airframe_id),
-            fluid_template__fluid_type=fluid_type
         )
+
 
     total_fluid = {
         'max_level': 0,
@@ -436,6 +443,9 @@ def flight_departure_fluids(request, airframe_id, fluid_type):
         total_fluid["units_of_measure"] = f.fluid_template.get_units_of_measure_display()
 
     if request.method == "POST":
+        print('POST DATA:  ---------------------------------------')
+        print(request.POST)
+        print('POST DATA:  ---------------------------------------')
         nil_uplift = request.POST.get('nil_uplift')
 
         fluid_dict = loop_trough_fluids(
@@ -444,13 +454,13 @@ def flight_departure_fluids(request, airframe_id, fluid_type):
             'fluid_departure_',
             "fluid_arrival_"
         )
+        print('fluid_dict DATA:  ---------------------------------------')
+        print(fluid_dict)
+        print('fluid_dict DATA:  ---------------------------------------')
 
         with transaction.atomic():
             try:
                 if fluid_type == 0:
-                    print('POST DATA:  ---------------------------------------')
-                    print(request.POST)
-                    print('POST DATA:  ---------------------------------------')
                     
                     refueling_form = RefuelingForm(request.POST)
                     print(f'refueling data is {nil_uplift}')
@@ -472,7 +482,6 @@ def flight_departure_fluids(request, airframe_id, fluid_type):
                         fluid_id=fluid_id,
                         phase=0
                     ).first()
-                    print(f"departure fluid instance id: {instance.id}")
 
                     tank = FluidInstance.objects.filter(
                         id=fluid_id
@@ -484,20 +493,6 @@ def flight_departure_fluids(request, airframe_id, fluid_type):
                     update_fluid_tanks(value['fluid_departure_'], tank)
                     set_flight_fluid(value['fluid_departure_'], tank, current_flight, 0, 'draft', instance)
                             
-                    match fluid_type:
-                        case 0:
-                            current_flight.refuel_is_done = True
-                            current_flight.save()
-                        case 1:
-                            current_flight.oil_is_done = True
-                            current_flight.save()
-                        case 2:
-                            current_flight.hyd_is_done = True
-                            current_flight.save()
-                        case _:
-                            current_flight.water_is_done = True
-                            current_flight.save()
-
             except Exception as e:
                 print(e)
 
@@ -538,7 +533,7 @@ def flight_arrival_fluids(request, airframe_id, fluid_type):
         Q(fluid__fluid_template__fluid_type=fluid_type),
         current_flight=current_flight,
         phase=0
-    )
+    ).order_by('fluid__fluid_template__name')
     arrival_fluid_tanks = FlightFluid.objects.filter(
         Q(fluid__fluid_template__fluid_type=fluid_type),
         current_flight=current_flight,
@@ -579,6 +574,10 @@ def flight_arrival_fluids(request, airframe_id, fluid_type):
                     tank = FluidInstance.objects.filter(
                         id=fluid_id
                     ).first()
+                    if value['fluid_arrival_'] == '':
+                        value['fluid_arrival_'] = value['fluid_departure_']
+
+                    print(value)
 
                     update_fluid_tanks(value['fluid_arrival_'], tank)
                     set_flight_fluid(value['fluid_arrival_'], tank, current_flight, 1, 'draft', instance)
@@ -682,13 +681,15 @@ def defects(request, airframe_id):
     return render(request, 'defects/index.html', context)
 
 def defects_this_flight(request, airframe_id):
+    return_url = reverse('flight_index', kwargs={'airframe_id': airframe_id})
+    page_title = "Defects this flight"
     airframe = get_object_or_404(Airframe, id=airframe_id)
-    return_url = reverse('defects', kwargs={'airframe_id': airframe_id})
     airframe_defects = AirframeDefect.objects.filter(airframe=airframe)
     defect_actions = Action.objects.filter(airframe_defect__airframe=airframe)
     print(airframe_defects)
     context = {
         'return_url': return_url,
+        'page_title': page_title,
         'airframe': airframe,
         'airframe_defects': airframe_defects,
         'defect_actions': defect_actions,
@@ -696,6 +697,8 @@ def defects_this_flight(request, airframe_id):
     return render(request, 'defects/this_flight.html', context)
 
 def defects_create(request, airframe_id):
+    return_url = reverse('defects_this_flight', kwargs={'airframe_id': airframe_id})
+    page_title = "Create a new defect"
     airframe = get_object_or_404(Airframe, id=airframe_id)
 
     if request.method == "POST":
@@ -708,10 +711,12 @@ def defects_create(request, airframe_id):
         else:
             print(form.errors)
 
-    defects = Defect.objects.all()
+    defects = Defect.objects.filter(aircraft_family=airframe.aircraft_type.aircraft_family)
     airframe_defects = AirframeDefect.objects.filter(airframe=airframe)
     print(airframe_defects)
     context = {
+        'return_url': return_url,
+        'page_title': page_title,
         'airframe': airframe,
         'airframe_defects': airframe_defects,
         'defects': defects
@@ -721,18 +726,23 @@ def defects_create(request, airframe_id):
 def defects_details(request, airframe_id, defect_id):
     return_url = reverse('defects_this_flight', kwargs={'airframe_id': airframe_id})
     airframe = get_object_or_404(Airframe, id=airframe_id)
-    defect = get_object_or_404(AirframeDefect, airframe=airframe, id=defect_id)
-    engine_model = AirframeEngine.objects.filter(airframe=airframe).last()
-    family_defects = FamilyDefect.objects.filter(aircraft_family=airframe.aircraft_type.aircraft_family)
-    engine_defects = EngineDefect.objects.filter(engine_model=engine_model.engine_model)
-    type_defects = TypeDefect.objects.filter(aircraft_type=airframe.aircraft_type)
-    actions = Action.objects.filter(airframe_defect=defect)
-    print(actions[0].category)
+    airframe_defect = get_object_or_404(AirframeDefect, airframe=airframe, id=defect_id)
+    engine_model = AirframeEngine.objects.filter(airframe=airframe).last()    
+    defects = Defect.objects.filter(aircraft_family=airframe.aircraft_type.aircraft_family)
+    actions = Action.objects.filter(airframe_defect=airframe_defect)
+
+    print(airframe_defect.defect)
+
     if request.method == "POST":
-        form = AirframeDefectCreateForm(request.POST, instance=defect)
+        print(request.POST)
+        form = AirframeDefectCreateForm(request.POST, instance=airframe_defect)
+        if request.POST.get('defect_template') is not "":
+            defect_instance = Defect.objects.get(id=request.POST.get('defect_template'))
         if form.is_valid():
             print("form")
             obj = form.save(commit=False)
+            if request.POST.get('defect_template') is not "":
+                obj.defect = defect_instance
             obj.save()
             return redirect('defects_this_flight', airframe_id=airframe_id)
         else:
@@ -742,19 +752,20 @@ def defects_details(request, airframe_id, defect_id):
     context = {
         'return_url': return_url,
         'airframe': airframe,
-        'defect': defect,
+        'airframe_defect': airframe_defect,
         'actions': actions,
-        'family_defects': family_defects,
-        'engine_defects': engine_defects,
-        'type_defects': type_defects,
+        'defects': defects,
         'defect_actions': defect_actions,
     }
     return render(request, 'defects/details.html', context)
 
 def defects_actions_create(request, airframe_id, defect_id):
     airframe = get_object_or_404(Airframe, id=airframe_id)
+    airframe = get_object_or_404(Airframe, id=airframe_id)
     airframe_defect = get_object_or_404(AirframeDefect, id=defect_id)
     engineering_companies = EngineeringCompany.objects.all()
+    return_url = reverse('defects_details', kwargs={'airframe_id': airframe_id, 'defect_id': defect_id})
+    page_title = f"Create action for {airframe_defect.defect_title}"
     categories = DeferCategory
     statuses = ActionTypes
 
@@ -778,6 +789,8 @@ def defects_actions_create(request, airframe_id, defect_id):
 
     print(airframe_defect.defect)
     context = {
+        'return_url': return_url,
+        'page_title': page_title,
         'airframe': airframe,
         'engineering_companies': engineering_companies,
         'categories': categories,
@@ -835,6 +848,7 @@ def servicing(request, airframe_id):
     airframe = get_object_or_404(Airframe, id=airframe_id)
     airframe_defects = AirframeDefect.objects.filter(airframe=airframe)
     current_flight = CurrentFlight.objects.filter(airframe=airframe_id).order_by("-created_at").first()
+    """ 
     print("refuel_is_done")
     print(current_flight.refuel_is_done)
     print("oil_is_done")
@@ -842,7 +856,7 @@ def servicing(request, airframe_id):
     print("hyd_is_done")
     print(current_flight.hyd_is_done)
     print("water_is_done")
-    print(current_flight.water_is_done)
+    print(current_flight.water_is_done) """
 
     context = {
         'page_title': page_title,
@@ -852,406 +866,6 @@ def servicing(request, airframe_id):
         'current_flight': current_flight
     }
     return render(request, 'servicing/index.html', context)
-
-def servicing_fuel(request, airframe_id):
-    page_title = "Fuel Uplift"
-    return_url = reverse("servicing", kwargs={"airframe_id": airframe_id})
-    airframe = get_object_or_404(Airframe, id=airframe_id)
-    current_flight = CurrentFlight.objects.filter(airframe=airframe_id).order_by("-created_at").first()
-   
-    total_fuel = {
-        'max_level': 0,
-        'units_of_measure': 0,
-        'level': 0,
-    }
-    fluid_type = 0
-    fuel_tanks = FluidInstance.objects.filter(
-        Q(airframe_id=airframe_id) |
-        Q(airframe_engine__airframe_id=airframe_id),
-        fluid_template__fluid_type=fluid_type
-    )
-
-    for tank in fuel_tanks:
-        total_fuel["max_level"] += tank.fluid_template.max_level
-        total_fuel["level"] = tank.level + total_fuel['level']
-        total_fuel["fluid_type"] = tank.fluid_template.fluid_type
-        total_fuel["units_of_measure"] = tank.fluid_template.get_units_of_measure_display()
-        
-    fuel_uplift_not_sent = True
-
-    if request.method == "POST":
-
-        form = RefuelingForm(request.POST)
-        nil_uplift = request.POST.get('nil_uplift')
-        if nil_uplift == "on":
-
-            current_flight.refuel_is_done = True
-            current_flight.save()
-
-            #return redirect('servicing', airframe_id=airframe_id)
-        
-        if form.is_valid():
-            obj = form.save(commit=False)
-            obj.airframe = airframe
-            obj.save()
-            print('obj')
-            print(obj)
-            current_flight.required_fuel_in_kg = obj.planned_dep_fuel_in_kg
-            current_flight.block_fuel_in_kg = obj.departure_fob_in_kg            
-            current_flight.refuel_is_done = True
-            current_flight.save()
-            print('request.POST')
-            print(request.POST)
-            print('fuel_tanks')
-            print(fuel_tanks)
-
-            fluid_dict = loop_trough_fluids(
-                request.POST,
-                fuel_tanks,
-                'fluid_departure_',
-                "fluid_arrival_"
-            )
-            print('fluid_dict')
-            print(fluid_dict)
-
-            for fluid_id, values in fluid_dict.items():
-
-                instance = FlightFluid.objects.filter(
-                    current_flight=current_flight,
-                    fluid_id=fluid_id
-                ).first()
-                print('instance')
-                print(instance)
-
-                data = {
-                    "level": values["fluid_departure_"],
-                    "fluid": fluid_id,
-                    "current_flight": current_flight
-                }
-
-                if instance:
-                    form = CurrentFlightDepartureFluids(data, instance=instance)
-                else:
-                    form = CurrentFlightDepartureFluids(data)
-
-                if form.is_valid():
-                    form.save()
-                else:
-                    print(form.errors)
-
-                for tank in fuel_tanks:
-                    key = f"departure_fob_in_kg_{tank.id}"
-                    print("key")
-                    print(key)
-                    uplift = request.POST.get(key)
-                    print("uplift")
-                    print(uplift)
-
-                    if uplift:
-                        tank.level = uplift
-                        print("tank.level")
-                        print(tank.level)
-                        tank.save()
-
-                #return redirect('servicing', airframe_id=airframe_id)
-            
-        else:
-            print(form.errors)
-
-    context = {
-        'fuel_uplift_not_sent': fuel_uplift_not_sent,
-        'page_title': page_title,
-        'return_url': return_url,
-        'total_fuel': total_fuel,
-        'fuel_tanks': fuel_tanks,
-        'current_flight': current_flight
-    }
-    return render(request, 'servicing/fuel.html', context)
-
-def servicing_oil(request, airframe_id):
-    page_title = "Fuel Uplift"
-    return_url = reverse("servicing", kwargs={"airframe_id": airframe_id})
-    airframe = get_object_or_404(Airframe, id=airframe_id)
-    current_flight = CurrentFlight.objects.filter(airframe=airframe_id).order_by("-created_at").first()
-    engine_oil_tanks = EngineFluids.objects.filter(airframe_engine__airframe_id=airframe_id, fluid_type=1)
-    airframe_oil_tanks = AirframeFluid.objects.filter(airframe_id=airframe_id, fluid_type=1)
-        
-    oil_uplift_not_sent = True
-
-    if request.method == "POST":
-        print(request.POST)
-
-        nil_uplift = request.POST.get('nil_uplift')
-        print("request.POST['nil_uplift']")
-        print(nil_uplift)
-        if nil_uplift == "on":
-            current_flight.oil_is_done = True
-            current_flight.save()
-            return redirect("servicing", airframe_id=airframe_id)
-
-        for key, value in request.POST.items():
-
-            if not key.startswith("oil_uplift_"):
-                continue
-
-            if not value.strip():
-                continue
-
-            tank_id = key.replace("oil_uplift_", "")
-            print("tank_id")
-            print(tank_id)
-
-            try:
-                tank = AirframeFluid.objects.get(
-                    id=tank_id,
-                    fluid_type=1
-                )
-                print("tank")
-                print(tank)
-
-                uplift = value
-                print("uplift")
-                print(uplift)
-
-                print("tank.level")
-                print(tank.level)
-
-                tank.level = float(tank.level) + float(uplift)
-                tank.save(update_fields=["level"])
-                print("tank.level")
-                print(tank.level)
-                current_flight.oil_is_done = True
-                current_flight.save()
-
-            except AirframeFluid.DoesNotExist:
-                print(f"Oil tank {tank_id} not found")
-
-            try:
-                tank = EngineFluids.objects.get(
-                    id=tank_id,
-                    fluid_type=1
-                )
-                print("tank")
-                print(tank)
-
-                uplift = value
-                print("uplift")
-                print(uplift)
-
-                print("tank.level")
-                print(tank.level)
-
-                tank.level = float(tank.level) + float(uplift)
-                tank.save(update_fields=["level"])
-                print("tank.level")
-                print(tank.level)
-                current_flight.oil_is_done = True
-                current_flight.save()
-
-            except EngineFluids.DoesNotExist:
-                print(f"Oil tank {tank_id} not found")
-
-        return redirect("servicing", airframe_id=airframe_id)
-
-    context = {
-        'oil_uplift_not_sent': oil_uplift_not_sent,
-        'page_title': page_title,
-        'airframe_oil_tanks': airframe_oil_tanks,
-        'engine_oil_tanks': engine_oil_tanks,
-        'return_url': return_url,
-        'current_flight': current_flight
-    }
-    return render(request, 'servicing/oil.html', context)
-
-def servicing_hyd(request, airframe_id):
-    page_title = "Fuel Uplift"
-    return_url = reverse("servicing", kwargs={"airframe_id": airframe_id})
-    airframe = get_object_or_404(Airframe, id=airframe_id)
-    current_flight = CurrentFlight.objects.filter(airframe=airframe_id).order_by("-created_at").first()
-    engine_hyd_tanks = EngineFluids.objects.filter(airframe_engine__airframe_id=airframe_id, fluid_type=2)
-    airframe_hyd_tanks = AirframeFluid.objects.filter(airframe_id=airframe_id, fluid_type=2)
-        
-    hyd_uplift_not_sent = True
-
-    if request.method == "POST":
-        print(request.POST)
-
-        hyd_nil_uplift = request.POST.get('hyd_nil_uplift')
-        print("request.POST['hyd_nil_uplift']")
-        print(hyd_nil_uplift)
-        if hyd_nil_uplift == "on":
-            current_flight.hyd_is_done = True
-            current_flight.save()
-            return redirect("servicing", airframe_id=airframe_id)
-
-        for key, value in request.POST.items():
-
-            if not key.startswith("hyd_uplift_"):
-                continue
-
-            if not value.strip():
-                continue
-
-            tank_id = key.replace("hyd_uplift_", "")
-            print("tank_id")
-            print(tank_id)
-
-            try:
-                tank = AirframeFluid.objects.get(
-                    id=tank_id,
-                    fluid_type=2
-                )
-                print("tank")
-                print(tank)
-
-                uplift = value
-                print("uplift")
-                print(uplift)
-
-                print("tank.level")
-                print(tank.level)
-
-                tank.level = float(tank.level) + float(uplift)
-                tank.save(update_fields=["level"])
-                print("tank.level")
-                print(tank.level)
-                current_flight.hyd_is_done = True
-                current_flight.save()
-
-            except AirframeFluid.DoesNotExist:
-                print(f"hyd tank {tank_id} not found")
-
-            try:
-                tank = EngineFluids.objects.get(
-                    id=tank_id,
-                    fluid_type=2
-                )
-                print("tank")
-                print(tank)
-
-                uplift = value
-                print("uplift")
-                print(uplift)
-
-                print("tank.level")
-                print(tank.level)
-
-                tank.level = float(tank.level) + float(uplift)
-                tank.save(update_fields=["level"])
-                print("tank.level")
-                print(tank.level)
-                current_flight.hyd_is_done = True
-                current_flight.save()
-
-            except EngineFluids.DoesNotExist:
-                print(f"hyd tank {tank_id} not found")
-
-        return redirect("servicing", airframe_id=airframe_id)
-
-    context = {
-        'hyd_uplift_not_sent': hyd_uplift_not_sent,
-        'page_title': page_title,
-        'airframe_hyd_tanks': airframe_hyd_tanks,
-        'engine_hyd_tanks': engine_hyd_tanks,
-        'return_url': return_url,
-        'current_flight': current_flight
-    }
-    return render(request, 'servicing/hyd.html', context)
-
-def servicing_water(request, airframe_id):
-    page_title = "Fuel Uplift"
-    return_url = reverse("servicing", kwargs={"airframe_id": airframe_id})
-    airframe = get_object_or_404(Airframe, id=airframe_id)
-    current_flight = CurrentFlight.objects.filter(airframe=airframe_id).order_by("-created_at").first()
-    engine_water_tanks = EngineFluids.objects.filter(airframe_engine__airframe_id=airframe_id, fluid_type=3)
-    airframe_water_tanks = AirframeFluid.objects.filter(airframe_id=airframe_id, fluid_type=3)
-        
-    water_uplift_not_sent = True
-
-    if request.method == "POST":
-        print(request.POST)
-
-        water_nil_uplift = request.POST.get('water_nil_uplift')
-        print("request.POST['water_nil_uplift']")
-        print(water_nil_uplift)
-        if water_nil_uplift == "on":
-            current_flight.water_is_done = True
-            current_flight.save()
-            return redirect("servicing", airframe_id=airframe_id)
-
-        for key, value in request.POST.items():
-
-            if not key.startswith("water_uplift_"):
-                continue
-
-            if not value.strip():
-                continue
-
-            tank_id = key.replace("water_uplift_", "")
-            print("tank_id")
-            print(tank_id)
-
-            try:
-                tank = AirframeFluid.objects.get(
-                    id=tank_id,
-                    fluid_type=3
-                )
-                print("tank")
-                print(tank)
-
-                uplift = value
-                print("uplift")
-                print(uplift)
-
-                print("tank.level")
-                print(tank.level)
-
-                tank.level = float(tank.level) + float(uplift)
-                tank.save(update_fields=["level"])
-                print("tank.level")
-                print(tank.level)
-                current_flight.water_is_done = True
-                current_flight.save()
-
-            except AirframeFluid.DoesNotExist:
-                print(f"water tank {tank_id} not found")
-
-            try:
-                tank = EngineFluids.objects.get(
-                    id=tank_id,
-                    fluid_type=3
-                )
-                print("tank")
-                print(tank)
-
-                uplift = value
-                print("uplift")
-                print(uplift)
-
-                print("tank.level")
-                print(tank.level)
-
-                tank.level = float(tank.level) + float(uplift)
-                tank.save(update_fields=["level"])
-                print("tank.level")
-                print(tank.level)
-                current_flight.water_is_done = True
-                current_flight.save()
-
-            except EngineFluids.DoesNotExist:
-                print(f"water tank {tank_id} not found")
-
-        return redirect("servicing", airframe_id=airframe_id)
-
-    context = {
-        'water_uplift_not_sent': water_uplift_not_sent,
-        'page_title': page_title,
-        'airframe_water_tanks': airframe_water_tanks,
-        'engine_water_tanks': engine_water_tanks,
-        'return_url': return_url,
-        'current_flight': current_flight
-    }
-    return render(request, 'servicing/water.html', context)
 
 def servicing_refuel_list(request, airframe_id):
     refuel_list = Refuel.objects.filter(airframe=airframe_id,actual_flight=None)

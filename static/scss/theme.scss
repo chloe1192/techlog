@@ -1,0 +1,84 @@
+$bg-black:        #0a0a0a;
+$bg-dark:         #1a1a1a;
+$bg-darker:       #262626;
+$bg-light-black:       #31373d;
+
+$border-dark:     #2a2a2a;
+$border-light:    #404040;
+
+$text-light:      #e0e0e0;
+$text-white:      #ffffff;
+$text-muted:      #a0a0a0;
+$text-muted-2:    #808080;
+
+$color-green:     #32d946;
+$color-green-dark:     #1f962d;
+$color-amber:     #ffa500;
+$color-amber-dark:     #a8781d;
+$color-blue:      #007bc7;
+$color-blue-dark: #005a94;
+$color-red:       #ff3333;
+$color-red-dark:  #8b1a1a;
+$color-gray:      #606060;
+$color-purple:    #a37eff;
+
+$bg-green:     #32d946;
+$bg-amber:     #ffa500;
+$bg-blue:      #007bc7;
+$bg-blue-dark: #005a94;
+$bg-red:       #ff3333;
+$bg-red-dark:  #8b1a1a;
+$bg-gray:      #606060;
+$bg-purple:    #a37eff;
+
+$font-base: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+$theme-colors: (
+  "primary":    $bg-black,
+  "secondary":  $bg-black,
+  "success":    $color-green,
+  "info":       $color-blue,
+  "warning":    $color-amber,
+  "danger":     $color-red,
+  "light":      $bg-black,
+  "dark":       $bg-black
+);
+// Status color map, used to generate .box-*, .color-filled-box.box-*, .text-*, .alert-* variants
+$status-colors: (
+    green: $color-green,
+    amber: $color-amber,
+    blue:  $color-blue,
+    red:   $color-red,
+    gray:  $color-gray
+);
+
+body {
+  background-color: $bg-light-black;
+}
+
+.bg-success {
+  background-color: $bg-green !important;
+}
+.bg-warning {
+  background-color: $bg-amber !important;
+}
+.bg-danger {
+  background-color: $bg-red !important;
+}
+.bg-info {
+  background-color: $bg-blue !important;
+}
+
+.navbar-dark {
+  background-color: $bg-dark !important;
+  color: $text-light !important;
+}
+
+.flight-index {
+  > div {
+    display: inline-grid;
+  }
+  .card {
+    min-height: auto;
+    margin-bottom: 3pc;
+  }
+}

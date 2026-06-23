@@ -3,149 +3,123 @@
 {% include "header.html" %}
 
 {% block content %}
-<div class="dashboard">
 
-    <div class="row">
+    <div class="row mt-3 flight-index">
 
-        <div class="col-3">
-            <a href="{% url 'flight_release_maintenance' airframe.id %}">
-                <div class="flight-details-box big-box {% if current_flight.maint_release_date %}box-green{% else %}box-amber{% endif %}">
-                    <span>Maintenance Release</span>
-                    <i class="bi bi-airplane big-box-icon"></i>
-                    <span class="flight-pair big-box-bottom-text">{{current_flight.departure}}-{{current_flight.arrival}},</span>
-                    <span class="flt-number big-box-bottom-text">{{current_flight.flt_number}},</span>
-                    <span class="date-of-flight big-box-bottom-text">{{current_flight.date_of_flight|date:"d M Y"}}</span>
-                </div>
-            </a>
-        </div>
-
-        <div class="col-3">
-            <a href="{% url 'flight_release_acceptance' airframe.id %}">
-                <div class="flight-details-box big-box 
-                    {% if current_flight.maint_release_date and current_flight.acceptance_date %}
-                        box-green
-                    {% elif current_flight.maint_release_date  %}
-                        box-amber
+        <div class="col-md-4">
+            <a class="card maint-release-card" href="{% url 'flight_release_maintenance' airframe.id %}">
+                <div class="card-body
+                    {% if current_flight.maint_release_date %}
+                        bg-success border-success
                     {% else %}
-                        box-gray
-                    {% endif %}"
-                >
-                    <span>Flight Acceptance</span>
-                    <i class="bi bi-airplane big-box-icon"></i>
-                    <span class="flight-pair big-box-bottom-text">{{current_flight.departure}}-{{current_flight.arrival}},</span>
-                    <span class="flt-number big-box-bottom-text">{{current_flight.flt_number}},</span>
-                    <span class="date-of-flight big-box-bottom-text">{{current_flight.date_of_flight|date:"d M Y"}}</span>
-                </div>
-            </a>
-        </div>
-
-        <div class="col-3">
-            <a href="{% url 'flight_details' airframe.id %}">
-                <div class="flight-details-box big-box
-                    {% if current_flight.maint_release_date and current_flight.acceptance_date and current_flight.status == 0 %}
-                        box-amber
-                    {% elif current_flight.maint_release_date and current_flight.acceptance_date is None %}
-                        box-gray
-                    {% else %}
-                        box-green
-                    {% endif %}"
-                >
-                    <span>Flight Details</span>
-                    <i class="bi bi-airplane big-box-icon"></i>
-                    <span class="flight-pair big-box-bottom-text">{{current_flight.departure}}-{{current_flight.arrival}},</span>
-                    <span class="flt-number big-box-bottom-text">{{current_flight.flt_number}},</span>
-                    <span class="date-of-flight big-box-bottom-text">{{current_flight.date_of_flight|date:"d M Y"}}</span>
-                </div>
-            </a>
-        </div>
-
-        <div class="col-3">
-            <a href="{% url 'defects' airframe.id %}">
-                <div class="flight-details-box big-box 
-                    {% if open_defects_count > 0 %}
-                        box-red
-                    {% elif  open_defects_count == 0 and carry_fwd_defects_count > 0 %}
-                        box-blue
-                    {% else %}
-                        box-green
+                        bg-warning border-warning
                     {% endif %}">
-                    <span>Defects</span>
-                    <i class="bi bi-gear big-box-icon"></i>
+                    <div class="card-title">
+                        <i class="bi bi-airplane big-box-icon"></i>
+                        <h2>Maintenance Release</h2>
+                    </div>
+                    <span class="flight-pair big-box-bottom-text">{{current_flight.maint_release_date|date:'d/m/y h:i'}},</span>
+                    <span class="flt-number big-box-bottom-text">C/Fwd ({{carry_fwd_defects_count}})</span>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-md-4">
+            <a class="card flight-release-card" href="{% url 'flight_release_acceptance' airframe.id %}">
+                <div class="card-body
+                    {% if current_flight.maint_release_date and current_flight.acceptance_date %}
+                        bg-success border-success
+                    {% elif current_flight.maint_release_date  %}
+                        bg-warning border-warning
+                    {% else %}
+                        bg-dark border-dark
+                    {% endif %}"
+                >
+                    <div class="card-title">
+                        <i class="bi bi-airplane big-box-icon"></i>
+                        <h2>Flight Acceptance</h2>
+                    </div>
+                    <span class="flight-pair big-box-bottom-text">{{current_flight.acceptance_date|date:'d/m/y h:i'}}</span>
+                    <span class="flt-number big-box-bottom-text">C/Fwd ({{carry_fwd_defects_count}})</span>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-md-4">
+            <a class="card flight-details-card" href="{% url 'flight_details' airframe.id %}">
+                <div class="card-body
+                    {% if current_flight.maint_release_date and current_flight.acceptance_date and current_flight.status == 0 %}
+                        bg-warning border-warning
+                    {% elif current_flight.maint_release_date and current_flight.acceptance_date is None %}
+                        bg-dark border-dark
+                    {% else %}
+                        bg-dark border-dark
+                    {% endif %}"
+                >
+                    <div class="card-title">
+                        <i class="bi bi-airplane big-box-icon"></i>
+                        <h2>Flight Details</h2>
+                    </div>
+                    <i class="bi bi-airplane big-box-icon"></i>
+                    <span class="flight-pair big-box-bottom-text">{{current_flight.flight_route.departure}}-{{current_flight.flight_route.arrival}},</span>
+                    <span class="flt-number big-box-bottom-text">{{current_flight.callsign}},</span>
+                    <span class="date-of-flight big-box-bottom-text">{{current_flight.date_of_flight|date:"d M Y"}}</span>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-md-4">
+            <a class="card defects-card" href="{% url 'defects' airframe.id %}">
+                <div class="card-body
+                    {% if open_defects_count > 0 %}
+                        bg-danger
+                    {% elif  open_defects_count == 0 and carry_fwd_defects_count > 0 %}
+                        bg-info
+                    {% else %}
+                        bg-success
+                    {% endif %}">
+
+                    <div class="card-title">
+                        <i class="bi bi-gear big-box-icon"></i>
+                        <h2>Defects</h2>
+                    </div>
                     <span class="defects-open big-box-bottom-text">Open ({{ open_defects_count }})</span>
                     <span class="defects-closed big-box-bottom-text">Closed ({{ closed_defects_count }})</span>
                     <span class="defects-carry big-box-bottom-text">C/Fwd({{ carry_fwd_defects_count }})</span>
+
                 </div>
             </a>
         </div>
-        
-        <div class="col-3">
-            <div class="flight-details-box big-box box-green">
-                <span>Documents</span>
-                <i class="bi bi-book big-box-icon"></i>
-                <span class="documents-number big-box-bottom-text">2 Documents</span>
-            </div>
-        </div>
 
-        <div class="col-3">
-            <div class="flight-details-box big-box box-green">
-                <span>Forms</span>
-                <i class="bi bi-ui-checks big-box-icon"></i>
-                <span class="total-forms big-box-bottom-text">Total 1,</span>
-                <span class="incomplete-forms big-box-bottom-text">Incomplete 0</span>
-            </div>
-        </div>
-
-    </div>
-
-    <div class="row">
-
-        <div class="col-3">
-            <a href="{% url 'servicing' airframe.id %}">
-                {% if current_flight.refuel_is_done and current_flight.oil_is_done and current_flight.hyd_is_done and current_flight.water_is_done %}
-                    <div class="flight-details-box big-box box-green">
-                        <span>Servicing</span>
+        <div class="col-md-4">
+            <a class="card servicing-card" href="{% url 'servicing' airframe.id %}">
+                <div class="card-body
+                    {% if dep_fluids_complete %}
+                        bg-success
+                    {% else %}
+                        bg-danger
+                    {% endif %}">
+                    <div class="card-title">
                         <i class="bi bi-speedometer big-box-icon"></i>
+                        <h2>Servicing</h2>
                     </div>
-                {% else %}
-                    <div class="flight-details-box big-box box-red">
-                        <span>Servicing</span>
-                        <i class="bi bi-speedometer big-box-icon"></i>
-                        {% if not current_flight.refuel_is_done %}
-                            <span class="fuel big-box-bottom-text">Fuel,</span>
-                        {% endif %}
-                        {% if not current_flight.oil_is_done %}
-                            <span class="oil big-box-bottom-text">Oil,</span>
-                        {% endif %}
-                        {% if not current_flight.hyd_is_done %}
-                            <span class="hyd big-box-bottom-text">Hydr,</span>
-                        {% endif %}
-                        {% if not current_flight.water_is_done %}
-                            <span class="water big-box-bottom-text">Water</span>
-                        {% endif %}
-                    </div>
-                {% endif %}
+                    {% if not dep_fluids_status.fuel %}
+                        <span class="fuel big-box-bottom-text">Fuel,</span>
+                    {% endif %}
+                    {% if not dep_fluids_status.oil %}
+                        <span class="oil big-box-bottom-text">Oil,</span>
+                    {% endif %}
+                    {% if not dep_fluids_status.hyd %}
+                        <span class="hyd big-box-bottom-text">Hydr,</span>
+                    {% endif %}
+                    {% if not dep_fluids_status.water %}
+                        <span class="water big-box-bottom-text">Water</span>
+                    {% endif %}
+                </div>
             </a>
         </div>
 
-        <div class="col-3">
-            <div class="flight-details-box big-box box-blue">
-                <span>Planned Maint</span>
-                <i class="bi bi-calendar big-box-icon"></i>
-                <span class="planned-maint big-box-bottom-text">None</span>
-            </div>
-        </div>
-
-        <div class="col-3">
-            <div class="flight-details-box big-box box-amber">
-                <span>Ice Protection</span>
-                <i class="bi bi-snow big-box-icon"></i>
-                <span class="fluid-type big-box-bottom-text">Type IV,</span>
-                <span class="holdover-time big-box-bottom-text">30 Min</span>
-            </div>
-        </div>
-
     </div>
 
-</div>
 
 {% endblock %}

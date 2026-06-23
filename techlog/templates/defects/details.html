@@ -20,16 +20,14 @@
             <button class="modal"></button>
 
             <div class="form-field form-date-time-field form-field-100">
-                <input class="form-no-label form-item-100" type="text" value="{{defect.defect_title}}" name="defect_title" id="defect_title" placeholder="Title" data-auth-required="true">
+                <input class="form-no-label form-item-100" type="text" value="{{airframe_defect.defect_title}}" name="defect_title" id="defect_title" placeholder="Title" data-auth-required="true">
                 <select class="form-no-label form-item-100" name="defect_template" id="defect_template">
-                    {% for family_defect in family_defects %}
-                        <option value="{{ family_defect.defect.id }}">{{ family_defect.defect }}</option>
-                    {% endfor %}
-                    {% for engine_defect in engine_defects %}
-                        <option value="{{ engine_defect.defect.id }}">{{ engine_defect.defect }}</option>
-                    {% endfor %}
-                    {% for type_defect in type_defects %}
-                        <option value="{{ type_defect.defect.id }}">{{ type_defect.defect }}</option>
+                    {% for defect in defects %}
+                        {% if defect == airframe_defect.defect %}
+                            <option value="{{ airframe_defect.id }}" selected>{{ defect }}</option>
+                        {% else %}
+                            <option value="{{ airframe_defect.id }}">{{ defect }}</option>
+                        {% endif %}
                     {% endfor %}
                 </select>
             </div>
@@ -37,7 +35,7 @@
             <div class="form-field form-date-time-field form-field-100">
                 <div class="form-item-25">
                     <input class="form-big-checkbox" type="checkbox" name="is_pilot_report" id="is_pilot_report" 
-                    {% if defect.is_pilot_report %}
+                    {% if airframe_defect.is_pilot_report %}
                         checked
                     {% endif %}
                     >
@@ -46,7 +44,7 @@
 
                 <div class="form-item-25">
                     <input class="form-big-checkbox" type="checkbox" name="is_cabin_log" id="is_cabin_log"
-                    {% if defect.is_cabin_log %}
+                    {% if airframe_defect.is_cabin_log %}
                         checked
                     {% endif %}
                     >
@@ -55,7 +53,7 @@
 
                 <div class="form-item-25">
                     <input class="form-big-checkbox" type="checkbox" name="crs_not_required" id="crs_not_required"
-                    {% if defect.crs_not_required %}
+                    {% if airframe_defect.crs_not_required %}
                         checked
                     {% endif %}
                     >
@@ -64,7 +62,7 @@
 
                 <div class="form-item-25">
                     <input class="form-big-checkbox" type="checkbox" name="is_etops" id="is_etops"
-                    {% if defect.is_etops %}
+                    {% if airframe_defect.is_etops %}
                         checked
                     {% endif %}
                     >
@@ -73,12 +71,12 @@
             </div>
 
             <div class="form-field form-textarea-field form-field-100">
-                <textarea class="form-no-label form-item-100" name="defect_text" id="defect_text" placeholder="Defect Text">{{defect.defect_text}}</textarea>
+                <textarea class="form-no-label form-item-100" name="defect_text" id="defect_text" placeholder="Defect Text">{{airframe_defect.defect_text}}</textarea>
             </div>
 
             <div class="form-field form-input-field form-field-100">
                 <label class="form-item-20" for="ecam_message">ECAM</label>
-                <input class="form-with-label form-item-80" type="text" name="ecam_message" id="ecam_message" placeholder="ECAM Message" value="{{defect.ecam_message}}">
+                <input class="form-with-label form-item-80" type="text" name="ecam_message" id="ecam_message" placeholder="ECAM Message" value="{{airframe_defect.ecam_message}}">
             </div>
             
             <div class="form-field form-field-box-float-bottom form-field-box-side-auth form-field-30">
@@ -105,7 +103,7 @@
         </div>
 
         <div>
-            <a href="{% url 'defects_actions_create' current_airframe.id defect.id %}">
+            <a href="{% url 'defects_actions_create' current_airframe.id airframe_defect.id %}">
                 <i class="bi bi-plus"></i>
             </a>
         </div>
@@ -115,7 +113,7 @@
 
     {% for action in actions %}
         <div class="col-3">
-            <a href="{% url 'defects_actions_edit' current_airframe.id defect.id action.id %}" class="defects-box color-filled-box 
+            <a href="{% url 'defects_actions_edit' current_airframe.id airframe_defect.id action.id %}" class="defects-box color-filled-box 
                 {% if action.status == 0 %}
                     box-red
                 {% elif action.status == 1 %}
@@ -125,13 +123,13 @@
                 {% endif %}
                     big-box w-100">
                 <span class="w-50 info info-left date-info">{{action.time|date:"y - M - d H:i"}}</span>
-                <span class="w-50 info info-right airframe-info">{{defect.airframe}}{{defect.airframe.msn}}-{{defect.id|stringformat:"05d"}}</span>
+                <span class="w-50 info info-right airframe-info">{{airframe_defect.airframe}}{{airframe_defect.airframe.msn}}-{{airframe_defect.id|stringformat:"05d"}}</span>
                 <div class="defect-title-box darker-background">
                     {{ action.desc}} - 
                     {{ action.get_category_display }}
                 </div>
-                <span class="w-50 info info-left action-info">{{defect.action_time|date:"y - M - d H:i"}}</span>
-                <span class="w-50 info info-right airframe-info">{{defect.airframe}}{{defect.airframe.msn}}-{{defect.id|stringformat:"05d"}}</span>
+                <span class="w-50 info info-left action-info">{{airframe_defect.action_time|date:"y - M - d H:i"}}</span>
+                <span class="w-50 info info-right airframe-info">{{airframe_defect.airframe}}{{airframe_defect.airframe.msn}}-{{airframe_defect.id|stringformat:"05d"}}</span>
                 <div class="defect-title-box defect-action-box darker-background">
                     Defer reason: {{ action.defer_reason}}<br>
                     Defer date: {{ action.deferred_at}}<br>

@@ -1,12 +1,9 @@
 {% extends "base.html" %}
 {% block title %}Techlog - {{ page_title }}{{ page_title }}{% endblock %}
 {% include "header.html" %}
-
 {% block content %}
 <div class="dashboard">
-
     <div class="row">
-
     <form id="fluidArrivalForm" method="post" class="row">
         {% csrf_token %}
         <!-- if form_sent == true -> inputs blue bg -->
@@ -20,11 +17,9 @@
             
             {% for tank in fluid_tanks %}
                 <div class="form-group form-group-20 box-green fuel-tank-single" data-tank-id="{{tank.id}}">
-
                     <h1 class="form-label form-item-100">
                         {{tank.fluid_template.name}} ({{tank.fluid_template.get_units_of_measure_display}})
                     </h1>
-
                     <div class="form-field-100">
                         <span class="form-label form-item-50">Capacity </span>
                         <span class="form-label form-item-50" id="fuel_capacity_{{ tank.id }}">
@@ -35,18 +30,15 @@
                             {% endif %}
                         </span>
                     </div>
-
                     <div class="form-field-100">
                         <span class="form-label form-item-50">Arrival</span>
                         <span class="form-label form-item-50"></span>
-                        <input class="form-label form-item-50" id="fluid_arrival_{{ tank.id }}" name="fluid_arrival_{{ tank.id }}" onblur="setUsedFuel()" type="number" value="{{tank.level|floatformat:0}}">
+                        <input class="form-label form-item-50" id="fluid_arrival_{{ tank.id }}" name="fluid_arrival_{{ tank.id }}" onblur="setUsedFuel()" type="number" value="{{tank.level|floatformat:2}}">
                     </div>
-
                     <div class="form-field-100">
                         <span class="form-label form-item-50">Uplift </span>
                         <input class="form-label form-item-50" id="fluid_uplift_{{ tank.id }}" name="fluid_uplift_{{ tank.id }}" type="number" value="">
                     </div>
-
                     <div class="form-field-100">                        
                         <span class="form-label form-item-50">Departure </span>
                         <input class="form-label form-item-50" id="fluid_departure_{{ tank.id }}" name="fluid_departure_{{ tank.id }}" onblur="calculateFluidDifference('uplift')" type="number">
@@ -58,9 +50,7 @@
                     <input type="checkbox" name="nil_uplift" id="nil_uplift">
                     Nil Oils/Fluids
                 </h2>
-
         </div>
-
         <!-- SUBMIT BUTTON -->
         <div class="row">
             <div class="col-12">
@@ -69,14 +59,11 @@
                 </button>
             </div>
         </div>
-
     </form>
-
 </div>
 <script>
     function transmitFlightFuelData(event) {
         event.preventDefault();
-
         form = document.getElementById('fluidArrivalForm')
         const formData = new FormData(form)
         console.log(formData);
@@ -91,6 +78,5 @@
             console.log(data);
         });
     }
-
 </script>
 {% endblock %}

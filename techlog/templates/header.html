@@ -1,63 +1,65 @@
-<header>
-    <div class="container-fluid">
-        <div class="row align-items-center">
-            <div class="col-lg-3 col-md-4 col-sm-12 mb-2 mb-md-0">
-                <div class="d-flex align-items-center gap-2">
-                    <span class="return-arrow">
-                        <a href="{{ return_url }}">
-                            <i class="bi bi-arrow-left"></i>
-                        </a>
-                    </span>
-                    <div class="Title">{{ page_title }}</div>
-                </div>
-            </div>
+{% load static %}
+{% if current_airframe %}
+<header> 
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
             
-            <div class="col-lg-9 col-md-8 col-sm-12">
-                <div class="row gap-2">
-                    <div class="col-auto">
-                        <div class="crew-notice-box box box-green">
-                            Crew Notice <span>1</span>
-                        </div>
-                    </div>
-                    <div class="col-auto">
-                        <div class="crew-notice-box box box-green">
-                            Limitations <span>2</span>
-                        </div>
-                    </div>
-                    {% if current_operator.id %}
-                    <div class="col-auto">
-                        <a href="{% url 'operator_index' current_operator.id %}" class="airframe-info-box box box-green text-decoration-none">
-                            <div class="registration">{{ current_airframe.registration }}</div>
-                            <div class="aircraft-type">{{ current_airframe.aircraft_type.icao_code }}</div>
-                            <div class="airframe-fin-number">MSN {{ current_airframe.msn }}</div>
-                        </a>
-                    </div>
-                    {% endif %}
-                    <div class="col-auto">
-                        <div id="syncButton" class="sync-box box box-green">
-                            <i class="bi bi-arrow-repeat"></i>
-                            <span>Last Sync: {{ last_sync }}</span>
-                        </div>
-                    </div>
-                    <div class="col-auto">
-                        <div class="battery-box box box-green">
-                            <i class="bi bi-battery"></i>
-                            <span>100%</span>
-                        </div>
-                    </div>
-                    <div class="col-auto">
-                        <div class="connection-box box box-green">
-                            <i class="bi bi-wifi"></i>
-                            <span>Internet/Acars</span>
-                        </div>
-                    </div>
-                    <div class="col-auto">
-                        <div class="corrections-box box box-green">
-                            Corrections <span>0</span>
-                        </div>
-                    </div>
+            <div class="row collapse navbar-collapse" id="navbarNavAltMarkup">
+
+                <div class="col-md-1">
+                    <a
+                        href="{% url 'operator_index' current_operator.id %}"
+                        class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none"
+                        >
+                        <img class="img-fluid" src="{% static 'imgs/logos/manufacturers/' %}{{ current_airframe.aircraft_type.aircraft_family.manufacturer }}.png" alt="{{current_operator.name}}">
+                    </a>
+                    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
                 </div>
+
+                <div class="col-md-1 border-end">
+                    <h6 class="nav-item nav-link">REGISTRATION</h6>
+                    <span class="sr-only">{{ current_airframe.registration }}</span>
+                </div>
+
+                <div class="col-md-1 border-end">
+                    <h6 class="nav-item nav-link">AIRCRAFT TYPE</h6>
+                    <span class="sr-only">{{ current_airframe.aircraft_type }}</span>
+                </div>
+
+                <div class="col-md-1 border-end offset-md-6">
+                    <h6 class="nav-item nav-link">UTC TIME</h6>
+                    <span class="sr-only">{{ current_time_zulu|time:'H:i' }}Z</span>
+                </div>
+
+                <div class="col-md-1">
+                    <h6 class="nav-item nav-link">DATE</h6>
+                    <span class="sr-only">{{ current_date_zulu|date:'d M Y' }}</span>
+                </div>
+
+                <div class="col-md-1">
+
+                    <div id="syncButton" class="align-end text-success">
+                        <i class="bi bi-arrow-repeat"></i>
+                        <span>{{ last_sync }}</span>
+                    </div>
+
+                    <div id="notificationButton" class="align-top text-success">
+                        <i class="bi bi-bell"></i>
+                        <span>{{ last_sync }}</span>
+                    </div>
+
+                    <div id="limitationsButton" class="align-top text-success">
+                        <i class="bi bi-speedometer"></i>
+                        <span>{{ last_sync }}</span>
+                    </div>
+
+                </div>
+
             </div>
+
         </div>
-    </div>
+    </nav>
 </header>
+{% endif %}

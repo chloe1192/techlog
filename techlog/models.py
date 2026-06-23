@@ -26,11 +26,6 @@ class ActionTypes(models.IntegerChoices):
     CLOSED = 1, "Closed",
     CFWD = 2, "Carry Foward"
 
-class DefectApplicability(models.IntegerChoices):
-    FAMILY = 0, "Family"
-    TYPE = 1, "Type"
-    ENGINE = 2, "Engine"
-
 class DeferCategory(models.IntegerChoices):
     NA = 0, "Non Airworthiness"
     DML = 1, "DML"
@@ -126,10 +121,7 @@ class Defect(models.Model):
     operations = models.TextField(blank=True, null=True)
     fuel_penalty = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     fuel_penalty_type = models.IntegerField(choices=FuelPenaltyTypes,default=FuelPenaltyTypes.NO)
-    applicability = models.IntegerField(
-        choices=DefectApplicability,
-        default=DefectApplicability.FAMILY
-    )
+    aircraft_family = models.ForeignKey(AircraftFamily, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -144,45 +136,6 @@ class EngineModel(models.Model):
 
     def __str__(self):
         return self.name
-
-class FamilyDefect(models.Model):
-    aircraft_family = models.ForeignKey(
-        AircraftFamily,
-        on_delete=models.CASCADE
-    )
-
-    defect = models.ForeignKey(
-        Defect,
-        on_delete=models.CASCADE
-    )  
-    class Meta:
-        unique_together = ("aircraft_family", "defect")
-
-class TypeDefect(models.Model):
-    aircraft_type  = models.ForeignKey(
-        AircraftType,
-        on_delete=models.CASCADE
-    )
-
-    defect = models.ForeignKey(
-        Defect,
-        on_delete=models.CASCADE
-    )
-    class Meta:
-        unique_together = ("aircraft_type", "defect")
-  
-class EngineDefect(models.Model):
-    engine_model = models.ForeignKey(
-        EngineModel,
-        on_delete=models.CASCADE
-    )
-
-    defect = models.ForeignKey(
-        Defect,
-        on_delete=models.CASCADE
-    )
-    class Meta:
-        unique_together = ("engine_model", "defect")
 
 class Airframe(models.Model):
     registration = models.CharField(max_length=200, unique=True)
@@ -325,7 +278,11 @@ class FluidTemplate(models.Model):
         ]
     
     def __str__(self):
-        return f"{self.aircraft_type} {self.name}"
+        if self.owner_type == FluidOwnerType.AIRFRAME:
+            return f"{self.name} - {self.aircraft_type}"
+        
+        if self.owner_type == FluidOwnerType.ENGINE:
+            return f"{self.name} - {self.engine_model} "
 
 class FluidInstance(models.Model):
     fluid_template = models.ForeignKey(
@@ -378,7 +335,11 @@ class FluidInstance(models.Model):
         unique_together = ('fluid_template', 'airframe', 'airframe_engine')
 
     def __str__(self):
-        return f"{self.level} - {self.fluid_template.units_of_measure}"
+        if self.fluid_template.owner_type == FluidOwnerType.AIRFRAME:
+            return f"{self.fluid_template.name} - {self.airframe}"
+        
+        if self.fluid_template.owner_type == FluidOwnerType.ENGINE:
+            return f"{self.fluid_template.name} {self.airframe_engine.engine_number} - {self.airframe_engine} "
    
 class Airport(models.Model):
     iata_code = models.CharField(max_length=3)
@@ -457,10 +418,6 @@ class CurrentFlight(models.Model):
     # TODO maint defects actioned on a n2n table
     acceptance_date = models.DateTimeField(blank=True, null=True)
     planned_flt_number = models.CharField(max_length=7, blank=True, null=True)
-    refuel_is_done = models.BooleanField(default=0)
-    oil_is_done = models.BooleanField(default=0)
-    hyd_is_done = models.BooleanField(default=0)
-    water_is_done = models.BooleanField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -636,7 +593,7 @@ class FlightFluid(models.Model):
                 ),
             )
         ]
-        unique_together = ("flight", "current_flight", "fluid", "phase")
+        unique_together = ("flight", "current_flight", "phase")
 
     def __str__(self):
         owner = self.current_flight or self.flight

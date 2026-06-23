@@ -50,11 +50,8 @@ urlpatterns = [
 
     # servicing
     path('airframe/<int:airframe_id>/servicing/', views.servicing, name='servicing'),
-    path('airframe/<int:airframe_id>/servicing/fuel/', views.servicing_fuel, name='servicing_fuel'),
-    path('airframe/<int:airframe_id>/servicing/oil/', views.servicing_oil, name='servicing_oil'),
-    path('airframe/<int:airframe_id>/servicing/hyd/', views.servicing_hyd, name='servicing_hyd'),
-    path('airframe/<int:airframe_id>/servicing/water/', views.servicing_water, name='servicing_water'),
-    path('airframe/<int:airframe_id>/servicing/fuel/list/', views.servicing_refuel_list, name='servicing_refuel_list'),
+    # TODO change path structure
+    path('airframe/<int:airframe_id>/servicing/refuel/list/', views.servicing_refuel_list, name='servicing_refuel_list'),
     
     path('airframe/<int:airframe_id>/planned_maintenance/', views.planned_maintenance, name='planned_maintenance'),
 
