@@ -3,248 +3,247 @@
 {% include "header.html" %}
 
 {% block content %}
-<div class="dashboard">
 
-    <div class="row">
+<form id="refuel_form" method="post" class="row mt-3">
+    {% csrf_token %}
+    <input class="form-label form-item-100" type="text" id="planned_flt_number" name="planned_flt_number" value="{{ current_flight.id }}" hidden>
 
-    <form method="post" class="row">
-        {% csrf_token %}
-        <!-- if form_sent == true -> inputs blue bg -->
-        <div class="form-full 
-            {% if fuel_uplift_not_sent %}
-                form-not-sent
-            {% else %}
-                form-sent
-            {% endif %}
-        ">
-    
-            <div class="form-field form-input-field  form-field-100">
-                <label class="form-label form-item-100">Planned Flight No.</label>
-                <!-- TODO SEARCH BOX ON THIS and allow empty if flight is not initialized yet-->
-                <input class="form-label form-item-100" type="text" id="planned_flt_number" name="planned_flt_number" value="{{ current_flight.id }}" readonly>
-            </div>
+    <!-- Fuel page buttons -->
+    <div class="col-12">
 
-            <div class="form-field form-field-100 form-field-group">                
+        <div class="row">
 
-                <a href="#" onclick="copyArrivalFuel(event)" class="box rectangular-box box-gray">
-                    <h2 class="box-title rectangular-box-title">Copy Arrival Fuel</h2>
-                </a>
-
-                <a href="#" class="box rectangular-box box-gray">
-                    <h2 class="box-title rectangular-box-title" data-nil-refueling="false">Nil Refueling</h2>
-                </a>
-
-                <a href="#" class="box rectangular-box box-gray">
-                    <i class="bi bi-fuel-pump-fill"></i>
-                    <h2 class="box-title rectangular-box-title" onclick="activateRefueling(event, this)" data-refueling-active="false">Refueling</h2>
-                </a>
-
-                <div class="form-field form-text-field box rectangular-box box-gray">
-                    <label class="form-label form-item-50">Planned Dep Fuel</label>
-                    <input class="form-label form-item-50 data-refueling-active-false" type="number" id="planned_dep_fuel_in_kg" name="planned_dep_fuel_in_kg" onblur="calculateFuelVolume()" value="{{current_flight.required_fuel_in_kg}}">
-                </div>
-                
-                <div class="form-field form-text-field box rectangular-box box-gray">
-                    <label class="form-label form-item-50">Specific Gravity</label>
-                    <input class="form-label form-item-50 data-refueling-active-false" type="number" step="0.01" id="specific_gravity" name="specific_gravity" value="0.81">
-                </div>
-                
-                <div class="form-field form-text-field  box rectangular-box box-gray">
-                    <label class="form-label form-item-100">Required Uplift</label>
-                    <div class="form-field-group">
-                        <span class="form-label form-item-50" id="required_fuel_in_volume" name="required_fuel_in_volume">Fuel in Kg....</span>
-                        <span class="form-label form-item-50">Lt</span>
+            <div class="col-md-2">
+                <a class="card bg-success text-dark" onclick="copyArrivalFuel(event)" href="#" class="text-decoration-none w-100">
+                    <div class="card-body">
+                        <h4 class="card-title">
+                            <i class="bi bi-fuel-pump"></i>
+                            Copy arrival fuel
+                        </h4>
                     </div>
-                    <div class="form-field-group">
-                        <span class="form-label form-item-50" id="required_fuel_in_weight" name="required_fuel_in_weight">Fuel in liters....</span>
-                        <span class="form-label form-item-50">{{ fuel.get_units_of_measure_display }}</span>
-                    </div>
-                </div>
-
-                <a href="{% url 'servicing_refuel_list' current_airframe.id %}" class="button rectangular-box rectangular-box-icon-left box-gray">
-                    <i class="bi bi-fuel-pump-fill"></i>
-                    <h2 class="button-title rectangular-box-title">Multiple Refueling</h2>
                 </a>
             </div>
 
-            
-            {% for tank in fluid_tanks %}
-                <div class="form-group form-group-20 box-green fuel-tank-single" data-tank-id="{{tank.id}}">
-
-                    <h1 class="form-label form-item-100">
-                        {{tank.fluid_template.name}} ({{tank.fluid_template.get_units_of_measure_display}})
-                    </h1>
-
-                    <div class="form-field-100">
-                        <span class="form-label form-item-50">Capacity </span>
-                        <span class="form-label form-item-50" id="fuel_capacity_{{ tank.id }}">{{tank.fluid_template.max_level|floatformat:0}} {{tank.fluid_template.get_units_of_measure_display}}</span>
+            <div class="col-md-2">
+                <a class="card bg-success text-dark" href="{% url 'servicing_refuel_list' current_airframe.id %}" class="text-decoration-none w-100">
+                    <div class="card-body">
+                        <h4 class="card-title">
+                            <i class="bi bi-card-list"></i>
+                            Refueling list
+                        </h4>
                     </div>
-
-                    <div class="form-field-100">
-                        <span class="form-label form-item-50">Arrival </span>
-                        <input class="form-label form-item-50" id="fluid_arrival_{{ tank.id }}" name="fluid_arrival_{{ tank.id }}" value="{{tank.level|floatformat:0}}" readonly>
-                    </div>
-
-                    <div class="form-field-100">
-                        <span class="form-label form-item-50">Pre Fuel </span>
-                        <input class="form-label form-item-50" id="pre_refuel_in_kg_{{ tank.id }}" name="pre_refuel_in_kg_{{ tank.id }}" type="number" value="">
-                    </div>
-
-                    <div class="form-field-100">                        
-                        <span class="form-label form-item-50">Departure </span>
-                        <input class="form-label form-item-50" id="fluid_departure_{{ tank.id }}" name="fluid_departure_{{ tank.id }}" onblur="setDepartureFuel(event)" type="number" value="">
-                    </div>
-                </div>
-            {% endfor %}
-    
-            <div class="form-group form-group-20 box-green fuel-tank-total">
-
-                <h1 class="form-label form-item-100">
-                    Total ()
-                </h1>
-
-                <div class="form-field-100">
-                    <span class="form-label form-item-50">Capacity </span>
-                    <span class="form-label form-item-50" id="fuel_capacity_total">{{total_fluid.max_level|floatformat:0}} {{total_fluid.units_of_measure}}</span>
-                </div>
-
-                <div class="form-field-100">
-                    <span class="form-label form-item-50">Arrival </span>
-                    <span class="form-label form-item-50" id="fluid_arrival_total">{{total_fluid.level|floatformat:0}}</span>
-                </div>
-
-                <div class="form-field-100">
-                    <span class="form-label form-item-50">Pre Refuel</span>
-                    <input class="form-label form-item-50" id="pre_refuel_in_kg" name="pre_refuel_in_kg" type="number" value="" readonly="readonly">
-                </div>
-
-                <div class="form-field-100">                        
-                    <span class="form-label form-item-50">Departure</span>
-                    <input class="form-label form-item-50" id="departure_fob_in_kg" name="departure_fob_in_kg" onchange="calculateFuelVolume()" type="number" value="" readonly>
-                    <input class="form-label form-item-50" id="required_uplift_in_lt" name="required_uplift_in_lt" type="number" value="" hidden>
-                </div>
-
-            </div>
-            <div class="form-group form-group-100"></div>
-
-            <div class="form-group form-group-30 box-green fuel-tank-total">
-
-                <div class="form-field-100">
-                    <span class="form-label form-item-50">Fuel Supplier </span>
-                    <input class="form-label form-item-50" type="text" id="fuel_supplier" name="fuel_supplier" value="BR">
-                </div>
-
-                <div class="form-field-100">
-                <span class="form-label form-item-50">Fuel Ticket/Invoice No </span>
-                <input class="form-label form-item-50" type="text" id="fuel_ticket_no" name="fuel_ticket_no" value="12345">
-                </div>
-
-                <div class="form-field-100">
-                <span class="form-label form-item-50">Bowser Uplift</span>
-                <input class="form-label form-item-50" type="number" id="bowser_uplift_in_lt" name="bowser_uplift_in_lt" value="">
-                </div>
-            
-                <a href="#" class="button rectangular-box box-gray">
-                    <h2 class="button-title rectangular-box-title">
-                        <input type="checkbox" name="nil_uplift" id="nil_uplift">
-                        Nil Oils/Fluids
-                    </h2>
                 </a>
-
-            </div>
-
-            <div class="form-field form-field-70 form-sign-box">
-                <!-- mock up rels code should come form db user code defined in settings -->
-                <input hidden name="maint_rels_code">
-                <input class="form-auth form-auth-input form-auth-red" type="text" name="crew_auth_id" id="crew_auth_id">
-                <input class="form-auth form-auth-input form-auth-red" type="submit" name="crew_auth_sign" id="crew_auth_sign">
-            </div>
+            </div>                
 
         </div>
 
-    </form>
-
-        
     </div>
-    
-    <div class="row mt-5">
-        <div class="col-3">
+    <!-- /Fuel page buttons -->
 
-        </div>
+    <!-- Fuel page total inputs -->
+    <div class="col-12 mt-3">
+        <div class="row">
 
-        <div class="col-3">
-
-            <a href="#" class="button rectangular-box rectangular-box-icon-left box-green">
-                <i class="bi bi-fuel-pump-fill"></i>
-                <h2 class="button-title rectangular-box-title">Grade/Type</h2>
-            </a>
-
-            <div class="form-field-group">
-                <span class="form-label form-item-30">Calculated Uplift </span>
-                <span class="form-label form-item-40 item-has-value" id="calculated_uplift_in_lt"></span>
-                <span class="form-label form-item-30">{{ fuel.get_units_of_measure_display }}</span>
+            <div class="col-md-2">
+                <div class="card bg-primary text-light" class="text-decoration-none w-100">
+                    <div class="card-body">
+                        <label for="nil_uplift" class="col-md-4 form-label">Nil uplift</label>
+                        <input class="form-check" type="checkbox" name="nil_uplift" id="nil_uplift" onchange="nilUplift(this)">
+                    </div>
+                </div>
             </div>
 
+            <div class="col-md-3">
+                <div class="card bg-primary text-light" class="text-decoration-none w-100">
+                    <div class="card-body">
+                        <label class="form-label" for="planned_dep_fuel_in_kg">Fuel Required by FLT PLAN</label>
+                        <input class="form-control" type="number" id="planned_dep_fuel_in_kg" name="planned_dep_fuel_in_kg" onblur="calculateFuelVolume()" value="{{current_flight.required_fuel_in_kg}}" placeholder="Fuel required in plan" data-nil-uplift="false" data-auth-required="true">
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-2">
+                <div class="card bg-primary text-light" class="text-decoration-none w-100">
+                    <div class="card-body">
+                        <label class="form-label" for="specific_gravity">Fuel specific gravity</label>
+                        <input class="form-control" type="number" step="0.01" id="specific_gravity" name="specific_gravity" value="0.81" data-nil-uplift="false" data-auth-required="true">
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-2">
+                <div class="card bg-primary text-light" class="text-decoration-none w-100">
+                    <div class="card-body">
+                        <label class="form-label" for="required_fuel_in_volume">Plan add Volume</label>
+                        <input class="form-control" id="required_fuel_in_volume" name="required_fuel_in_volume" data-nil-uplift="false" readonly>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-2">
+                <div class="card bg-primary text-light" class="text-decoration-none w-100">
+                    <div class="card-body">
+                        <label class="form-label" for="required_fuel_in_weight">Plan add Weight</label>
+                        <input class="form-control" id="required_fuel_in_weight" name="required_fuel_in_weight" data-nil-uplift="false" readonly>
+                    </div>
+                </div>
+            </div>
+                        
         </div>
     </div>
+    <!-- /Fuel page total inputs -->
 
-    <div class="row mt-5">
+    <!-- if form_sent == true -> inputs blue bg -->
+    <div class="row mt-3">
         
-        <div class="col-2">
-            <a href="#" class="button rectangular-box box-gray">
-                <h2 class="button-title rectangular-box-title">Nil Uplift</h2>
-            </a>
+        {% for tank in fluid_tanks %}
+            <div class="col-md-3 fuel-tank-single" data-tank-id="{{tank.id}}">
+                <div class="card card-danger">
+                    <div class="card-body">
+                        <div class="card-tile">
+                            <h2>{{tank.fluid_template.name}}</h2>
+                        </div>
+                        <div class="card-form">
+
+                            <div class="mb-3 row form-group">
+                                <label for="fluid_capacity_{{ tank.id }}" class="col-md-4 form-label">Capacity</label>
+                                <div class="col-md-8">
+                                    <span class="form-control" id="fluid_capacity_{{ tank.id }}">{{tank.fluid_template.max_level|floatformat:0}} {{tank.fluid_template.get_units_of_measure_display}}</span>
+                                </div>
+                            </div>
+
+                            <div class="mb-3 row form-group">
+                                <label for="fluid_arrival_{{ tank.id }}" class="col-md-4 form-label">Arrival</label>
+                                <div class="col-md-8">
+                                    <input class="form-control" id="fluid_arrival_{{ tank.id }}" name="fluid_arrival_{{ tank.id }}" value="{{tank.level|floatformat:0}}" readonly>
+                                </div>
+                            </div>
+
+                            <div class="mb-3 row form-group">
+                                <label for="pre_refuel_in_kg_{{ tank.id }}" class="col-md-4 form-label">Pre Fuel</label>
+                                <div class="col-md-8">
+                                    <input class="form-control" id="pre_refuel_in_kg_{{ tank.id }}" name="pre_refuel_in_kg_{{ tank.id }}" value="{{tank.level|floatformat:0}}"  type="number" value="" data-nil-uplift="false" data-auth-required="true">
+                                </div>
+                            </div>
+
+                            <div class="mb-3 row form-group">
+                                <label for="fluid_departure_{{ tank.id }}" class="col-md-4 form-label">Departure</label>
+                                <div class="col-md-8">
+                                    <input class="form-control" id="fluid_departure_{{ tank.id }}" name="fluid_departure_{{ tank.id }}" value="{{tank.level|floatformat:0}}"  onblur="setDepartureFuel(event)" type="number" value="" data-nil-uplift="false" data-auth-required="true">
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+        
+        <!-- Total fuel tank card -->
+        <div class="col-md-3 fuel-tank-total" data-tank-id="{{tank.id}}">
+            <div class="card card-danger">
+                <div class="card-body">
+                    <div class="card-tile">
+                        <h2>Total Fuel</h2>
+                    </div>
+                    <div class="card-form">
+
+                        <div class="mb-3 row form-group">
+                            <label for="fuel_capacity_total" class="col-md-4 form-label">Capacity</label>
+                            <div class="col-md-8">
+                                <span class="form-control" id="fuel_capacity_total">{{total_fluid.max_level|floatformat:0}} {{total_fluid.units_of_measure}}</span>
+                            </div>
+                        </div>
+
+                        <div class="mb-3 row form-group">
+                            <label for="fluid_arrival_total" class="col-md-4 form-label">Arrival</label>
+                            <div class="col-md-8">
+                                <input class="form-control" id="fluid_arrival_total" value="{{total_fluid.level|floatformat:0}}" readonly>
+                            </div>
+                        </div>
+
+                        <div class="mb-3 row form-group">
+                            <label for="pre_refuel_in_kg" class="col-md-4 form-label">Pre Fuel</label>
+                            <div class="col-md-8">
+                                <input class="form-control" id="pre_refuel_in_kg" name="pre_refuel_in_kg" type="number" value="" readonly="readonly" data-nil-uplift="false">
+                            </div>
+                        </div>
+
+                        <div class="mb-3 row form-group">
+                            <label for="departure_fob_in_kg" class="col-md-4 form-label">Departure</label>
+                            <div class="col-md-8">
+                                <input class="form-control" id="departure_fob_in_kg" name="departure_fob_in_kg" onchange="calculateFuelVolume()" type="number" value="" readonly data-nil-uplift="false">
+                                <input id="required_uplift_in_lt" name="required_uplift_in_lt" type="number" data-nil-uplift="false" value="" hidden>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
         </div>
-        
-        <div class="col-2">
-            <a href="#" class="button rectangular-box box-amber">
-                <h2 class="button-title rectangular-box-title">View usage statistics</h2>
-            </a>
+        <!-- /Total fuel tank card -->
+
+        <!-- Fuel bill info -->
+        <div class="col-md-6 mt-3">
+            <div class="card card-danger" id="fuelBillCard">
+
+                <div class="card-body">
+
+                    <div class="row form-group mb-3">
+                        <label class="col-md-3 form-label">Fuel Supplier</label>
+                        <div class="col-md-9">
+                            <input class="form-control" type="text" id="fuel_supplier" name="fuel_supplier" value="" data-nil-uplift="false" data-auth-required="true">
+                        </div>
+                    </div>
+
+                    <div class="row form-group mb-3">
+                        <label class="col-md-3 form-label">Fuel Ticket/Invoice No</label>
+                        <div class="col-md-9">
+                            <input class="form-control" type="text" id="fuel_ticket_no" name="fuel_ticket_no" value="" data-nil-uplift="false" data-auth-required="true">
+                        </div>
+                    </div>
+
+                    <div class="row form-group mb-3">
+                        <label for="calculated_uplift_in_lt" class="col-md-3 form-label">Calculated Uplift</label>
+                        <div class="col-md-9">
+                            <span class="form-control" id="calculated_uplift_in_lt">0</span>
+                        </div>
+                    </div>
+
+                    <div class="row form-group mb-3">
+                        <label class="col-md-3 form-label">Bowser Uplift</label>
+                        <div class="col-md-9">
+                            <input class="form-control" type="number" id="bowser_uplift_in_lt" name="bowser_uplift_in_lt" value="" data-nil-uplift="false" data-auth-required="true">
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+        <!-- /Fuel bill info -->
+
+    </div>
+
+    <div class="row  mt-5">
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-success btn-lg w-100" id="submitButton">
+                <i class="bi bi-check-circle me-2"></i>DATA TRANSMIT
+            </button>
         </div>
     </div>
 
-</div>
+</form>
+
 <script>
-    function activateRefueling(event, button) {
-        event.preventDefault();
-
-        const isActive = button.getAttribute('data-refueling-active') === 'true';
-
-        const elements = document.querySelectorAll(
-            '.data-refueling-active-false, .data-refueling-active-true'
-        );
-
-        if (isActive) {
-            elements.forEach(element => {
-                element.classList.replace(
-                    'data-refueling-active-true',
-                    'data-refueling-active-false'
-                );
-                button.childNodes[0].textContent = "Refueling"
-            });
-
-            button.setAttribute('data-refueling-active', 'false');
-        } else {
-            elements.forEach(element => {
-                element.classList.replace(
-                    'data-refueling-active-false',
-                    'data-refueling-active-true'
-                );
-                button.childNodes[0].textContent = "Cancel Refueling"
-            });
-
-            button.setAttribute('data-refueling-active', 'true');
-        }
-
-        console.log(button.getAttribute('data-refueling-active'));
-    }
-
     document.addEventListener("DOMContentLoaded", () => {
         const form = document.querySelector("form");
 
         form.querySelectorAll("input, select, textarea").forEach(el => {
             el.addEventListener("input", calculateFuelVolume);
             el.addEventListener("change", calculateFuelVolume);
+            el.addEventListener("input", inputRequired);
+            el.addEventListener("change", inputRequired);
         });
     });
 
@@ -254,6 +253,8 @@
         form.querySelectorAll("input, select, textarea").forEach(el => {
             el.addEventListener("input", calculateFuelVolume);
             el.addEventListener("change", calculateFuelVolume);
+            el.addEventListener("input", inputRequired);
+            el.addEventListener("change", inputRequired);
         });
     });
 </script>

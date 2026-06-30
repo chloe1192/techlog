@@ -10,7 +10,7 @@
 	<ul class="nav nav-pills flex-column mb-auto">
 
 		<li class="nav-item">
-			<a href="{% url 'flight_index' current_airframe.id %}" class="nav-link {% if request.resolver_match.url_name == 'flight_index' %}active{% endif %}" aria-current="page">
+			<a href="{% url 'flight_index' current_airframe.id %}" class="nav-link {% if request.resolver_match.url_name == 'flight_index' %}active{% endif %} text-white" aria-current="page">
 				<i class="bi bi-airplane"></i>
 				{{current_airframe}}
 			</a>

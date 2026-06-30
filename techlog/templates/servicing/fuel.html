@@ -5,10 +5,9 @@
 {% block content %}
 <div class="dashboard">
 
-    <div class="row">
-
     <form method="post" class="row">
         {% csrf_token %}
+
         <!-- if form_sent == true -> inputs blue bg -->
         <div class="form-full 
             {% if fuel_uplift_not_sent %}
@@ -26,7 +25,7 @@
 
             <div class="form-field form-field-100 form-field-group">                
 
-                <a href="#" onclick="copyArrivalFuel(event)" class="box rectangular-box box-gray">
+                <a href="#" class="box rectangular-box box-gray">
                     <h2 class="box-title rectangular-box-title">Copy Arrival Fuel</h2>
                 </a>
 
@@ -162,10 +161,7 @@
 
         </div>
 
-    </form>
-
-        
-    </div>
+    </form>    
     
     <div class="row mt-5">
         <div class="col-3">

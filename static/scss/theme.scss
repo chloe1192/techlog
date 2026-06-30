@@ -82,3 +82,10 @@ body {
     margin-bottom: 3pc;
   }
 }
+
+#current_flight_form {
+  .arrival-section,
+  .departure-section {
+    display: inline-grid;
+  }
+}

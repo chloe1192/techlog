@@ -276,9 +276,9 @@ def flight_release_acceptance(request, airframe_id):
 
 def flight_index(request, airframe_id):
     request.session['current_airframe_id'] = airframe_id
-    airframe = get_object_or_404(Airframe, id=airframe_id)
+    airframe: Airframe = get_object_or_404(Airframe, id=airframe_id)
     return_url =  reverse("operator_index", kwargs={"operator_id": airframe.operator.id})
-    page_title = "Main Menu"
+    page_title: str = "Main Menu"
     current_flight = CurrentFlight.objects.filter(airframe=airframe_id).order_by("-created_at").first()
     airframe_defects = AirframeDefect.objects.filter(airframe=airframe)
     defect_actions = Action.objects.filter(airframe_defect__airframe=airframe_id)
@@ -293,7 +293,6 @@ def flight_index(request, airframe_id):
 
     dep_fluids_status = fluids_are_done(departure_fluids, fluid_tanks)
     dep_fluids_complete = all(dep_fluids_status.values())
-    print(dep_fluids_status)
 
     for defect in defect_actions:
         if defect.status == 0:
@@ -318,9 +317,9 @@ def flight_index(request, airframe_id):
     return render(request, 'flight/index.html', context)
 
 def flight_details(request, airframe_id):
-    page_title = "Flight Details"
+    page_title: str = "Flight Details"
     return_url = reverse("flight_index", kwargs={"airframe_id": airframe_id,})
-    last_flight = Flight.objects.filter(airframe=airframe_id).order_by("-created_at").first()
+    last_flight: Flight = Flight.objects.filter(airframe=airframe_id).order_by("-created_at").first()
     airframe = get_object_or_404(Airframe, id=airframe_id)
     current_flight = get_object_or_404(CurrentFlight, airframe=airframe)
     airframe_defects = AirframeDefect.objects.filter(airframe=airframe_id)
@@ -330,6 +329,12 @@ def flight_details(request, airframe_id):
     open_defects_count = 0
     closed_defects_count = 0
     carry_fwd_defects_count = 0
+    arrival_fluids = FlightFluid.objects.filter(current_flight=current_flight,phase=1)
+    fluid_tanks = FluidInstance.objects.filter(
+        Q(airframe=airframe) |
+        Q(airframe_engine__airframe=airframe)
+    ).select_related('fluid_template', 'airframe_engine__engine_model')
+
     for defect in airframe_defects:
         if defect.status == 0:
             open_defects_count = open_defects_count + 1
@@ -337,6 +342,9 @@ def flight_details(request, airframe_id):
             closed_defects_count = closed_defects_count + 1
         if defect.status == 2:
             carry_fwd_defects_count = carry_fwd_defects_count + 1
+
+    arr_fluids_status: dict = fluids_are_done(arrival_fluids, fluid_tanks)
+    print(arr_fluids_status)
 
     if request.method == "POST":
 
@@ -383,7 +391,8 @@ def flight_details(request, airframe_id):
         'carry_fwd_defects_count': carry_fwd_defects_count,
         'last_flight': last_flight,
         'return_url': return_url,
-        'airports': airports
+        'airports': airports,
+        'arr_fluids_status': arr_fluids_status
     }
     if request.method == "POST":
         print(request.POST)
@@ -654,7 +663,6 @@ def defects(request, airframe_id):
     carry_fwd_defects_count = 0
     carry_fwd_action_overdue = 0
 
-    print("datetime.now()" + datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
     for defect in airframe_defects:
         print(defect)
         current_defect_actions = defect_actions.filter(airframe_defect=defect).last()
@@ -664,9 +672,9 @@ def defects(request, airframe_id):
             closed_defects_count = closed_defects_count + 1
         if defect.status == 2:
             carry_fwd_defects_count = carry_fwd_defects_count + 1
-            print("defect.due_at" + current_defect_actions.due_at.strftime("%Y-%m-%d %H:%M:%S"))
-            if current_defect_actions.due_at < datetime.now():
-                carry_fwd_action_overdue = carry_fwd_action_overdue + 1
+            if current_defect_actions.due_at is not None:
+                if current_defect_actions.due_at < datetime.now():
+                    carry_fwd_action_overdue = carry_fwd_action_overdue + 1
     
     context = {
         'airframe': airframe,
@@ -848,22 +856,21 @@ def servicing(request, airframe_id):
     airframe = get_object_or_404(Airframe, id=airframe_id)
     airframe_defects = AirframeDefect.objects.filter(airframe=airframe)
     current_flight = CurrentFlight.objects.filter(airframe=airframe_id).order_by("-created_at").first()
-    """ 
-    print("refuel_is_done")
-    print(current_flight.refuel_is_done)
-    print("oil_is_done")
-    print(current_flight.oil_is_done)
-    print("hyd_is_done")
-    print(current_flight.hyd_is_done)
-    print("water_is_done")
-    print(current_flight.water_is_done) """
+    departure_fluids = FlightFluid.objects.filter(current_flight=current_flight,phase=0)
+    fluid_tanks = FluidInstance.objects.filter(
+        Q(airframe=airframe) |
+        Q(airframe_engine__airframe=airframe)
+    ).select_related('fluid_template', 'airframe_engine__engine_model')
+
+    dep_fluids_status = fluids_are_done(departure_fluids, fluid_tanks)
 
     context = {
         'page_title': page_title,
         'return_url': return_url,
         'airframe': airframe,
         'airframe_defects': airframe_defects,
-        'current_flight': current_flight
+        'current_flight': current_flight,
+        'dep_fluids_status': dep_fluids_status
     }
     return render(request, 'servicing/index.html', context)
 

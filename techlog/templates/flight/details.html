@@ -8,10 +8,11 @@
 <form method="post" id="current_flight_form" onchange="updateCurrentFlight(this)">
     {% csrf_token %}
 
-    <!-- DEPARTURE SECTION -->
     <div class="row mt-3">
-        <div class="col-lg-6 col-md-12">
-            <div class="card">
+
+        <!-- departure -->
+        <div class="col-lg-6 col-md-12 departure-section">
+            <div class="card bg-warning">
                 <div class="card-body">
                     <div class="form-section-title">
                         <h2>
@@ -20,6 +21,42 @@
                     </div>
 
                     <div class="row">
+                        
+                        <input type="hidden" id="departure_airport" name="departure_airport" 
+                            value="{{ current_flight.flight_route.departure.id }}">
+
+                        <div class="col-md-3">                        
+                            <div class="mb-3 row form-group">
+                                <label for="departure_airport_iata" class="col-sm-4 col-form-label">IATA</label>
+                                <div class="col-sm-8">
+                                    <input type="text" class="form-control" name="departure_airport_iata" 
+                                        id="departure_airport_iata" disabled 
+                                        value="{{ current_flight.flight_route.departure.iata_code }}">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-3">                        
+                            <div class="mb-3 row form-group">
+                                <label for="departure_airport_icao" class="col-sm-4 col-form-label">ICAO</label>
+                                <div class="col-sm-8">
+                                    <input type="text" class="form-control" name="departure_airport_icao" 
+                                        id="departure_airport_icao" disabled 
+                                        value="{{ current_flight.flight_route.departure.icao_code }}">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">                        
+                            <div class="mb-3 row form-group">
+                                <label for="departure_airport_name" class="col-sm-3 col-form-label">Name</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control" name="departure_airport_name" 
+                                        id="departure_airport_name" disabled 
+                                        value="{{ current_flight.flight_route.departure.name }}">
+                                </div>
+                            </div>
+                        </div>
 
                         <div class="col-md-12">
                             <div class="mb-3 row form-group">
@@ -30,97 +67,60 @@
                             </div>
                         </div>
                         
-                        <div class="col-md-12">
+                        <div class="col-md-4">
                             <div class="mb-3 row form-group">
-                                <label for="callsign" class="col-sm-2 col-form-label">Callsign</label>
-                                <div class="col-sm-10">
+                                <label for="callsign" class="col-sm-6 col-form-label">Callsign</label>
+                                <div class="col-sm-6">
                                     <input type="text" class="form-control" name="callsign" id="callsign" 
                                         value="{{ current_flight.callsign }}">
                                 </div>
                             </div>
                         </div>
 
-                        <div class="col-md-6">
-                            <div class="form-group-container">
-                                <label class="form-group-label">Flight Number</label>
-                                <select class="form-control" name="flight_number" id="flight_number" onblur="setDepartureAirport(this)">
-                                    {% for flight in flight_no_options %}
-                                        <option value="{{flight.id}}" 
-                                            data-departure="{{flight.departure.id}}" 
-                                            data-departure-iata="{{flight.departure.iata_code}}"
-                                            data-departure-icao="{{flight.departure.icao_code}}"
-                                            data-departure-name="{{flight.departure.name}}"
-                                            data-arrival="{{flight.arrival.id}}"
-                                            data-arrival-iata="{{flight.arrival.iata_code}}"
-                                            data-arrival-icao="{{flight.arrival.icao_code}}"
-                                            data-arrival-name="{{flight.arrival.name}}"
-                                            {% if flight.id == current_flight.flight_route.id %}selected{% endif %}
-                                        >{{flight.flt_number}} - {{flight.departure}} to {{flight.arrival}}</option>
-                                    {% endfor %}
-                                </select>
+                        <div class="col-md-8">
+                            <div class="mb-3 row form-group">
+                                <label for="flight_number" class="col-sm-4 col-form-label">Flight Number</label>
+                                <div class="col-sm-8">
+                                    <select class="form-control" name="flight_number" id="flight_number" onblur="setDepartureAirport(this)">
+                                        {% for flight in flight_no_options %}
+                                            <option value="{{flight.id}}" 
+                                                data-departure="{{flight.departure.id}}" 
+                                                data-departure-iata="{{flight.departure.iata_code}}"
+                                                data-departure-icao="{{flight.departure.icao_code}}"
+                                                data-departure-name="{{flight.departure.name}}"
+                                                data-arrival="{{flight.arrival.id}}"
+                                                data-arrival-iata="{{flight.arrival.iata_code}}"
+                                                data-arrival-icao="{{flight.arrival.icao_code}}"
+                                                data-arrival-name="{{flight.arrival.name}}"
+                                                {% if flight.id == current_flight.flight_route.id %}selected{% endif %}
+                                            >{{flight.flt_number}} - {{flight.departure}} to {{flight.arrival}}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
                             </div>
                         </div>
-                    </div>
-
-                    <div class="form-group-container">
-                        <label class="form-check-label ms-0">
-                            <input type="checkbox" class="form-check-input me-2" name="not_flown" id="not_flown">
-                            <span class="form-group-label d-inline">Not Flown</span>
-                        </label>
-                    </div>
-
-                    <!-- Departure Airport Info -->
-                    <div class="row gap-md">
-                        <div class="col-12">
-                            <div class="section-header mt-md">
-                                <i class="bi bi-geo-alt"></i>Departure Airport
-                            </div>
-                        </div>
-                        <input type="hidden" id="departure_airport" name="departure_airport" 
-                            value="{{ current_flight.flight_route.departure.id }}">
                         
-                        <div class="col-md-3">
-                            <div class="form-group-container">
-                                <label class="form-group-label">IATA Code</label>
-                                <input type="text" class="form-control" name="departure_airport_iata" 
-                                    id="departure_airport_iata" disabled 
-                                    value="{{ current_flight.flight_route.departure.iata_code }}">
+                        <div class="col-md-4">
+                            <div class="mb-3 row form-group">
+                                <label for="off_blocks" class="col-sm-6 col-form-label">Off Blocks</label>
+                                <div class="col-sm-6">
+                                    <input type="time" class="form-control" name="off_blocks" id="off_blocks" 
+                                        value="{{current_flight.off_blocks|date:'H:i'}}">
+                                </div>
                             </div>
                         </div>
-                        <div class="col-md-3">
-                            <div class="form-group-container">
-                                <label class="form-group-label">ICAO Code</label>
-                                <input type="text" class="form-control" name="departure_airport_icao" 
-                                    id="departure_airport_icao" disabled 
-                                    value="{{ current_flight.flight_route.departure.icao_code }}">
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group-container">
-                                <label class="form-group-label">Airport Name</label>
-                                <input type="text" class="form-control" name="departure_airport_name" 
-                                    id="departure_airport_name" disabled 
-                                    value="{{ current_flight.flight_route.departure.name }}">
-                            </div>
-                        </div>
-                    </div>
 
-                    <!-- Departure Times -->
-                    <div class="row gap-md mt-md">
+                        
                         <div class="col-md-4">
-                            <div class="form-group-container">
-                                <label class="form-group-label">Off Blocks</label>
-                                <input type="time" class="form-control" name="off_blocks" id="off_blocks" 
-                                    value="{{current_flight.off_blocks|date:'H:i'}}">
+                            <div class="mb-3 row form-group">
+                                <label for="off_ground" class="col-sm-6 col-form-label">Airborne</label>
+                                <div class="col-sm-6">
+                                    <input type="time" class="form-control" name="off_ground" id="off_ground" 
+                                        value="{{current_flight.off_ground|date:'H:i'}}">
+                                </div>
                             </div>
                         </div>
-                        <div class="col-md-4">
-                            <div class="form-group-container">
-                                <label class="form-group-label">Airborne</label>
-                                <input type="time" class="form-control" name="off_ground" id="off_ground" 
-                                    value="{{current_flight.off_ground|date:'H:i'}}">
-                            </div>
-                        </div>
+
                         <div class="col-md-4">
                             <a href="#" class="w-100">
                                 <div class="flight-details-box big-box box-gray h-100 d-flex flex-column justify-content-center align-items-center">
@@ -130,6 +130,7 @@
                                 </div>
                             </a>
                         </div>
+
                     </div>
                     <!-- /Departure Times -->
 
@@ -138,182 +139,225 @@
 
             </div>
         </div>
+        <!-- / departure -->
 
-        <!-- ARRIVAL SECTION -->
-        <div class="col-lg-6 col-md-12">
-            <div class="form-section">
-                <div class="form-section-title">
-                    <i class="bi bi-airplane-engines me-2"></i>ARRIVAL
-                </div>
+        <!-- arrival -->
+        <div class="col-lg-6 col-md-12 arrival-section">
+            <div class="card bg-warning">
+                <div class="card-body">
+                    <div class="form-section-title">
+                        <h2>
+                            <i class="bi bi-airplane-engines mr-2"></i>ARRIVAL
+                        </h2>
+                    </div>
 
-                <div class="row gap-md">
-                    <div class="col-md-6">
-                        <div class="form-group-container">
-                            <label class="form-group-label">Arrival Date</label>
-                            <input type="date" class="form-control" name="arrival_date" id="arrival_date" value="{{current_flight.on_ground|date:'Y-m-d'}}">
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="form-group-container">
-                            <label class="form-group-label">Status</label>
-                            <input type="text" class="form-control" disabled value="ACTIVE">
-                        </div>
-                    </div>
-                </div>
+                    <div class="row">
+                        
+                        <input type="hidden" id="arrival_airport" name="arrival_airport" 
+                            value="{{ current_flight.flight_route.arrival.id }}">
 
-                <div class="form-group-container">
-                    <label class="form-check-label ms-0">
-                        <input type="checkbox" class="form-check-input me-2" name="not_flown_arrival" id="not_flown_arrival">
-                        <span class="form-group-label d-inline">Not Flown</span>
-                    </label>
-                </div>
+                        <div class="col-md-3">                        
+                            <div class="mb-3 row form-group">
+                                <label for="arrival_airport_iata" class="col-sm-4 col-form-label">IATA</label>
+                                <div class="col-sm-8">
+                                    <input type="text" class="form-control" name="arrival_airport_iata" 
+                                        id="arrival_airport_iata" 
+                                        value="{{ current_flight.flight_route.arrival.iata_code }}">
+                                </div>
+                            </div>
+                        </div>
 
-                <!-- Arrival Airport Info -->
-                <div class="row gap-md">
-                    <div class="col-12">
-                        <div class="section-header mt-md">
-                            <i class="bi bi-geo-alt"></i>Arrival Airport
+                        <div class="col-md-3">                        
+                            <div class="mb-3 row form-group">
+                                <label for="departure_airport_icao" class="col-sm-4 col-form-label">ICAO</label>
+                                <div class="col-sm-8">
+                                    <input type="text" class="form-control" name="arrival_airport_icao" 
+                                        id="arrival_airport_icao" 
+                                        value="{{ current_flight.flight_route.arrival.icao_code }}">
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                    <input type="hidden" id="arrival_airport" name="arrival_airport" 
-                        value="{{ current_flight.flight_route.arrival.id }}">
-                    
-                    <div class="col-md-3">
-                        <div class="form-group-container">
-                            <label class="form-group-label">IATA Code</label>
-                            <input type="text" class="form-control" name="arrival_airport_iata" 
-                                id="arrival_airport_iata" 
-                                value="{{ current_flight.flight_route.arrival.iata_code }}">
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="form-group-container">
-                            <label class="form-group-label">ICAO Code</label>
-                            <input type="text" class="form-control" name="arrival_airport_icao" 
-                                id="arrival_airport_icao" 
-                                value="{{ current_flight.flight_route.arrival.icao_code }}">
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="form-group-container">
-                            <label class="form-group-label">Airport Name</label>
-                            <input type="text" class="form-control" name="arrival_airport_name" 
-                                id="arrival_airport_name" 
-                                value="{{ current_flight.flight_route.arrival.name }}">
-                        </div>
-                    </div>
-                </div>
 
-                <!-- Arrival Times -->
-                <div class="row gap-md mt-md">
-                    <div class="col-md-6">
-                        <div class="form-group-container">
-                            <label class="form-group-label">On Ground</label>
-                            <input type="time" class="form-control" name="on_ground" id="on_ground" 
-                                value="{{current_flight.on_ground|date:'H:i'}}">
+                        <div class="col-md-6">                        
+                            <div class="mb-3 row form-group">
+                                <label for="departure_airport_name" class="col-sm-3 col-form-label">Name</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control" name="arrival_airport_name" 
+                                        id="arrival_airport_name" 
+                                        value="{{ current_flight.flight_route.arrival.name }}">
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="form-group-container">
-                            <label class="form-group-label">On Blocks</label>
-                            <input type="time" class="form-control" name="on_blocks" id="on_blocks" 
-                                value="{{current_flight.on_blocks|date:'H:i'}}">
+
+                        <div class="col-md-12">
+                            <div class="mb-3 row form-group">
+                                <label for="departure_date" class="col-sm-2 col-form-label">Date</label>
+                                <div class="col-sm-10">
+                                    <input type="date" class="form-control" name="arrival_date" id="arrival_date" value="{{current_flight.on_ground|date:'Y-m-d'}}">
+                                </div>
+                            </div>
                         </div>
+                        
+                        <div class="col-md-4">
+                            <div class="mb-3 row form-group">
+                                <label for="on_ground" class="col-sm-6 col-form-label">On Ground</label>
+                                <div class="col-sm-6">
+                                    <input type="time" class="form-control" name="on_ground" id="on_ground" 
+                                        value="{{current_flight.on_ground|date:'H:i'}}">
+                                </div>
+                            </div>
+                        </div>
+
+                        
+                        <div class="col-md-4">
+                            <div class="mb-3 row form-group">
+                                <label for="on_blocks" class="col-sm-6 col-form-label">On Blocks</label>
+                                <div class="col-sm-6">
+                                    <input type="time" class="form-control" name="on_blocks" id="on_blocks" 
+                                        value="{{current_flight.on_blocks|date:'H:i'}}">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4"></div>
+
+                        <div class="col-md-2">
+                            <div class="form-check">
+                                <label for="diversion" class="form-check-label">Diversion</label>
+                                <input type="checkbox" class="form-check-input" id="diversion" name="diversion">
+                            </div>
+                        </div>
+
+                        <div class="col-md-10">
+                            <div class="row">
+                                <input hidden id="actual_arrival_airport" name="actual_arrival">
+                                <label for="actual_arrival" class="col-md-2">Airport</label>
+                                <div class="col-md-10">
+                                    <input class="form-control" list="airportDatalistOptions" id="actual_arrival_airport_datalist" name="actual_arrival_airport_datalist" onchange="diversionAirportId()" placeholder="Type to search...">
+                                    <datalist id="airportDatalistOptions">
+                                        {% for airport in airports %}
+                                            <option value="{{airport.iata_code}}" data-actual-arrival-airport="{{airport.id}}">{{airport.iata_code}}</option>
+                                        {% endfor %}
+                                    </datalist>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
             </div>
         </div>
-    </div>
+        <!-- / arrival -->
 
-    <!-- DEFECTS & STATUS SECTION -->
-    <div class="row mb-lg">
-        <div class="col-lg-4 col-md-6 col-sm-12">
-            <a href="{% url 'defects' current_airframe.id %}" class="text-decoration-none w-100">
-                <div class="flight-details-box rectangular-box box-gray h-100">
-                    <i class="bi bi-wrench me-2"></i>
-                    <span>Aircraft Defects</span>
-                </div>
-            </a>
-        </div>
-        <div class="col-lg-4 col-md-6 col-sm-12">
-            <a href="defects/" class="text-decoration-none w-100">
-                <div class="flight-details-box rectangular-box box-blue h-100">
-                    <i class="bi bi-calendar-check me-2"></i>
-                    <span>Carry Forward ({{carry_fwd_defects_count}})</span>
-                </div>
-            </a>
-        </div>
-        <div class="col-lg-4 col-md-6 col-sm-12">
-            <a href="defects/" class="text-decoration-none w-100">
-                <div class="flight-details-box rectangular-box box-amber h-100">
-                    <i class="bi bi-info-circle me-2"></i>
-                    <span>Flight Info (2)</span>
-                </div>
-            </a>
-        </div>
     </div>
+    <div class="row mt-3">
 
-    <!-- ADDITIONAL OPTIONS -->
-    <div class="row mb-lg">
-        <div class="col-12">
-            <div class="form-section">
-                <div class="form-section-title">Additional Information</div>
-                <div class="row gap-md">
-                    <div class="col-md-4">
-                        <label class="form-check-label ms-0 w-100">
-                            <input type="checkbox" class="form-check-input me-2" name="nil_defects">
-                            <span class="form-group-label d-inline">Nil Further Defects</span>
-                        </label>
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-check-label ms-0 w-100">
-                            <input type="checkbox" class="form-check-input me-2" name="ice_protect">
-                            <span class="form-group-label d-inline">Remote Ice Protection</span>
-                        </label>
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-check-label ms-0 w-100">
-                            <input type="checkbox" class="form-check-input me-2" name="cabin_status">
-                            <span class="form-group-label d-inline">Cabin Status OK</span>
-                        </label>
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-check-label ms-0 w-100">
-                            <input type="checkbox" class="form-check-input me-2" id="diversion" name="diversion">
-                            <span class="form-group-label d-inline">Diversion</span>
-                        </label>
-                        <input hidden id="actual_arrival_airport" name="actual_arrival">
-                        <input class="form-control" list="airportDatalistOptions" id="actual_arrival_airport_datalist" name="actual_arrival_airport_datalist" onchange="diversionAirportId()" placeholder="Type to search...">
-                        <datalist id="airportDatalistOptions">
-                            {% for airport in airports %}
-                                <option value="{{airport.iata_code}}" data-actual-arrival-airport="{{airport.id}}">{{airport.iata_code}}</option>
-                            {% endfor %}
-                        </datalist>
-                    </div>
+        <div class="col-md-2">
+            <a class="card bg-danger text-light" href="{% url 'defects_create' current_airframe.id %}" class="text-decoration-none w-100">
+                <div class="card-body">
+                    <h4 class="card-title">
+                    <i class="bi bi-wrench"></i>
+                        <br>
+                        In flight Defect
+                    </h4>
                 </div>
+            </a>
+            <div class="form-check mt-1">
+                <label for="nil_defects" class="form-check-label text-light">Nil Further Defects</label>
+                <input type="checkbox" class="form-check-input" name="nil_defects">
             </div>
+                
         </div>
-    </div>
 
-    <!-- Button trigger modal -->
-    <!-- Button trigger modal -->
-    <a href="{% url 'flight_arrival_fluids' current_airframe.id 0 %}" class="btn btn-danger">
-        Fuel on arrival
-    </a>
-    <a href="{% url 'flight_arrival_fluids' current_airframe.id 1 %}" class="btn btn-danger">
-        Oil on arrival
-    </a>
-    <a href="{% url 'flight_arrival_fluids' current_airframe.id 2 %}" class="btn btn-danger">
-        Hyd on arrival
-    </a>
-    <a href="{% url 'flight_arrival_fluids' current_airframe.id 3 %}" class="btn btn-danger">
-        Water on arrival
-    </a>
-    <br>
+        <div class="col-md-2">
+            <a class="card bg-info text-light" href="{% url 'defects_this_flight' current_airframe.id %}" class="text-decoration-none w-100">
+                <div class="card-body">
+                    <h4 class="card-title">
+                        <i class="bi bi-calendar-check"></i>
+                        <br>
+                        Carry Forward ({{carry_fwd_defects_count}})
+                    </h4>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-md-2">
+            <a class="card 
+                {% if arr_fluids_status.fuel %}
+                    bg-success
+                {% else %}
+                    bg-danger
+                {% endif %}                
+                text-light" href="{% url 'flight_arrival_fluids' current_airframe.id 0 %}" class="text-decoration-none w-100">
+                <div class="card-body">
+                    <h4 class="card-title">
+                        <i class="bi bi-fuel-pump"></i>
+                        <br>
+                        Arrival Fuel
+                    </h4>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-md-2">
+            <a class="card 
+                {% if arr_fluids_status.oil %}
+                    bg-success
+                {% else %}
+                    bg-danger
+                {% endif %}                
+                text-light" href="{% url 'flight_arrival_fluids' current_airframe.id 1 %}" class="text-decoration-none w-100">
+                <div class="card-body">
+                    <h4 class="card-title">
+                        <i class="bi bi-droplet"></i>
+                        <br>
+                        Arrival Oil
+                    </h4>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-md-2">
+            <a class="card 
+                {% if arr_fluids_status.hyd %}
+                    bg-success
+                {% else %}
+                    bg-danger
+                {% endif %}                
+                text-light" href="{% url 'flight_arrival_fluids' current_airframe.id 2 %}" class="text-decoration-none w-100">
+                <div class="card-body">
+                    <h4 class="card-title">
+                        <i class="bi bi-gear-fill"></i>
+                        <br>
+                        Arrival Hyd
+                    </h4>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-md-2">
+            <a class="card 
+                {% if arr_fluids_status.water %}
+                    bg-success
+                {% else %}
+                    bg-danger
+                {% endif %}                
+                text-light" href="{% url 'flight_arrival_fluids' current_airframe.id 3 %}" class="text-decoration-none w-100">
+                <div class="card-body">
+                    <h4 class="card-title">
+                        <i class="bi bi-water"></i>
+                        <br>
+                        Arrival Water
+                    </h4>
+                </div>
+            </a>
+        </div>
+
+    </div>
 
     <!-- SUBMIT BUTTON -->
-    <div class="row">
-        <div class="col-12">
+    <div class="row  mt-5">
+        <div class="col-md-2">
             <button type="button" class="btn btn-success btn-lg w-100" onclick="transmitFlightData(event, '{% url 'flight_save' current_airframe.id %}')">
                 <i class="bi bi-check-circle me-2"></i>DATA TRANSMIT
             </button>

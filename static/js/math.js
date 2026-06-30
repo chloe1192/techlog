@@ -21,9 +21,12 @@ function copyArrivalFuel() {
         const preFuel = document.getElementById(`pre_refuel_in_kg_${tankId}`);
         const arrival_total = document.getElementById("fluid_arrival_total")
         const preFuel_total = document.getElementById("pre_refuel_in_kg")
+        console.log(arrival)
+        console.log(preFuel)
+        console.log(tankId)
         
         preFuel.value = arrival.value;
-        preFuel_total.value = arrival_total.textContent.trim();
+        preFuel_total.value = arrival_total.value;
         calculateFuelVolume()
     });
 }
@@ -39,18 +42,16 @@ function calculateFuelVolume(){
     const required_fuel_in_weight = document.getElementById("required_fuel_in_weight")
 
     if (fuel_pre_total && specific_gravity && required_fuel) {
-        required_fuel_in_weight.textContent = required_fuel - fuel_pre_total
-        required_fuel_in_volume.textContent = Math.round((required_fuel - fuel_pre_total) / specific_gravity)
+        required_fuel_in_weight.value = required_fuel - fuel_pre_total
+        required_fuel_in_volume.value = Math.round((required_fuel - fuel_pre_total) / specific_gravity)
 
         if (departure_fob_in_kg) {
-            console.log("departure_fob_in_kg")
-            console.log(departure_fob_in_kg)
             required_uplift_in_lt.value = Math.round((departure_fob_in_kg - fuel_pre_total) / specific_gravity)
             calculated_uplift_in_lt.textContent = Math.round((departure_fob_in_kg - fuel_pre_total) / specific_gravity)
         }
     } else {
-        required_fuel_in_weight.textContent = ""
-        required_fuel_in_volume.textContent = ""
+        required_fuel_in_weight.value = ""
+        required_fuel_in_volume.value = ""
     }
 }
 
@@ -68,6 +69,8 @@ function setDepartureFuel(event) {
 
         if (input && input.value) {
             total_departure_fuel += Number(input.value) || 0;
+            console.log("total_departure_fuel")
+            console.log(total_departure_fuel)
         }
     });
 

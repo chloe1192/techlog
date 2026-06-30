@@ -5,40 +5,76 @@
 {% block content %}
 <div class="dashboard">
 
-    <div class="row">
+    <div class="row mt-3">
 
-        <div class="col-3">
-            <a href="{% url 'flight_departure_fluids' airframe.id 0 %}">
-                <div class="fuel-box big-box {% if current_flight.refuel_is_done %}box-green{% else %}box-red{% endif %}">
-                    <span>Fuel</span>
-                    <i class="bi bi-fuel-pump-fill big-box-icon"></i>
+        <div class="col-md-3">
+            <a class="card 
+                {% if dep_fluids_status.fuel %}
+                    bg-success
+                {% else %}
+                    bg-danger
+                {% endif %}                
+                text-light" href="{% url 'flight_departure_fluids' current_airframe.id 0 %}" class="text-decoration-none w-100">
+                <div class="card-body">
+                    <h4 class="card-title">
+                        <i class="bi bi-fuel-pump"></i>
+                        <br>
+                        Departure Fuel
+                    </h4>
                 </div>
             </a>
         </div>
 
-        <div class="col-3">
-            <a href="{% url 'flight_departure_fluids' airframe.id 1 %}">
-                <div class="oil-box big-box {% if current_flight.oil_is_done %}box-green{% else %}box-red{% endif %}">
-                    <span>ENG/APU/IDG Oil</span>
-                    <i class="bi bi-droplet big-box-icon"></i>
-                </div>
-            </a>
-        </div>
-        
-        <div class="col-3">
-            <a href="{% url 'flight_departure_fluids' airframe.id 2 %}">
-                <div class="hyd-box big-box {% if current_flight.hyd_is_done %}box-green{% else %}box-red{% endif %}">
-                    <span>Hydraulic Fluid</span>
-                    <i class="bi bi-airplane-fill big-box-icon"></i>
+        <div class="col-md-3">
+            <a class="card 
+                {% if dep_fluids_status.oil %}
+                    bg-success
+                {% else %}
+                    bg-danger
+                {% endif %}                
+                text-light" href="{% url 'flight_departure_fluids' current_airframe.id 1 %}" class="text-decoration-none w-100">
+                <div class="card-body">
+                    <h4 class="card-title">
+                        <i class="bi bi-droplet"></i>
+                        <br>
+                        Departure Oil
+                    </h4>
                 </div>
             </a>
         </div>
 
-        <div class="col-3">
-            <a href="{% url 'flight_departure_fluids' airframe.id 3 %}">
-                <div class="flight-details-box big-box {% if current_flight.water_is_done %}box-green{% else %}box-red{% endif %}">
-                    <span>Water/Waste</span>
-                    <i class="bi bi-droplet-fill big-box-icon"></i>
+        <div class="col-md-3">
+            <a class="card 
+                {% if dep_fluids_status.hyd %}
+                    bg-success
+                {% else %}
+                    bg-danger
+                {% endif %}                
+                text-light" href="{% url 'flight_departure_fluids' current_airframe.id 2 %}" class="text-decoration-none w-100">
+                <div class="card-body">
+                    <h4 class="card-title">
+                        <i class="bi bi-gear-fill"></i>
+                        <br>
+                        Departure Hyd
+                    </h4>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-md-3">
+            <a class="card 
+                {% if dep_fluids_status.water %}
+                    bg-success
+                {% else %}
+                    bg-danger
+                {% endif %}                
+                text-light" href="{% url 'flight_departure_fluids' current_airframe.id 3 %}" class="text-decoration-none w-100">
+                <div class="card-body">
+                    <h4 class="card-title">
+                        <i class="bi bi-water"></i>
+                        <br>
+                        Departure Water
+                    </h4>
                 </div>
             </a>
         </div>
