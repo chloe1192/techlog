@@ -134,6 +134,7 @@ class CurrentFlightDepartureFluids(ModelForm):
         ]
 
     def save(self, commit=True):
+        """Save the object."""
         obj = super().save(commit=False)
         obj.phase = FlightPhase.DEPARTURE
 
@@ -151,6 +152,7 @@ class CurrentFlightArrivalFluids(ModelForm):
         ]
 
     def save(self, commit=True):
+        """Save the object."""
         obj = super().save(commit=False)
         obj.phase = FlightPhase.ARRIVAL
 

@@ -64,6 +64,7 @@ class Company(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
+        """Return a string representation of the object."""
         return self.name
 
 class EngineeringCompany(models.Model):
@@ -71,6 +72,7 @@ class EngineeringCompany(models.Model):
     code = models.TextField()
 
     def __str__(self):
+        """Return a string representation of the object."""
         return f"{self.code} - {self.name}"
 
 class Operator(models.Model):
@@ -82,6 +84,7 @@ class Operator(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
+        """Return a string representation of the object."""
         return self.icao_code
 
 class AircraftFamily(models.Model):
@@ -89,6 +92,7 @@ class AircraftFamily(models.Model):
     manufacturer = models.CharField(max_length=30)
 
     def __str__(self):
+        """Return a string representation of the object."""
         return self.name
  
 class AircraftType(models.Model):
@@ -106,6 +110,7 @@ class AircraftType(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
+        """Return a string representation of the object."""
         return self.name
 
 class Defect(models.Model):
@@ -126,6 +131,7 @@ class Defect(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
+        """Return a string representation of the object."""
         return f"{self.title} --- {self.ata_chapter}-{self.ata_section}-{self.ata_item}"
    
 class EngineModel(models.Model):
@@ -135,6 +141,7 @@ class EngineModel(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
+        """Return a string representation of the object."""
         return self.name
 
 class Airframe(models.Model):
@@ -199,6 +206,7 @@ class Airframe(models.Model):
             return (family_defects | type_defects | engine_defects).distinct()
     """
     def __str__(self):
+        """Return a string representation of the object."""
         return self.registration
 
 class AirframeEngine(models.Model):
@@ -213,6 +221,7 @@ class AirframeEngine(models.Model):
         unique_together = ("airframe", "engine_number")
 
     def create_default_fluids(self):
+            """Create default fluid instances for this object based on configured templates."""
             templates = EngineModelFluid.objects.filter(
                 engine_model=self.engine_model
             )
@@ -224,6 +233,7 @@ class AirframeEngine(models.Model):
                 )
 
     def __str__(self):
+        """Return a string representation of the object."""
         return f"{self.airframe} {self.engine_number}"
 
 class FluidTemplate(models.Model):
@@ -278,6 +288,7 @@ class FluidTemplate(models.Model):
         ]
     
     def __str__(self):
+        """Return a string representation of the object."""
         if self.owner_type == FluidOwnerType.AIRFRAME:
             return f"{self.name} - {self.aircraft_type}"
         
@@ -335,6 +346,7 @@ class FluidInstance(models.Model):
         unique_together = ('fluid_template', 'airframe', 'airframe_engine')
 
     def __str__(self):
+        """Return a string representation of the object."""
         if self.fluid_template.owner_type == FluidOwnerType.AIRFRAME:
             return f"{self.fluid_template.name} - {self.airframe}"
         
@@ -351,6 +363,7 @@ class Airport(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
+        """Return a string representation of the object."""
         return self.iata_code
 
 class Route(models.Model):
@@ -364,6 +377,7 @@ class Route(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
+        """Return a string representation of the object."""
         return f"{self.flt_number} - {self.departure.iata_code} - {self.arrival.iata_code}"
 
 # TODO shcedule logic and limit route per type
@@ -390,6 +404,7 @@ class Flight(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
+        """Return a string representation of the object."""
         return f"{self.flight_route} {self.date_of_flight} {self.airframe.registration}"
  
 class CurrentFlight(models.Model):
@@ -422,6 +437,7 @@ class CurrentFlight(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
+        """Return a string representation of the object."""
         return f"{self.flight_route} {self.date_of_flight} {self.airframe.registration}"
 
 class Refuel(models.Model):
@@ -474,11 +490,13 @@ class AirframeDefect(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def save(self, *args, **kwargs):
+        """Save the object."""
         if self.defect and not self.defect_title:
             self.defect_title = self.defect.title
         super().save(*args, **kwargs)
 
     def __str__(self):
+        """Return a string representation of the object."""
         return f"{self.airframe.registration} - {self.defect_title} - {self.noticed_at}"
     
 class Action(models.Model):
@@ -493,6 +511,7 @@ class Action(models.Model):
     due_at = models.DateTimeField(blank=True, null=True)
 
     def save(self, *args, **kwargs):
+        """Save the object."""
         self.airframe_defect.status = self.status
         self.airframe_defect.save()
         super().save(*args, **kwargs)
@@ -546,6 +565,7 @@ class Configuration(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
+        """Return a string representation of the object."""
         return str(self.airframe)
 
 class FlightFluid(models.Model):
@@ -596,6 +616,7 @@ class FlightFluid(models.Model):
         unique_together = ("flight", "current_flight", "phase")
 
     def __str__(self):
+        """Return a string representation of the object."""
         owner = self.current_flight or self.flight
 
         if not owner:

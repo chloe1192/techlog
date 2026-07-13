@@ -115,3 +115,14 @@ function diversionAirportId() {
         console.log('Matched option:', option.dataset);
     }
 }
+
+function setTimeNow(time_field) {
+    const now = new Date();
+    const hh = String(now.getUTCHours()).padStart(2, "0");
+    const mm = String(now.getUTCMinutes()).padStart(2, "0");
+
+    const time = `${hh}:${mm}`;
+
+    time_field.value = time;
+}
+

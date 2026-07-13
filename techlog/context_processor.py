@@ -5,6 +5,7 @@ from django.shortcuts import get_object_or_404
 
 
 def airframe_processor(request):
+    """Provide airframe data to template context."""
     airframe = None
     airframe_id = None
 
@@ -24,6 +25,7 @@ def airframe_processor(request):
     }
 
 def datetime_processor(request):
+    """Provide the current datetime to template context."""
     now = datetime.now()
     now_utc = datetime.now(timezone.utc)
     # TODO update everytime a post is sent

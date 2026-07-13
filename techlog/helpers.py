@@ -35,6 +35,7 @@ def parse_date(date_str):
         return None
 
 def loop_trough_fluids(post, tanks, *args):
+    """Convert posted fluid values into a structured dictionary for processing."""
     return_dict = {}
     
     for tank in tanks:
@@ -47,6 +48,7 @@ def loop_trough_fluids(post, tanks, *args):
 
 def update_fluid_tanks(value, tank):
 
+    """Update a fluid tank instance with a new fluid value."""
     data = {
         "level": value,
         "fluid": tank
@@ -62,6 +64,7 @@ def update_fluid_tanks(value, tank):
 
 def set_flight_fluid(value, tank, flight, phase, status, flight_fluid_instance=None):
 
+    """Store a flight fluid record for the current flight and phase."""
     print(f'flight fluid val dict:   {value}')
     data = {
         'fluid': tank.id,
@@ -95,6 +98,7 @@ def set_flight_fluid(value, tank, flight, phase, status, flight_fluid_instance=N
         print(form.errors)
 
 def save_departure_fuel_data(current_flight, fuel_required, block_fuel):
+    """Save departure fuel summary values for the current flight."""
     current_flight.required_fuel_in_kg = fuel_required
     current_flight.block_fuel_in_kg = block_fuel
     current_flight.refuel_is_done = True
@@ -102,6 +106,7 @@ def save_departure_fuel_data(current_flight, fuel_required, block_fuel):
     print(f'departure fuel saved:--------------------- fuel required: {fuel_required}, block fuel {block_fuel}')
 
 def fluids_are_done(flight_fluids, fluid_instances):
+    """Return completion status for fluid checks across the flight."""
     fluids_statuses = {
         'fuel': False,
         'oil': False,
