@@ -4,132 +4,140 @@
 {% load static %}
 
 {% block content %}
+<div class="row mt-3">
+    <div class="col-12">
+        <form id="maint_release_form" method="post">
+            {% csrf_token %}
 
-<div class="dashboard flight-details row">
+            <div class="card">
+                <div class="card-body">
+                    <div class="form-section-title mb-3">
+                        <h2><i class="bi bi-tools me-2"></i>MAINTENANCE RELEASE</h2>
+                    </div>
 
-    <form id="maint_release_form" method="post" class="form-half 
-            {% if maint_release_not_sent %}
-                form-not-sent
-            {% else %}
-                form-sent
-            {% endif %}
-        ">
-        {% csrf_token %}
-        <!-- if form_sent == true -> inputs blue bg -->
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="card bg-light mb-3">
+                                <div class="card-body">
+                                    <div class="row g-3 align-items-center">
+                                        <div class="col-md-5">
+                                            <label for="maint_release_date" class="form-label">Date</label>
+                                            <input class="form-control" type="date" name="maint_release_date" id="maint_release_date"
+                                                {% if maint_release_not_sent %}
+                                                    data-auth-required="true" value="{{current_date|date:'Y-m-d'}}"
+                                                {% else %}
+                                                    data-auth-required="false" value="{{current_flight.maint_release_date|date:'Y-m-d'}}" disabled
+                                                {% endif %}
+                                            >
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label for="maint_release_time" class="form-label">Time</label>
+                                            <div class="input-group">
+                                                <input type="time" class="form-control" name="maint_release_time" id="maint_release_time"
+                                                    {% if maint_release_not_sent %}
+                                                        data-auth-required="true"
+                                                    {% else %}
+                                                        data-auth-required="false" value="{{current_flight.maint_release_date|date:'H:m'}}" disabled
+                                                    {% endif %}
+                                                >
+                                                <button type="button" class="btn btn-outline-secondary" onclick="setTimeNow(document.getElementById('maint_release_time'))"><i class="bi bi-clock"></i></button>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-12">
+                                            <small class="text-muted">Certifies that the work specified, except as otherwise specified, was carried out in accordance with Part-145 and in respect to that work the aircraft is considered ready for release to service</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
 
-        <h1 class="form-half-title">Maintenance Release</h1>
+                            <div class="card mb-3">
+                                <div class="card-body">
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <a href="#" class="card text-bg-success text-decoration-none text-white mb-2">
+                                                <div class="card-body p-2">
+                                                    <h5 class="card-title mb-0">Daily</h5>
+                                                    <small class="text-light">13-Dec-25 02:00</small>
+                                                </div>
+                                            </a>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <a href="#" class="card text-bg-success text-decoration-none text-white mb-2">
+                                                <div class="card-body p-2">
+                                                    <h5 class="card-title mb-0">Weekly</h5>
+                                                    <small class="text-light">13-Dec-25 02:00</small>
+                                                </div>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
 
-        <div class="form-field form-date-time-field form-field-100">
-            <input class="form-label form-item-50" type="date" name="maint_release_date" id="maint_release_date"
-                {% if maint_release_not_sent %}
-                    data-auth-required="true" value="{{current_date|date:'Y-m-d'}}"
-                {% else %}
-                    data-auth-required="false" value="{{current_flight.maint_release_date|date:'Y-m-d'}}" disabled
-                {% endif %}
-            >
-            <i class="bi bi-clock" onclick="setTimeNow()"></i>
-            <input type="time" name="maint_release_time" id="maint_release_time"
-                {% if maint_release_not_sent %}
-                    data-auth-required="true"
-                {% else %}
-                    data-auth-required="false" value="{{current_flight.maint_release_date|date:'H:m'}}" disabled
-                {% endif %} 
-            >
-            <span class="form-text">Certifies that the work specified, except as otherwise specified, was carried out in accordance with Part-145 and in respect to thatwork the aircraft is considered ready for release to service</span>
-        </div>
+                        </div>
 
-        <div class="form-field form-select-field form-field-100">
-            <label class="form-label form-item-100">Conduce Engineering</label>
-            <select class="form-label form-item-30" name="maint_release_eng_company" 
-                {% if maint_release_not_sent %}
-                    data-auth-required="true"
-                {% else %}
-                    data-auth-required="false" disabled
-                {% endif %}
-            >
-                {% for cpy in eng_cpy %}
-                    {% if current_flight.maint_release_eng_company.id == cpy.id %}
-                        <option value="{{cpy.id}}" selected>{{cpy.code}} - {{cpy.name}}</option>
-                    {% else %}
-                        <option value="{{cpy.id}}">{{cpy.code}} - {{cpy.name}}</option>
-                    {% endif %}
-                {% endfor %}
-            </select>
-        </div>
+                        <div class="col-md-4">
+                            <div class="card mb-3">
+                                <div class="card-body">
+                                    <label class="form-label">Conduce Engineering</label>
+                                    <select class="form-select" name="maint_release_eng_company"
+                                        {% if maint_release_not_sent %}
+                                            data-auth-required="true"
+                                        {% else %}
+                                            data-auth-required="false" disabled
+                                        {% endif %}
+                                    >
+                                        {% for cpy in eng_cpy %}
+                                            {% if current_flight.maint_release_eng_company.id == cpy.id %}
+                                                <option value="{{cpy.id}}" selected>{{cpy.code}} - {{cpy.name}}</option>
+                                            {% else %}
+                                                <option value="{{cpy.id}}">{{cpy.code}} - {{cpy.name}}</option>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
 
-        <div class="form-field form-field-box-group form-field-right form-field-70">
-            <!-- if hours = less than defined -> amber, else if = passed -> red -->
-            <a href="#" class="button rectangular-box rectangular-box-no-icon box-green">
-                <h2 class="button-title rectangular-box-title">Daily</h2>
-                <span class="date-time full-date">13-Dec-25 02:00</span>                    
-                <span class="date-time time-remaining">datetime.selected - datetime.now</span>
-            </a>
-            <!-- if hours = less than defined -> amber, else if = passed -> red -->
-            <a href="#" class="button rectangular-box rectangular-box-no-icon box-green">
-                <h2 class="button-title rectangular-box-title">Weekly</h2>
-                <span class="date-time full-date">13-Dec-25 02:00</span>                    
-                <span class="date-time time-remaining">datetime.selected - datetime.now</span>
-            </a>
-        </div>
+                            <div class="card mb-3">
+                                <div class="card-body d-flex flex-column gap-2">
+                                    <a href="#" class="btn btn-outline-primary w-100 text-start">Defects Actioned (2)</a>
+                                    {% if dep_fluids_complete %}
+                                        <a href="#" class="btn btn-outline-success w-100 text-start">Services</a>
+                                    {% else %}
+                                        <a href="{% url 'servicing' airframe.id %}" class="btn btn-outline-danger w-100 text-start">Services</a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
-        <div class="form-field form-field-box-group form-field-left form-field-30">
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-body">
+                                    <input hidden name="maint_rels_code">
+                                    <label class="form-label">Authorisation</label>
+                                    <div class="mb-2">
+                                        <input class="form-control" type="text" name="crew_auth_id" id="crew_auth_id">
+                                    </div>
+                                    <div>
+                                        <button type="submit" class="btn btn-success" id="crew_auth_sign"
+                                            {% if dep_fluids_complete is not True %}
+                                                disabled
+                                            {% endif %}
+                                        >Sign and Release</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
-            <a href="#" class="button  box-green">
-            </a>
+                </div>
+            </div>
 
-            <a href="#" class="button small-button small-button-icon-top  box-green">
-                <i class="bi bi-settings"></i>
-                <h2 class="button-title rectangular-box-title"></h2>
-            </a>
-
-            <a href="#" class="button small-button small-button-icon-top  box-green">
-                <i class="bi bi-settings"></i>
-                <h2 class="button-title rectangular-box-title"></h2>
-            </a>
-
-        </div>
-        
-        <div class="form-field form-field-box-float-bottom form-field-box-side-auth form-field-30">
-
-            <a class="rectangular-box rectangular-box-icon-left box-green" href="#">
-                <i class="bi bi-settings"></i>
-                <h2 class="button-title rectangular-box-title">Defects Actioned (2)</h2>
-            </a>
-
-            <a class="small-box small-box-icon-top box-green" href="#">
-                <i class="bi bi-photo"></i>
-                <span class="small-button-label small-button-label-bottom">Forms 0/2</span>
-            </a>
-
-            <a class="small-box small-box-icon-top box-green" href="#">
-                <i class="bi bi-photo"></i>
-                <span class="small-button-label small-button-label-bottom">Planned Mx</span>
-            </a>
-
-        </div>           
-
-        <div class="form-field form-field-70 form-sign-box">
-            <!-- mock up rels code should come form db user code defined in settings -->
-            <input hidden name="maint_rels_code">
-            <input class="form-auth form-auth-input form-auth-red" type="text" name="crew_auth_id" id="crew_auth_id">
-            <input class="form-auth form-auth-input form-auth-red" type="submit" name="crew_auth_sign" id="crew_auth_sign">
-        </div>
-
-    </form>
+        </form>
+    </div>
 </div>
-
 <script>
-    function setTimeNow() {
-        const time_field = document.getElementById("maint_release_time");
-        const now = new Date();
-        const hh = String(now.getHours()).padStart(2, "0");
-        const mm = String(now.getMinutes()).padStart(2, "0");
-
-        const time = `${hh}:${mm}`;
-
-        time_field.value = time;
-    }
-
     function setAcceptanceTimeNow() {
         const time_field = document.getElementById("acceptance_time");
         const now = new Date();

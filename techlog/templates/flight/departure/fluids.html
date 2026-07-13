@@ -75,7 +75,9 @@
             response.json()
         )
         .then(data => {
-            console.log(data);
+            if (data.redirect_url) {
+                window.location.href = data.redirect_url;
+            }
         });
     }
 </script>

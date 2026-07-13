@@ -5,124 +5,123 @@
 
 {% block content %}
 
-<div class="dashboard flight-details row">
+<div class="row mt-3">
+    <div class="col-12">
+        <form id="acceptance_form" method="post">
+            {% csrf_token %}
 
-    <form id="acceptance_form" method="post" class="form-half 
-        {% if acceptance_not_sent %}
-            form-not-sent
-        {% else %}
-            form-sent
-        {% endif %}
-    ">
-        {% csrf_token %}
+            <div class="card">
+                <div class="card-body">
+                    <div class="form-section-title mb-3">
+                        <h2><i class="bi bi-check2-square me-2"></i>ACCEPTANCE</h2>
+                    </div>
 
-        <h1 class="form-half-title">Acceptance</h1>
+                    <div class="row g-3">
+                        <div class="col-lg-8">
+                            <div class="card mb-3">
+                                <div class="card-body">
+                                    <div class="row g-3 align-items-end">
+                                        <div class="col-md-5">
+                                            <label for="acceptance_date" class="form-label">Date</label>
+                                            <input class="form-control" type="date" name="acceptance_date" id="acceptance_date"
+                                                {% if acceptance_not_sent %}
+                                                    data-auth-required="true" value="{{current_date|date:'Y-m-d'}}"
+                                                {% else %}
+                                                    data-auth-required="false" value="{{current_flight.acceptance_date|date:'Y-m-d'}}" disabled
+                                                {% endif %}
+                                            >
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label for="acceptance_time" class="form-label">Time</label>
+                                            <div class="input-group">
+                                                <input type="time" class="form-control" name="acceptance_time" id="acceptance_time"
+                                                    {% if acceptance_not_sent %}
+                                                        data-auth-required="true"
+                                                    {% else %}
+                                                        data-auth-required="false" value="{{current_flight.acceptance_date|date:'H:i'}}" disabled
+                                                    {% endif %}
+                                                >
+                                                <button type="button" class="btn btn-outline-secondary" onclick="setTimeNow(document.getElementById('acceptance_time'))"><i class="bi bi-clock"></i></button>
+                                            </div>
+                                        </div>
+                                    </div>
 
-        <div class="form-field form-date-time-field form-field-100">
-            <input class="form-label form-item-50" type="date" name="acceptance_date" id="acceptance_date" 
-                {% if acceptance_not_sent %}
-                    data-auth-required="true" value="{{current_date|date:'Y-m-d'}}"
-                {% else %}
-                    data-auth-required="false" value="{{current_flight.acceptance_date|date:'Y-m-d'}}" disabled
-                {% endif %}
-            >
-            <i class="bi bi-clock" onclick="setAcceptanceTimeNow()"></i>
-            <input class="form-item-10" type="time" name="acceptance_time" id="acceptance_time"
-                {% if acceptance_not_sent %}
-                    data-auth-required="true"
-                {% else %}
-                    data-auth-required="false" value="{{current_flight.acceptance_date|date:'H:i'}}" disabled
-                {% endif %}
-            >
-        </div>
-        <div class="form-field form-input-field form-field-100">
-            <label class="form-item-20" for="">Planned Flight No.</label>
+                                    <div class="mt-4">
+                                        <label for="planned_flt_number" class="form-label">Planned Flight No.</label>
+                                        <input class="form-control" list="datalistOptions" id="planned_flt_number" name="planned_flt_number" placeholder="Type to search...">
+                                        <datalist id="datalistOptions">
+                                            {% for route in routes %}
+                                                <option value="{{route.flt_number}}">{{route.flt_number}}</option>
+                                            {% endfor %}
+                                        </datalist>
+                                        <small class="form-text text-muted">I hereby certify I have previous Electronic journey and Technical Log, Maintenance Deferment Items and that security check and pre-flight is completed.</small>
+                                    </div>
+                                </div>
+                            </div>
 
-            <input class="form-control" list="datalistOptions" id="planned_flt_number" name="planned_flt_number" placeholder="Type to search...">
-            <datalist id="datalistOptions">
-                {% for route in routes %}
-                    <option value="{{route.flt_number}}">{{route.flt_number}}</option>
-                {% endfor %}
-            </datalist>
-            <span class="form-text form-item-100">I hereby certify I have previous Electronic journey and Technical Log, Maintenance Deferment Items and that security check and pre-flight is completed</span>
-        </div>
-        
-        <div class="form-field form-field-box-float-right form-field-box-side-auth form-field-100">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <div class="card text-bg-light mb-3">
+                                        <div class="card-body">
+                                            <h5 class="card-title">PFI</h5>
+                                            <p class="card-text mb-0">26-06-11</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card text-bg-light mb-3">
+                                        <div class="card-body">
+                                            <h5 class="card-title">FOB</h5>
+                                            <p class="card-text mb-0">{{total_fob|floatformat:'0'}} {{total_fob.get_units_of_measure_display}}</p>
+                                            <a href="{% url 'servicing' airframe.id %}" class="stretched-link"></a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
-            <a class="small-box small-box-icon-top box-green" href="#">
-                <i class="bi bi-photo"></i>
-                <span class="small-button-label small-button-label-bottom">Transmit</span>
-            </a>
+                        <div class="col-lg-4">
+                            <div class="card mb-3">
+                                <div class="card-body d-flex flex-column gap-2">
+                                    <button type="button" class="btn btn-outline-primary w-100">Transmit</button>
+                                    <button type="button" class="btn btn-outline-secondary w-100">Save to USB</button>
+                                    <button type="button" class="btn btn-outline-secondary w-100">Cabin</button>
+                                </div>
+                            </div>
 
-            <a class="small-box small-box-icon-top box-green" href="#">
-                <i class="bi bi-photo"></i>
-                <span class="small-button-label small-button-label-bottom">Save to USB</span>
-            </a>
+                            <div class="card mb-3">
+                                <div class="card-body">
+                                    <div class="form-check mb-3">
+                                        <input class="form-check-input" type="checkbox" name="remote_icing_protect" id="remote_icing_protect">
+                                        <label class="form-check-label" for="remote_icing_protect">Remote Icing Protect</label>
+                                    </div>
+                                    <div class="card bg-light p-3">
+                                        <p class="mb-1">Forms 0/1</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
-            <a class="small-box small-box-icon-top box-green" href="#">
-                <i class="bi bi-photo"></i>
-                <span class="small-button-label small-button-label-bottom">Cabin</span>
-            </a>
-
-        </div>
-        
-        <div class="form-field form-field-box-float-left form-field-box-side-auth form-field-50">
-
-            <a href="#" class="box rectangular-box rectangular-box-no-icon box-green">
-                <h2 class="button-title rectangular-box-title">PFI</h2>
-                <!-- TODO PFI date on db -->
-                <span class="rectangular-box-label">26-06-11</span>
-            </a>
-
-        </div>
-        
-        <div class="form-field form-field-box-float-right form-field-box-side-auth form-field-50">
-
-            <a href="{% url 'servicing' airframe.id %}" class="box rectangular-box rectangular-box-no-icon box-green">
-                <h2 class="button-title rectangular-box-title">FOB</h2>
-                <!-- TODO integrate with servicing page -->
-                <span class="rectangular-box-label">{{total_fob|floatformat:'0'}} {{total_fob.get_units_of_measure_display}}</span>
-            </a>
-
-        </div>
-        
-        <div class="form-field form-field-box-float-left form-field-box-side-auth form-field-30">
-
-            <a href="#" class="box rectangular-box rectangular-box-no-icon checkbox-left box-green">
-                <!-- TODO entire logic -->
-                <input class="form-big-checkbox" type="checkbox" name="remote_icing_protect" id="remote_icing_protect">
-                <h2 class="button-title rectangular-box-title">Remote Icing Protect</h2>
-            </a>
-
-            <a href="#" class="box rectangular-box rectangular-box-icon-left box-green">
-                <h2 class="button-title rectangular-box-title"></h2>
-                <!-- TODO entire logic -->
-                <span class="rectangular-box-label">Forms 0/1</span>
-            </a>
-
-        </div>
-
-        <div class="form-field form-field-70 form-sign-box">
-            <!-- mock up rels code should come form db user code defined in settings -->
-            <input hidden name="maint_rels_code">
-            <input class="form-auth form-auth-input form-auth-red" type="text" name="crew_auth_id" id="crew_auth_id">
-            <input class="form-auth form-auth-input form-auth-red" type="submit" name="crew_auth_sign" id="crew_auth_sign">
-        </div>
-
-    </form>
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-body">
+                                    <input hidden name="maint_rels_code">
+                                    <label class="form-label" for="crew_auth_id">Authorisation</label>
+                                    <input class="form-control mb-3" type="text" name="crew_auth_id" id="crew_auth_id">
+                                    <button type="submit" class="btn btn-success w-100" id="crew_auth_sign">Sign and Release</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
 </div>
 
 <script>
-    function setTimeNow() {
-        const time_field = document.getElementById("maint_release_time");
-        const now = new Date();
-        const hh = String(now.getHours()).padStart(2, "0");
-        const mm = String(now.getMinutes()).padStart(2, "0");
-
-        const time = `${hh}:${mm}`;
-
-        time_field.value = time;
-    }
 
     function setAcceptanceTimeNow() {
         const time_field = document.getElementById("acceptance_time");
