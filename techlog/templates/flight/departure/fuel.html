@@ -66,7 +66,7 @@
                 <div class="card bg-primary text-light" class="text-decoration-none w-100">
                     <div class="card-body">
                         <label class="form-label" for="specific_gravity">Fuel specific gravity</label>
-                        <input class="form-control" type="number" step="0.01" id="specific_gravity" name="specific_gravity" value="0.81" data-nil-uplift="false" data-auth-required="true">
+                        <input class="form-control" type="number" step="0.001" id="specific_gravity" name="specific_gravity" value="0.81" data-nil-uplift="false" data-auth-required="true">
                     </div>
                 </div>
             </div>
@@ -236,17 +236,6 @@
 </form>
 
 <script>
-    document.addEventListener("DOMContentLoaded", () => {
-        const form = document.querySelector("form");
-
-        form.querySelectorAll("input, select, textarea").forEach(el => {
-            el.addEventListener("input", calculateFuelVolume);
-            el.addEventListener("change", calculateFuelVolume);
-            el.addEventListener("input", inputRequired);
-            el.addEventListener("change", inputRequired);
-        });
-    });
-
     document.addEventListener("DOMContentLoaded", () => {
         const form = document.querySelector("form");
 

@@ -220,18 +220,6 @@ class AirframeEngine(models.Model):
     class Meta:
         unique_together = ("airframe", "engine_number")
 
-    def create_default_fluids(self):
-            """Create default fluid instances for this object based on configured templates."""
-            templates = EngineModelFluid.objects.filter(
-                engine_model=self.engine_model
-            )
-
-            for template in templates:
-                EngineFluids.objects.create(
-                    airframe_engine=self,
-                    engine_model_fluid=template
-                )
-
     def __str__(self):
         """Return a string representation of the object."""
         return f"{self.airframe} {self.engine_number}"
@@ -445,12 +433,12 @@ class Refuel(models.Model):
     actual_flight = models.ForeignKey(Flight, on_delete=models.RESTRICT, blank=True, null=True)
     airframe = models.ForeignKey(Airframe, on_delete=models.RESTRICT)
     planned_dep_fuel_in_kg = models.IntegerField()
-    specific_gravity = models.DecimalField(max_digits=3, decimal_places=2)
+    specific_gravity = models.DecimalField(max_digits=3, decimal_places=3)
     required_uplift_in_lt = models.IntegerField()
     pre_refuel_in_kg = models.IntegerField()
     departure_fob_in_kg = models.IntegerField()
     fuel_supplier = models.CharField(max_length=5, default="")
-    fuel_ticket_no = models.CharField(max_length=10, default="")
+    fuel_ticket_no = models.CharField(max_length=26, default="")
     bowser_uplift_in_lt = models.IntegerField()
     created_at = models.DateTimeField(auto_now_add=True)
     

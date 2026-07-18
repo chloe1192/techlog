@@ -24,13 +24,20 @@ function nilUplift(checkbox) {
 }
 
 function inputRequired() {
+    console.log("inputRequired")
     const required_elements = document.querySelectorAll('[data-auth-required]')
     var all_required_inputs_set = []
     const submit_button = document.getElementById('submitButton')
     let checker = arr => arr.every(v => v === true);
+    console.log("required_elements")
+    console.log(required_elements)
 
     required_elements.forEach(element => {
+        
         if (element.dataset.authRequired == "true" && element.value != false) {
+            all_required_inputs_set.push(true)
+        }
+        else if (element.dataset.authRequired == "true" && parseInt(element.value) === 0) {
             all_required_inputs_set.push(true)
         } else if (element.dataset.authRequired == "false") {
             all_required_inputs_set.push(true)

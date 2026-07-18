@@ -487,10 +487,12 @@ def flight_departure_fluids(request, airframe_id, fluid_type):
 
         try:
             with transaction.atomic():
+                print(fluid_type)
                 if fluid_type == 0:
                     
                     refueling_form = RefuelingForm(request.POST)
                     print(f'refueling data is {nil_uplift}')
+                    print(f'REFUEL: {refueling_form}')
 
                     if nil_uplift == "on":
                         print(f'saving departure fuel no uplift')
