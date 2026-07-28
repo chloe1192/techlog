@@ -108,7 +108,7 @@
                             <div class="mb-3 row form-group">
                                 <label for="fluid_capacity_{{ tank.id }}" class="col-md-4 form-label">Capacity</label>
                                 <div class="col-md-8">
-                                    <span class="form-control" id="fluid_capacity_{{ tank.id }}">{{tank.fluid_template.max_level|floatformat:0}} {{tank.fluid_template.get_units_of_measure_display}}</span>
+                                    <span class="form-control" id="fluid_capacity_{{ tank.id }}">{{tank.fluid_template.max_level|floatformat:0}} {{tank.fluid_template.units_of_measure.name}}</span>
                                 </div>
                             </div>
 

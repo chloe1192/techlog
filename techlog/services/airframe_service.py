@@ -65,13 +65,11 @@ def get_fluid_tanks(request, airframe_id):
         lambda: from_api_many(FluidInstance, client.get(f"airframes/{airframe_id}/fluids/"))
     )
 
-
 def get_departure_fluids(request, airframe_id):
     return _get_cached_or_fetch(
         request, airframe_id, "departure_fluids",
         lambda: from_api_many(FlightFluid, client.get(f"airframes/{airframe_id}/current_flight/fluids/0/"))
     )
-
 
 def get_arrival_fluids(request, airframe_id):
     return _get_cached_or_fetch(

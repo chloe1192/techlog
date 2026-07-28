@@ -21,16 +21,16 @@
                     <div class="card-body">
 
                         <h1 class="card-title">
-                            {{tank.fluid.fluid_template.name}} {{tank.fluid.airframe_engine.engine_number}} ({{tank.fluid.fluid_template.get_units_of_measure_display}})
+                            {{tank.fluid.fluid_template.name}} {{tank.fluid.airframe_engine.engine_number}} ({{tank.fluid.fluid_template.units_of_measure.name}})
                         </h1>
 
                         <div class="card-text form-group row mb-3">
                             <label class="col-sm-3 col-form-label">Capacity</label>
                             <span class="col-sm-9" id="fuel_capacity_{{ tank.id }}">
                                 {% if total_fluid.fluid_type == 0 %}
-                                    {{tank.fluid.fluid_template.max_level|floatformat:0}} {{tank.fluid.fluid_template.get_units_of_measure_display}}
+                                    {{tank.fluid.fluid_template.max_level|floatformat:0}} {{tank.fluid.fluid_template.units_of_measure.name}}
                                 {% else %}
-                                    {{tank.fluid.fluid_template.max_level|floatformat:2}} {{tank.fluid.fluid_template.get_units_of_measure_display}}
+                                    {{tank.fluid.fluid_template.max_level|floatformat:2}} {{tank.fluid.fluid_template.units_of_measure.name}}
                                 {% endif %}
                             </span>
                         </div>

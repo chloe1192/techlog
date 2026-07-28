@@ -5,7 +5,7 @@ from django.http import HttpResponse, JsonResponse
 from django.urls import reverse
 from techlog.mapping import from_api, from_api_many
 from techlog.services.airframe_service import get_airframe, get_arrival_fluids, get_defect_actions, get_departure_fluids, get_fluid_tanks, invalidate_airframe_cache,get_current_flight
-from techlog.state import Action, Airport, EngineeringCompany, FlightFluid, Operator, Airframe, AirframeDefect, FluidInstance, CurrentFlight, Flight, Route
+from techlog.state import Action, Airport, EngineeringCompany, FlightFluid, Operator, Airframe, AirframeDefect, FluidInstance, CurrentFlight, Flight, Refuel, Route
 from .helpers import fluids_are_done, parse_datetime, parse_date, loop_trough_fluids, save_departure_fuel_data, set_flight_fluid, summarize_defect_statuses, update_fluid_tanks
 from .forms import AcceptanceForm, ActionCreate, AirframeDefectCreateForm, AirframeEdit, AirframeEngineEdit, CompleteFlight, CurrentFlightArrivalFluids, CurrentFlightDepartureFluids, MaintenanceReleaseForm, RefuelingForm, UpdateFluidTanks
 from django.shortcuts import get_object_or_404, redirect, render
@@ -384,7 +384,6 @@ def flight_details(request, airframe_id):
 
 # TODO check for errors if tank is not uplifted, show departures in value if data was sent
 def flight_departure_fluids(request, airframe_id, fluid_type):
-    """Handle flight-related request for departure fluids."""
     page_title = "Departure Fluids"
     if fluid_type == 0:
         template = 'flight/departure/fuel.html'
@@ -402,18 +401,8 @@ def flight_departure_fluids(request, airframe_id, fluid_type):
             page_title = "Departure Fluids"
     
     return_url = reverse('servicing', kwargs={'airframe_id': airframe_id})
-    current_flight = get_object_or_404(CurrentFlight, airframe_id=airframe_id)
-    airframe = Airframe.objects.get(id=airframe_id)
-    fluid_tanks = {
-
-    }
-
-    fluid_tanks = FluidInstance.objects.filter(
-        Q(airframe_id=airframe_id) |
-        Q(airframe_engine__airframe_id=airframe_id),
-        fluid_template__fluid_type=fluid_type
-    )
-
+    fluid_tanks = from_api_many(FluidInstance, client.get(f"airframes/{airframe_id}/fluids/{fluid_type}/"))
+    current_flight = get_current_flight(request, airframe_id)
 
     total_fluid = {
         'max_level': 0,
@@ -424,7 +413,7 @@ def flight_departure_fluids(request, airframe_id, fluid_type):
         total_fluid["max_level"] += f.fluid_template.max_level
         total_fluid["level"] = f.level + total_fluid['level']
         total_fluid["fluid_type"] = f.fluid_template.fluid_type
-        total_fluid["units_of_measure"] = f.fluid_template.get_units_of_measure_display()
+        total_fluid["units_of_measure"] = f.fluid_template.units_of_measure.name
 
     if request.method == "POST":
         print('POST DATA:  ---------------------------------------')
@@ -448,19 +437,21 @@ def flight_departure_fluids(request, airframe_id, fluid_type):
                 if fluid_type == 0:
                     
                     refueling_form = RefuelingForm(request.POST)
-                    print(f'refueling data is {nil_uplift}')
-                    print(f'REFUEL: {refueling_form}')
 
                     if nil_uplift == "on":
-                        print(f'saving departure fuel no uplift')
                         save_departure_fuel_data(current_flight, request.POST.get('planned_dep_fuel_in_kg'), total_fluid['level'])
                     
                     if refueling_form.is_valid() and nil_uplift != 'on':
-                        refueling_obj = refueling_form.save(commit=False)
-                        print(f'saving departure fuel with uplift')
-                        refueling_obj.airframe = airframe
-                        refueling_obj.save()
-                        save_departure_fuel_data(current_flight, refueling_obj.planned_dep_fuel_in_kg, refueling_obj.departure_fob_in_kg)
+                        payload = dict(refueling_form.cleaned_data)
+                        payload['planned_flt_number_id'] = payload['planned_flt_number'].id if payload['planned_flt_number'] else None
+                        payload['airframe_id'] = airframe_id
+                        print(f"Paylod:  {payload}")
+
+                        refuel = from_api(
+                            Refuel,
+                            client.post(f"airframe/{airframe_id}/refuel/", data=payload)
+                        )
+                        invalidate_airframe_cache(request, airframe_id)
 
                 for fluid_id, value in fluid_dict.items():
                     instance = FlightFluid.objects.filter(
@@ -494,7 +485,6 @@ def flight_departure_fluids(request, airframe_id, fluid_type):
     context = {
         'page_title': page_title,
         'return_url': return_url,
-        'current_flight': current_flight,
         'fluid_tanks': fluid_tanks,
         'total_fluid': total_fluid
     }
@@ -516,27 +506,10 @@ def flight_arrival_fluids(request, airframe_id, fluid_type):
             page_title = "Arrival Fluids"
     
     return_url = reverse('flight_details', kwargs={'airframe_id': airframe_id})
-    current_flight = get_object_or_404(CurrentFlight, airframe_id=airframe_id)
-
-    from django.db.models import Q
-
-    fluid_tanks = FluidInstance.objects.filter(
-        Q(airframe_id=airframe_id) |
-        Q(airframe_engine__airframe_id=airframe_id),
-        fluid_template__fluid_type=fluid_type
-    )
-    departure_fluid_tanks = FlightFluid.objects.filter(
-        Q(fluid__fluid_template__fluid_type=fluid_type),
-        current_flight=current_flight,
-        phase=0
-    ).order_by('fluid__fluid_template__name')
-    arrival_fluid_tanks = FlightFluid.objects.filter(
-        Q(fluid__fluid_template__fluid_type=fluid_type),
-        current_flight=current_flight,
-        phase=1
-    )
-    print(fluid_type)
-    print(current_flight)
+    
+    fluid_tanks: list[FluidInstance] = get_fluid_tanks(request, airframe_id)
+    departure_fluid_tanks: list[FlightFluid] = get_departure_fluids(request, airframe_id)
+    arrival_fluid_tanks: list[FlightFluid] = get_arrival_fluids(request, airframe_id)
     total_fluid = {
         'max_level': 0,
         'units_of_measure': None,
@@ -546,7 +519,7 @@ def flight_arrival_fluids(request, airframe_id, fluid_type):
         total_fluid["max_level"] += f.fluid_template.max_level
         total_fluid["level"] = f.level + total_fluid['level']
         total_fluid["fluid_type"] = f.fluid_template.fluid_type
-        total_fluid["units_of_measure"] = f.fluid_template.get_units_of_measure_display()
+        # total_fluid["units_of_measure"] = f.fluid_template.units_of_measure.name()
 
     if request.method == "POST":
 
@@ -855,25 +828,14 @@ def defects_actions_edit(request, airframe_id, defect_id, action_id):
 
 def servicing(request, airframe_id):
     """Servicing."""
-    page_title = "Servicing"
-    return_url = reverse("flight_index", kwargs={"airframe_id": airframe_id})
-    airframe = get_object_or_404(Airframe, id=airframe_id)
-    airframe_defects = AirframeDefect.objects.filter(airframe=airframe)
-    current_flight = CurrentFlight.objects.filter(airframe=airframe_id).order_by("-created_at").first()
-    departure_fluids = FlightFluid.objects.filter(current_flight=current_flight,phase=0)
-    fluid_tanks = FluidInstance.objects.filter(
-        Q(airframe=airframe) |
-        Q(airframe_engine__airframe=airframe)
-    ).select_related('fluid_template', 'airframe_engine__engine_model')
+    
+    fluid_tanks: list[FluidInstance] = get_fluid_tanks(request, airframe_id)
+    departure_fluid_tanks: list[FlightFluid] = get_departure_fluids(request, airframe_id)
 
-    dep_fluids_status = fluids_are_done(departure_fluids, fluid_tanks)
+    dep_fluids_status = fluids_are_done(departure_fluid_tanks, fluid_tanks)
 
     context = {
-        'page_title': page_title,
-        'return_url': return_url,
-        'airframe': airframe,
-        'airframe_defects': airframe_defects,
-        'current_flight': current_flight,
+        'page_title': "Servicing",
         'dep_fluids_status': dep_fluids_status
     }
     return render(request, 'servicing/index.html', context)

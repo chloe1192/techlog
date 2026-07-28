@@ -18,15 +18,15 @@
             {% for tank in fluid_tanks %}
                 <div class="form-group form-group-20 box-green fuel-tank-single" data-tank-id="{{tank.id}}">
                     <h1 class="form-label form-item-100">
-                        {{tank.fluid_template.name}} ({{tank.fluid_template.get_units_of_measure_display}})
+                        {{tank.fluid_template.name}} ({{tank.fluid_template.units_of_measure.name}})
                     </h1>
                     <div class="form-field-100">
                         <span class="form-label form-item-50">Capacity </span>
                         <span class="form-label form-item-50" id="fuel_capacity_{{ tank.id }}">
                             {% if total_fluid.fluid_type == 0 %}
-                                {{tank.fluid_template.max_level|floatformat:0}} {{tank.fluid_template.get_units_of_measure_display}}
+                                {{tank.fluid_template.max_level|floatformat:0}} {{tank.fluid_template.units_of_measure.name}}
                             {% else %}
-                                {{tank.fluid_template.max_level|floatformat:2}} {{tank.fluid_template.get_units_of_measure_display}}
+                                {{tank.fluid_template.max_level|floatformat:2}} {{tank.fluid_template.units_of_measure.name}}
                             {% endif %}
                         </span>
                     </div>
