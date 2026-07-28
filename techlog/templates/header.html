@@ -1,5 +1,5 @@
 {% load static %}
-{% if current_airframe %}
+{% if airframe %}
 <header> 
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container-fluid">
@@ -8,10 +8,10 @@
 
                 <div class="col-md-1">
                     <a
-                        href="{% url 'operator_index' current_operator.id %}"
+                        href="{% url 'operator_index' operator.id %}"
                         class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none"
                         >
-                        <img class="img-fluid" src="{% static 'imgs/logos/manufacturers/' %}{{ current_airframe.aircraft_type.aircraft_family.manufacturer }}.png" alt="{{current_operator.name}}">
+                        <img class="img-fluid" src="{% static 'imgs/logos/manufacturers/' %}{{ airframe.aircraft_type.aircraft_family.manufacturer }}.png" alt="{{operator.name}}">
                     </a>
                     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
                         <span class="navbar-toggler-icon"></span>
@@ -20,12 +20,12 @@
 
                 <div class="col-md-1 border-end">
                     <h6 class="nav-item nav-link">REGISTRATION</h6>
-                    <span class="sr-only">{{ current_airframe.registration }}</span>
+                    <span class="sr-only">{{ airframe.registration }}</span>
                 </div>
 
                 <div class="col-md-1 border-end">
                     <h6 class="nav-item nav-link">AIRCRAFT TYPE</h6>
-                    <span class="sr-only">{{ current_airframe.aircraft_type }}</span>
+                    <span class="sr-only">{{ airframe.aircraft_type }}</span>
                 </div>
 
                 <div class="col-md-1 border-end offset-md-6">

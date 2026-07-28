@@ -3,19 +3,24 @@ from decimal import Decimal
 from itertools import chain
 from django.http import HttpResponse, JsonResponse
 from django.urls import reverse
-from .helpers import fluids_are_done, parse_datetime, parse_date, loop_trough_fluids, save_departure_fuel_data, set_flight_fluid, update_fluid_tanks
+from techlog.mapping import from_api, from_api_many
+from techlog.services.airframe_service import get_defect_actions, get_departure_fluids, get_fluid_tanks, invalidate_airframe_cache,get_current_flight
+from techlog.state import Action, Airport, EngineeringCompany, FlightFluid, Operator, Airframe, AirframeDefect, FluidInstance, CurrentFlight, Flight, Route
+from .helpers import fluids_are_done, parse_datetime, parse_date, loop_trough_fluids, save_departure_fuel_data, set_flight_fluid, summarize_defect_statuses, update_fluid_tanks
 from .forms import AcceptanceForm, ActionCreate, AirframeDefectCreateForm, AirframeEdit, AirframeEngineEdit, CompleteFlight, CurrentFlightArrivalFluids, CurrentFlightDepartureFluids, MaintenanceReleaseForm, RefuelingForm, UpdateFluidTanks
-from .models import Action, ActionTypes, AircraftFamily, Airframe, AirframeDefect, AircraftType, AirframeEngine, CurrentFlight, DeferCategory, EngineModel, Company, Defect, EngineeringCompany, FlightFluid, FlightPhase, FluidInstance, FluidTemplate, Operator, Flight, Airport, Refuel, Route
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 from django.forms.models import model_to_dict
 from django.db import transaction
 from django.db.models import Q
 from django.contrib import messages
+from techlog.api import TechlogClient
+
+client = TechlogClient()
 
 def index(request):
     """Render the index page."""
-    operators = Operator.objects.all()
+    operators = from_api_many(Operator, client.get("operators"))
     context = {
         'operators': operators,
     }
@@ -23,7 +28,7 @@ def index(request):
 
 def routes_list(request, operator_id):
     """Handle route listing request for list."""
-    operator = get_object_or_404(Operator, id=operator_id)
+    operator = from_api(Operator, client.get(f"operators/{operator_id}"))
     routes = Route.objects.filter(operator=operator)
     context = {
         'routes': routes
@@ -31,11 +36,10 @@ def routes_list(request, operator_id):
     return render(request, 'airline_management/operator_management/routes/list.html', context)
 
 def operator_index(request, operator_id):
-    """Handle operator management request for index."""
-    operator = get_object_or_404(Operator, id=operator_id)
+    operator = from_api(Operator, client.get(f"operators/{operator_id}/"))
     page_title = "Operator Selection"
     return_url = reverse("index")
-    airframes = Airframe.objects.filter(operator=operator)
+    airframes = from_api_many(Airframe, client.get(f"operators/{operator_id}/airframes/"))
 
     context = {
         'airframes': airframes,
@@ -168,71 +172,61 @@ def airframes_edit(request, airframe_id):
     return render(request, 'airframes/create.html', context)
 
 def flight_release_maintenance(request, airframe_id):
-    """Handle flight-related request for release maintenance."""
-    page_title = "Flight Sign Off"
-    return_url = reverse('flight_index', kwargs={'airframe_id': airframe_id})
-    airframe = get_object_or_404(Airframe, id=airframe_id)
-    current_flight = CurrentFlight.objects.filter(airframe=airframe).first()
-    departure_fluids = FlightFluid.objects.filter(current_flight=current_flight,phase=0)
-    fluid_tanks = FluidInstance.objects.filter(
-        Q(airframe=airframe) |
-        Q(airframe_engine__airframe=airframe)
-    ).select_related('fluid_template', 'airframe_engine__engine_model')
+    departure_fluids = get_departure_fluids(request, airframe_id)
+    fluid_tanks = get_fluid_tanks(request, airframe_id)
+    current_flight = from_api(CurrentFlight, client.get(f"airframes/{airframe_id}/current_flight/"))
+    print(f"current_flight.maint_release_eng_company {current_flight}")
 
     dep_fluids_status = fluids_are_done(departure_fluids, fluid_tanks)
     dep_fluids_complete = all(dep_fluids_status.values())
-    print("departure_fluids")
-    print(departure_fluids)
-    print("fluid_tanks")
-    print(fluid_tanks)
-    print("dep_fluids_status")
-    print(dep_fluids_status)
-    print("dep_fluids_complete")
-    print(dep_fluids_complete)
 
     if current_flight is None:
-        current_flight = CurrentFlight.objects.create(airframe=airframe)
+        current_flight = from_api(
+            CurrentFlight,
+            client.post(f"airframes/{airframe_id}/current_flight/", data={
+                "airframe": airframe_id,
+            })
+        )
+        invalidate_airframe_cache(request, airframe_id)
 
     if request.method == "POST":
-        print(request.POST)
-        print(f"request.POST[maint_release_date] {request.POST["maint_release_date"]}")
+
         maint_release_date = request.POST.get("maint_release_date")
+        maint_release_eng_company = request.POST.get("maint_release_eng_company")
+
         if maint_release_date is not None:
             maint_release_date = f"{request.POST["maint_release_date"]} {request.POST["maint_release_time"]}"
             maint_release_date = datetime.strptime(maint_release_date, "%Y-%m-%d %H:%M")
 
             if current_flight is not None:
-                form = MaintenanceReleaseForm(request.POST, instance=current_flight)
 
-                if form.is_valid():
-                    obj = form.save(commit=False)
-                    obj.maint_release_date = maint_release_date
-                    obj.airframe = airframe
-                    obj.save()
-                    return redirect('flight_index', airframe_id=airframe_id)
-                else:
-                    print(form.errors)
+                current_flight = from_api(
+                    CurrentFlight,
+                    client.put(f"airframes/{airframe_id}/current_flight/", data={
+                        "airframe_id": airframe_id,
+                        "maint_release_date": maint_release_date,
+                        "maint_release_eng_company_id": maint_release_eng_company
+                    })
+                )
+                invalidate_airframe_cache(request, airframe_id)
 
     maint_release_not_sent = True
     if current_flight.maint_release_date:
-        print(f"current_flight.maint_release_date {current_flight.maint_release_date}")
         maint_release_not_sent = False
 
     acceptance_not_sent = True
     if current_flight.acceptance_date:
         acceptance_not_sent = False
 
-    eng_cpy = EngineeringCompany.objects.all()
+    eng_cpy = from_api_many(EngineeringCompany, client.get("eng_cpy/"))
     current_date = datetime.now()
     context = {
-        'airframe': airframe,
+        'page_title': "Flight Sign Off",
         'maint_release_not_sent': maint_release_not_sent,
         'acceptance_not_sent': acceptance_not_sent,
         'eng_cpy': eng_cpy,
         'current_flight': current_flight,
         'current_date': current_date,
-        'return_url': return_url,
-        'page_title': page_title,
         'dep_fluids_complete': dep_fluids_complete
     }
     return render(request, 'flight_release/maintenance.html', context)
@@ -300,59 +294,34 @@ def flight_release_acceptance(request, airframe_id):
     return render(request, 'flight_release/acceptance.html', context)
 
 def flight_index(request, airframe_id):
-    """Handle flight-related request for index."""
+    # TODO airframe is being stored only in flight_index, if any change happen in another page data is lost
     request.session['current_airframe_id'] = airframe_id
-    airframe: Airframe = get_object_or_404(Airframe, id=airframe_id)
-    return_url =  reverse("operator_index", kwargs={"operator_id": airframe.operator.id})
-    page_title: str = "Main Menu"
-    current_flight = CurrentFlight.objects.filter(airframe=airframe_id).order_by("-created_at").first()
-    airframe_defects = AirframeDefect.objects.filter(airframe=airframe)
-    defect_actions = Action.objects.filter(airframe_defect__airframe=airframe_id)
-    departure_fluids = FlightFluid.objects.filter(current_flight=current_flight,phase=0)
-    fluid_tanks = FluidInstance.objects.filter(
-        Q(airframe=airframe) |
-        Q(airframe_engine__airframe=airframe)
-    ).select_related('fluid_template', 'airframe_engine__engine_model')
-    open_defects_count = 0
-    closed_defects_count = 0
-    carry_fwd_defects_count = 0
+
+    defect_actions: list[Action] = get_defect_actions(request, airframe_id)
+    departure_fluids: list[FlightFluid] = get_departure_fluids(request, airframe_id)
+    fluid_tanks: list[FluidInstance] = get_fluid_tanks(request, airframe_id)
 
     dep_fluids_status = fluids_are_done(departure_fluids, fluid_tanks)
-    dep_fluids_complete = all(dep_fluids_status.values())
-
-    for defect in defect_actions:
-        if defect.status == 0:
-            open_defects_count = open_defects_count + 1
-        if defect.status == 1:
-            closed_defects_count = closed_defects_count + 1
-        if defect.status == 2:
-            carry_fwd_defects_count = carry_fwd_defects_count + 1
+    defect_counts = summarize_defect_statuses(defect_actions)
 
     context = {
-        'airframe': airframe,
-        'airframe_defects': airframe_defects,
-        'page_title': page_title,
-        'open_defects_count': open_defects_count,
-        'closed_defects_count': closed_defects_count,
-        'carry_fwd_defects_count': carry_fwd_defects_count,
-        'current_flight': current_flight,
-        'return_url': return_url,
+        'page_title': "Main Menu",
+        'open_defects_count': defect_counts['open'],
+        'closed_defects_count': defect_counts['closed'],
+        'carry_fwd_defects_count': defect_counts['carry_fwd'],
         'dep_fluids_status': dep_fluids_status,
-        'dep_fluids_complete': dep_fluids_complete
+        'dep_fluids_complete': all(dep_fluids_status.values())
     }
     return render(request, 'flight/index.html', context)
 
 def flight_details(request, airframe_id):
-    """Handle flight-related request for details."""
-    page_title: str = "Flight Details"
-    return_url = reverse("flight_index", kwargs={"airframe_id": airframe_id,})
-    last_flight: Flight = Flight.objects.filter(airframe=airframe_id).order_by("-created_at").first()
-    airframe = get_object_or_404(Airframe, id=airframe_id)
-    current_flight = get_object_or_404(CurrentFlight, airframe=airframe)
+    last_flight = from_api(Flight, client.get(f"airframes/{airframe_id}/last_flight/"))
+    airframe = from_api(Airframe, client.get(f"airframes/{airframe_id}/"))
+    current_flight = from_api(CurrentFlight, client.get(f"airframes/{airframe_id}/current_flight/"))
     airframe_defects = AirframeDefect.objects.filter(airframe=airframe_id)
-    flight_no_options = Route.objects.filter(flt_number=current_flight.planned_flt_number)
+    flight_no_options = from_api_many(Route, client.get(f"route/{current_flight.planned_flt_no}/"))
     defect_actions = Action.objects.filter(airframe_defect__airframe=airframe_id)
-    airports = Airport.objects.all()
+    airports = from_api_many(Airport, client.get("airports/"))
     open_defects_count = 0
     closed_defects_count = 0
     carry_fwd_defects_count = 0
@@ -410,14 +379,13 @@ def flight_details(request, airframe_id):
             "success": True
         })
     context = {
-        'page_title': page_title,
+        'page_title': "Flight Details",
         'current_flight': current_flight,
         'flight_no_options': flight_no_options,
         'open_defects_count': open_defects_count,
         'closed_defects_count': closed_defects_count,
         'carry_fwd_defects_count': carry_fwd_defects_count,
         'last_flight': last_flight,
-        'return_url': return_url,
         'airports': airports,
         'arr_fluids_status': arr_fluids_status
     }

@@ -114,12 +114,31 @@ def fluids_are_done(flight_fluids, fluid_instances):
         'water': False,
     }
 
-    if fluid_instances.filter(fluid_template__fluid_type=0).count() == flight_fluids.filter(fluid__fluid_template__fluid_type=0).count():
-        fluids_statuses['fuel'] = True
-    if fluid_instances.filter(fluid_template__fluid_type=1).count() == flight_fluids.filter(fluid__fluid_template__fluid_type=1).count():
-        fluids_statuses['oil'] = True
-    if fluid_instances.filter(fluid_template__fluid_type=2).count() == flight_fluids.filter(fluid__fluid_template__fluid_type=2).count():
-        fluids_statuses['hyd'] = True
-    if fluid_instances.filter(fluid_template__fluid_type=3).count() == flight_fluids.filter(fluid__fluid_template__fluid_type=3).count():
-        fluids_statuses['water'] = True
+    fluid_type_map = {
+        'fuel': 0,
+        'oil': 1,
+        'hyd': 2,
+        'water': 3,
+    }
+
+    for status_key, fluid_type in fluid_type_map.items():
+        instance_count = sum(
+            1 for fi in fluid_instances
+            if fi.fluid_template.fluid_type == fluid_type
+        )
+        flight_fluid_count = sum(
+            1 for ff in flight_fluids
+            if ff.fluid.fluid_template.fluid_type == fluid_type
+        )
+        fluids_statuses[status_key] = instance_count == flight_fluid_count
+
     return fluids_statuses
+
+def summarize_defect_statuses(defect_actions):
+    counts = {'open': 0, 'closed': 0, 'carry_fwd': 0}
+    status_map = {0: 'open', 1: 'closed', 2: 'carry_fwd'}
+    for defect in defect_actions:
+        key = status_map.get(defect.status)
+        if key:
+            counts[key] += 1
+    return counts

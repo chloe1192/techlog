@@ -14,7 +14,7 @@
                 {% else %}
                     bg-danger
                 {% endif %}                
-                text-light" href="{% url 'flight_departure_fluids' current_airframe.id 0 %}" class="text-decoration-none w-100">
+                text-light" href="{% url 'flight_departure_fluids' airframe.id 0 %}" class="text-decoration-none w-100">
                 <div class="card-body">
                     <h4 class="card-title">
                         <i class="bi bi-fuel-pump"></i>
@@ -32,7 +32,7 @@
                 {% else %}
                     bg-danger
                 {% endif %}                
-                text-light" href="{% url 'flight_departure_fluids' current_airframe.id 1 %}" class="text-decoration-none w-100">
+                text-light" href="{% url 'flight_departure_fluids' airframe.id 1 %}" class="text-decoration-none w-100">
                 <div class="card-body">
                     <h4 class="card-title">
                         <i class="bi bi-droplet"></i>
@@ -50,7 +50,7 @@
                 {% else %}
                     bg-danger
                 {% endif %}                
-                text-light" href="{% url 'flight_departure_fluids' current_airframe.id 2 %}" class="text-decoration-none w-100">
+                text-light" href="{% url 'flight_departure_fluids' airframe.id 2 %}" class="text-decoration-none w-100">
                 <div class="card-body">
                     <h4 class="card-title">
                         <i class="bi bi-gear-fill"></i>
@@ -68,7 +68,7 @@
                 {% else %}
                     bg-danger
                 {% endif %}                
-                text-light" href="{% url 'flight_departure_fluids' current_airframe.id 3 %}" class="text-decoration-none w-100">
+                text-light" href="{% url 'flight_departure_fluids' airframe.id 3 %}" class="text-decoration-none w-100">
                 <div class="card-body">
                     <h4 class="card-title">
                         <i class="bi bi-water"></i>

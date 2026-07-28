@@ -4,24 +4,50 @@ from .models import Airframe, Company, Operator
 from django.shortcuts import get_object_or_404
 
 
+# techlog/context_processors.py
+"""
+Injects airframe-related objects into every template context when a
+current_airframe_id is present in the session (i.e. only on
+flight/airframe-scoped pages, not app-wide).
+"""
+
+from techlog.services import airframe_service
+
+
 def airframe_processor(request):
-    """Provide airframe data to template context."""
-    airframe = None
-    airframe_id = None
+    airframe_id = request.session.get('current_airframe_id')
 
-    if request.resolver_match:
-        airframe_id = request.resolver_match.kwargs.get('airframe_id') \
-            or request.resolver_match.kwargs.get('pk')
+    if not airframe_id:
+        return {}
 
-    if airframe_id:
-        airframe = Airframe.objects.filter(pk=airframe_id).select_related(
-            'aircraft_type', 'aircraft_type__aircraft_family'
-        ).first()
+    try:
+        airframe = airframe_service.get_airframe(request, airframe_id)
+        company = airframe.operator.company
+        operator = airframe.operator
+        current_flight = airframe_service.get_current_flight(request, airframe_id)
+        print(current_flight)
+        print(current_flight)
+        airframe_defects = airframe_service.get_airframe_defects(request, airframe_id)
+        defect_actions = airframe_service.get_defect_actions(request, airframe_id)
+        fluid_tanks = airframe_service.get_fluid_tanks(request, airframe_id)
+        departure_fluids = airframe_service.get_departure_fluids(request, airframe_id)
+        arrival_fluids = airframe_service.get_arrival_fluids(request, airframe_id)
+    except Exception:
+        # API/client hiccup shouldn't break unrelated pages that happen
+        # to share this context processor. Views that truly need this
+        # data can still fetch it directly and let the error surface.
+        return {}
 
     return {
-        'current_airframe': airframe,
-        'current_operator': airframe.operator if airframe else None,
-        'current_company': airframe.operator.company if airframe else None,
+        'airframe': airframe,
+        'company': company,
+        'operator': operator,
+        'current_flight': current_flight,
+        'airframe_defects': airframe_defects,
+        'defect_actions': defect_actions,
+        'fluid_tanks': fluid_tanks,
+        'departure_fluids': departure_fluids,
+        'arrival_fluids': arrival_fluids,
     }
 
 def datetime_processor(request):
