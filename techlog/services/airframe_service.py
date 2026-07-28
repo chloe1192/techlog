@@ -1,8 +1,3 @@
-# techlog/services/airframe_service.py
-"""
-Reusable, session-cached data-fetching functions for airframe-related objects.
-"""
-
 from django.core.cache import cache
 from techlog.api import TechlogClient
 from techlog.mapping import from_api, from_api_many
@@ -14,11 +9,6 @@ client = TechlogClient()
 def user_can_access_airframe(request, airframe_id):
     """
     Placeholder permission check.
-    Once CrewAssignment exists, replace this with a real check, e.g.:
-        return request.user.crew_assignments.filter(
-            airframe_id=airframe_id, active=True
-        ).exists()
-    Returning False here should force a cache miss/refetch (and later, a 403).
     """
     return True
 

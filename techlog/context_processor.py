@@ -1,21 +1,15 @@
 from datetime import datetime, timezone
-
 from .models import Airframe, Company, Operator
 from django.shortcuts import get_object_or_404
-
-
-# techlog/context_processors.py
-"""
-Injects airframe-related objects into every template context when a
-current_airframe_id is present in the session (i.e. only on
-flight/airframe-scoped pages, not app-wide).
-"""
-
 from techlog.services import airframe_service
 
 
 def airframe_processor(request):
-    airframe_id = request.session.get('current_airframe_id')
+    # TODO temp before permission mgmt
+    print("----------------------------------------------------------------------------------------")
+    request.session['airframe'] = request.resolver_match.kwargs.get("airframe_id")
+
+    airframe_id = request.session.get('airframe')
 
     if not airframe_id:
         return {}
@@ -25,8 +19,6 @@ def airframe_processor(request):
         company = airframe.operator.company
         operator = airframe.operator
         current_flight = airframe_service.get_current_flight(request, airframe_id)
-        print(current_flight)
-        print(current_flight)
         airframe_defects = airframe_service.get_airframe_defects(request, airframe_id)
         defect_actions = airframe_service.get_defect_actions(request, airframe_id)
         fluid_tanks = airframe_service.get_fluid_tanks(request, airframe_id)

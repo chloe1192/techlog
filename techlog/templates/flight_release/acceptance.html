@@ -48,7 +48,11 @@
 
                                     <div class="mt-4">
                                         <label for="planned_flt_number" class="form-label">Planned Flight No.</label>
-                                        <input class="form-control" list="datalistOptions" id="planned_flt_number" name="planned_flt_number" placeholder="Type to search...">
+                                        {% if current_flight.planned_flt_number %}
+                                            <input class="form-control" list="datalistOptions" id="planned_flt_number" name="planned_flt_number" placeholder="Type to search..." value="{{ current_flight.planned_flt_number }}">
+                                        {% else %}
+                                            <input class="form-control" list="datalistOptions" id="planned_flt_number" name="planned_flt_number" placeholder="Type to search...">
+                                        {% endif %}
                                         <datalist id="datalistOptions">
                                             {% for route in routes %}
                                                 <option value="{{route.flt_number}}">{{route.flt_number}}</option>
