@@ -1,7 +1,8 @@
 from django.core.cache import cache
 from techlog.api import TechlogClient
 from techlog.mapping import from_api, from_api_many
-from techlog.state import Airframe, AirframeDefect, Action, Company, FluidInstance, FlightFluid, CurrentFlight, Operator
+from techlog.state import Airframe, AirframeDefect, Action, Company, FluidInstance, FlightFluid, CurrentFlight, Operator, Flight, Route
+
 
 CACHE_TIMEOUT = 60 * 15  # 15 minutes, tune as needed
 client = TechlogClient()
@@ -62,7 +63,7 @@ def get_defect_actions(request, airframe_id):
 def get_fluid_tanks(request, airframe_id):
     return _get_cached_or_fetch(
         request, airframe_id, "fluid_tanks",
-        lambda: from_api_many(FluidInstance, client.get(f"airframes/{airframe_id}/fluids/"))
+        lambda: from_api_many(FluidInstance, client.get(f"airframes/{airframe_id}/fluid_instances/"))
     )
 
 def get_departure_fluids(request, airframe_id):
@@ -77,6 +78,28 @@ def get_arrival_fluids(request, airframe_id):
         lambda: from_api_many(FlightFluid, client.get(f"airframes/{airframe_id}/current_flight/fluids/1/"))
     )
 
+def get_last_flight(request, airframe_id):
+    return _get_cached_or_fetch(
+        request, airframe_id, "last_flight",
+        lambda: from_api(Flight, client.get(f"airframes/{airframe_id}/last_flight/"))
+    )
+
+def get_route_options(flight_number):
+    return from_api_many(Route, client.get(f"routes/flight_number/{flight_number}/"))
+
+def get_routes_departing_from(operator_id, icao):
+    return from_api_many(Route, client.get(f"operators/{operator_id}/routes/departure/{icao}/"))
+
+def get_flight_fluid_snapshot(request, airframe_id, phase, fluid_id):
+    """Returns the existing FlightFluid row for this tank/phase, or None if not yet created."""
+    from techlog.state import FlightFluid
+    try:
+        return from_api(
+            FlightFluid,
+            client.get(f"airframes/{airframe_id}/current_flight/fluids/{phase}/{fluid_id}/")
+        )
+    except RuntimeError:
+        return None
 
 def invalidate_airframe_cache(request, airframe_id):
     """Call this whenever underlying data changes (e.g. after a POST/save),

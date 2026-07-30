@@ -1,138 +1,110 @@
 from datetime import datetime
 
-from techlog.forms import CurrentFlightArrivalFluids, CurrentFlightDepartureFluids, UpdateFluidTanks
+from techlog.api import TechlogClient
+from techlog.mapping import from_api
+from techlog.services.airframe_service import invalidate_airframe_cache
+from techlog.state import FluidInstance, FlightFluid, FlightPhase
+
+client = TechlogClient()
 
 
 def parse_datetime(date_str, time_str):
-    """
-    Returns a datetime or None.
-    """
     if not date_str or not time_str:
         return None
-
     try:
-        return datetime.strptime(
-            f"{date_str} {time_str}",
-            "%Y-%m-%d %H:%M"
-        )
+        return datetime.strptime(f"{date_str} {time_str}", "%Y-%m-%d %H:%M")
     except ValueError:
         return None
-    
-def parse_date(date_str):    
-    """
-    Returns a datetime or None.
-    """
+
+
+def parse_date(date_str):
     if not date_str:
         return None
-
     try:
-        return datetime.strptime(
-            f"{date_str}",
-            "%Y-%m-%d"
-        )
-    
+        return datetime.strptime(f"{date_str}", "%Y-%m-%d")
     except ValueError:
         return None
+
 
 def loop_trough_fluids(post, tanks, *args):
     """Convert posted fluid values into a structured dictionary for processing."""
     return_dict = {}
-    
     for tank in tanks:
         return_dict[tank.id] = {}
         for arg in args:
             key = f"{arg}{tank.id}"
             return_dict[tank.id][arg] = post[key]
-
     return return_dict
 
+
 def update_fluid_tanks(value, tank):
+    """Update a fluid tank instance's current level via the API."""
+    res = from_api(FluidInstance, client.put(
+        f"fluid_instances/{tank.id}/",
+        data={"level": value}
+    ))
+    return bool(res)
 
-    """Update a fluid tank instance with a new fluid value."""
-    data = {
+
+def set_flight_fluid(value, tank, current_flight, phase, flight_fluid_instance=None):
+    """
+    Create or update a FlightFluid snapshot (historical record) for the
+    given current_flight + phase + tank, via the API.
+    """
+    payload = {
+        "fluid_id": tank.id,
+        "current_flight_id": current_flight.id,
+        "phase": phase,
         "level": value,
-        "fluid": tank
-    }
-    print(f'fluid tanks update data:   {data}')
-
-    form = UpdateFluidTanks(data=data, instance=tank)
-
-    if form.is_valid():
-        form.save()
-    else:
-        return form.errors
-
-def set_flight_fluid(value, tank, flight, phase, status, flight_fluid_instance=None):
-
-    """Store a flight fluid record for the current flight and phase."""
-    print(f'flight fluid val dict:   {value}')
-    data = {
-        'fluid': tank.id,
-        'level': value
     }
 
-    if status == 'draft':
-        data['current_flight'] = flight
-        print(f'current flight is being updated:   {flight}')
+    if flight_fluid_instance is not None:
+        return from_api(
+            FlightFluid,
+            client.put(f"flight_fluids/{flight_fluid_instance.id}/", data=payload)
+        )
 
-        if phase == 0:
+    return from_api(
+        FlightFluid,
+        client.post("flight_fluids/", data=payload)
+    )
 
-            print(f'flight fluid data for departure dict:   {data}')
-            if flight_fluid_instance is not None:
-                form = CurrentFlightDepartureFluids(data=data, instance=flight_fluid_instance)
-            else:
-                form = CurrentFlightDepartureFluids(data=data)
 
-        if phase == 1:
+def save_departure_fuel_data(request, airframe_id, fuel_required, block_fuel):
+    """
+    Save the dispatch-required fuel and the actual fuel loaded (block fuel)
+    for the current flight, via the API.
+    """
+    from techlog.state import CurrentFlight
 
-            print(f'flight fluid data for arrival dict:   {data}')
-            if flight_fluid_instance is not None:
-                form = CurrentFlightArrivalFluids(data=data, instance=flight_fluid_instance)
-            else:
-                form = CurrentFlightArrivalFluids(data=data)
-    
-    if form.is_valid():
-        obj = form.save()
-        print(f'Fluid update form returned valid:   {obj}')
-    else:
-        print(form.errors)
+    result = from_api(
+        CurrentFlight,
+        client.put(f"airframes/{airframe_id}/current_flight/", data={
+            "required_fuel_in_kg": fuel_required,
+            "block_fuel_in_kg": block_fuel,
+        })
+    )
+    invalidate_airframe_cache(request, airframe_id)
+    return result
 
-def save_departure_fuel_data(current_flight, fuel_required, block_fuel):
-    """Save departure fuel summary values for the current flight."""
-    current_flight.required_fuel_in_kg = fuel_required
-    current_flight.block_fuel_in_kg = block_fuel
-    current_flight.refuel_is_done = True
-    current_flight.save()
-    print(f'departure fuel saved:--------------------- fuel required: {fuel_required}, block fuel {block_fuel}')
 
 def fluids_are_done(flight_fluids, fluid_instances):
-    """Return completion status for fluid checks across the flight."""
-    fluids_statuses = {
-        'fuel': False,
-        'oil': False,
-        'hyd': False,
-        'water': False,
-    }
-
-    fluid_type_map = {
-        'fuel': 0,
-        'oil': 1,
-        'hyd': 2,
-        'water': 3,
-    }
+    fluids_statuses = {'fuel': False, 'oil': False, 'hyd': False, 'water': False}
+    fluid_type_map = {'fuel': 0, 'oil': 1, 'hyd': 2, 'water': 3}
 
     for status_key, fluid_type in fluid_type_map.items():
         instance_count = sum(
             1 for fi in fluid_instances
-            if fi.fluid_template.fluid_type == fluid_type
+            if fi.fluid_template and fi.fluid_template.fluid_type == fluid_type
         )
         flight_fluid_count = sum(
             1 for ff in flight_fluids
-            if ff.fluid.fluid_template.fluid_type == fluid_type
+            if ff.fluid and ff.fluid.fluid_template and ff.fluid.fluid_template.fluid_type == fluid_type
         )
         fluids_statuses[status_key] = instance_count == flight_fluid_count
 
     return fluids_statuses
+
 
 def summarize_defect_statuses(defect_actions):
     counts = {'open': 0, 'closed': 0, 'carry_fwd': 0}
